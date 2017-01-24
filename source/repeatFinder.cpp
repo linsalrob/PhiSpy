@@ -227,8 +227,12 @@ void print_output()
 {
 	int i,j,k;
 	FILE *f;
+	char outputfile[256];
 
-	f = fopen("repeat.txt","w");
+        strcpy (outputfile,inputfile);
+        strcat (outputfile,".repeatfinder");
+        f = fopen(outputfile,"w");
+
 	j = rep.size();
 
 	int totalRep = 0;

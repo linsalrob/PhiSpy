@@ -1,4 +1,5 @@
 import re
+import sys
 import string
 import os
 
@@ -10,34 +11,35 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
         return ''
 
     for line in f:
-        line = line.strip()
-        temp = re.split('\t',line)
+        temp = re.split('\t',line.strip())
         if int(temp[0]) == trainingFlag:
             f.close()
             return temp[1].strip()
     return ''
 
-def call_randomForest_generic(a,trainingFlag,wrtfile,INSTALLATION_DIR):
+def call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR):
+    infile = output_dir + "testSet.txt"
+    outfile = output_dir + "classify.txt"
     print 'Using training flag: ', trainingFlag
-    x = find_training_genome(trainingFlag,INSTALLATION_DIR)
-    if len(x)<2:
+    trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
+    if len(trainingFile)<2:
         return
-    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+"data/trainingSet/"+x+" "+a+" "+wrtfile+" "+str(trainingFlag)  
+    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile 
     os.system(cmd)
         
 def my_sort(orf_list):
      n = len(orf_list)
      i = 1
-     while(i<=n):
-          j = i+1
-          while( j<=n):
+     while( i <= n ):
+          j = i + 1 
+          while( j < n ):
                flag = 0
                #direction for both
-               if orf_list[i]['start']<orf_list[i]['stop']:
+               if( orf_list[i]['start'] < orf_list[i]['stop'] ):
                     dir_i = 1
                else:
                     dir_i = -1
-               if orf_list[j]['start']<orf_list[j]['stop']:
+               if( orf_list[j]['start'] < orf_list[j]['stop'] ):
                     dir_j = 1
                else:
                     dir_j = -1
@@ -70,38 +72,46 @@ def find_mean(all_len):
           sum = sum + i
      return float(sum)/len(all_len)
 
-def phage_function(c,INSTALLATION_DIR):
-    m = open(INSTALLATION_DIR+"data/phage_functions.txt",'r')
-    for line in m:
-        t = re.split('\t',line.strip())
-        if len(t) == 4:
-            a = t[3].upper().strip()
-            a = a.replace('-',' ')
-            if a in c or c in a:
-                if 'hypothetical' in c:
-                    continue
-                m.close()
-                return 1
-    m.close()
-    return 0
-            
-
 def calc_pp(func,INSTALLATION_DIR):
     x = 0
     func = func.replace('-',' ')
     func = func.replace(',',' ')
     a = re.split(' ',func)
-    if ('phage' in a) or ('lysin' in a) or ('holin' in a) or ('capsid' in a) or ('tail' in a) or ('bacteriophage' in a) or ('prophage' in a) or ('portal' in a) or phage_function(func.lower(),INSTALLATION_DIR) == 1:
-        x = 1
+    if (
+       'phage'         in a or
+       'lysin'         in a or
+       'endolysin'     in a or
+       'holin'         in a or
+       'capsid'        in a or
+       'tail'          in a or
+       'bacteriophage' in a or
+       'prophage'      in a or
+       'portal'        in a or
+       'terminase'     in a or
+       'baseplate'     in a or 
+       'virion'        in a or
+       'antirepressor' in a or
+       'excisionase' in a or
+       re.search(r"\b%s\b" % "tape measure", func) or
+       re.search(r"\b%s\b" % "Cro-like repressor", func) or
+       re.search(r"\b%s\b" % "CI-like repressor", func) or
+       re.search(r"\b%s\b" % "rIIA lysis", func) or
+       re.search(r"\b%s\b" % "rI lysis", func) or
+       re.search(r"\b%s\b" % "rIIB lysis", func) or
+       re.search(r"\b%s\b" % "tape measure", func) or
+       re.search(r"\b%s\b" % "base plate", func)
+       ):
+           x = 1
+    elif ('unknown' in func) or ('hypothetical' in func):
+           x = 0.5
     else:
-        if 'unknown' in func:
-            x = 0.5
-        else:
-            x = 0
-    if 'recombinase' in a or 'integrase' in a:
-        x = 1.5
-    if ('phage' in a) and ('shock' in a):
-        x = 0
+           x = 0
+    if 'recombinase' in func or 'integrase' in func:
+           x = 1.5
+    if ('phage' in func) and ('shock' in func):
+           x = 0
+    if "dna binding domain" in func:
+           x = 0
     return x
 
 def calc_function_3files(organism):
@@ -159,7 +169,6 @@ def input_bactpp(organism,INSTALLATION_DIR):
             temp[1] = ttemp[len(ttemp)-1]
         temp1 = re.split('_',temp[1])
 
-        #contig = temp1[len(temp1)-3]
         contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
             
         start = int(temp1[len(temp1)-2])
@@ -168,88 +177,109 @@ def input_bactpp(organism,INSTALLATION_DIR):
               
         #save info for sorting orf
         if contig in all_orf_list:
-            x = len(all_orf_list[contig])+1
+            x = len(all_orf_list[contig]) + 1
         else:
             x = 1
             all_orf_list[contig]={}
 
         all_orf_list[contig][x]={}
+        all_orf_list[contig][x]['fig'] = temp[0]
+        all_orf_list[contig][x]['contig'] = str(contig)
         all_orf_list[contig][x]['start'] = start
         all_orf_list[contig][x]['stop'] = stop
         if temp[0] in my_func:
-            all_orf_list[contig][x]['fig'] = temp[0]+'\t'+my_func[temp[0]]+'\t'+contig+'\t'+str(start)+'\t'+str(stop)
+            all_orf_list[contig][x]['function'] = my_func[temp[0]]
             all_orf_list[contig][x]['pp'] = calc_pp(my_func[temp[0]].lower(),INSTALLATION_DIR)
         else:
-            all_orf_list[contig][x]['fig'] = temp[0]+'\t-'+'\t'+contig+'\t'+str(start)+'\t'+str(stop)
+            all_orf_list[contig][x]['function'] = "-"
             all_orf_list[contig][x]['pp'] = 0.5
     fh.close()
-    
+   
     all = {}
     index = 1
     for mycontig in all_orf_list:
         orf_list = my_sort(all_orf_list[mycontig])
         i = 1
-        while i < len(orf_list):
+        while i <= len(orf_list):
             all[index] = {}
             all[index]['fig'] = orf_list[i]['fig']
-            all[index]['status'] = 0
+            all[index]['function'] = orf_list[i]['function']
+            all[index]['contig'] = orf_list[i]['contig']
+            all[index]['start'] = orf_list[i]['start']
+            all[index]['stop'] = orf_list[i]['stop']
             all[index]['rank'] = 0.0
+            all[index]['status'] = 0
             all[index]['pp'] = orf_list[i]['pp']
             i = i+1
             index = index+1
     return all
 
-def make_tbl(alist,input_classify,output_tblfile,window,INSTALLATION_DIR):
-    for l in alist:
-        orgf = l+'/Features/peg/tbl'
+def make_initial_tbl(organismPath, output_dir,window,INSTALLATION_DIR):
         try:
-        #fr = open(orgf,'r')
-            frm = open(input_classify,'r')
-            fw = open(output_tblfile,'w')
+            infile = open(output_dir+'classify.txt','r')
+            outfile = open(output_dir+'initial_tbl.txt','w')
         except:
-            print 'cant open',input_classify
-            continue
-        x = input_bactpp(l,INSTALLATION_DIR)
+            sys.exit('ERROR: Cannot open '+output_dir+'classify.txt')
+        x = input_bactpp(organismPath,INSTALLATION_DIR)
         j = 1
-        for line in frm:
-            temp1 = re.split('\t',line.strip())
-            val = float(temp1[0])
-            k= j
-            while  k < (j + window) and k < len(x):
-                x[k]['rank'] = x[k]['rank'] + val
-                k = k+1
-            j = j+1
-        frm.close()
-            
-        #claculate threshold
+	ranks = [[] for n in xrange(len(x))]
+        for line in infile:
+            val = float(line.strip())
+            for k in range(j-int(window/2),j+int(window/2)):
+                 if( (k <= 0) or (k >= len(x)) or x[k]['contig'] <> x[j]['contig']):
+                      continue
+                 ranks[k].append(val)
+            j += 1
+        infile.close()
+	#calculate threshold
+
         y = []
         j = 1
         while j < len(x):
-            y.append(x[j]['rank']/window)
+            x[j]['rank'] = sum(ranks[j])/len(ranks[j]) 
+            x[j]['extra'] =  ranks[j] 
+            y.append(x[j]['rank'])
+            #y.append([x[j]['rank']])
             j = j+1
-        y.sort()
-        #print len(y)
-        threshold = (y[len(y)-1])/2
-        #print threshold,y[len(y)-1],len(y)
+        threshold = max(y)/2
+        #km = KMeans(n_clusters = 2)
+        #km.fit(y2)
+        #centers = km.cluster_centers_
             
         j = 1
-        fw.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\n')
+        outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
         while j < len(x):
-            x[j]['rank'] = x[j]['rank']/window
             if x[j]['rank'] > threshold:
                 x[j]['status'] = 1
-            fw.write(str(x[j]['fig'])+'\t'+str(j)+'\t'+str(x[j]['rank'])+'\t'+str(x[j]['status'])+'\t'+str(x[j]['pp'])+'\n')
+            outfile.write(str(x[j]['fig']))
+            outfile.write('\t')
+            outfile.write(str(x[j]['function']))
+            outfile.write('\t')
+            outfile.write(str(x[j]['contig']))
+            outfile.write('\t')
+            outfile.write(str(x[j]['start']))
+            outfile.write('\t')
+            outfile.write(str(x[j]['stop']))
+            outfile.write('\t')
+            outfile.write(str(j))
+            outfile.write('\t')
+            outfile.write(str(x[j]['rank']))
+            outfile.write('\t')
+            outfile.write(str(x[j]['status']))
+            outfile.write('\t')
+            outfile.write(str(x[j]['pp']))
+            outfile.write('\n')
             j = j+1
-        fw.close()
+        outfile.close()
         
 
 ##########################################################################
 
 def call_classificaton(organismPath,output_dir,trainingFlag,INSTALLATION_DIR):
-    call_randomForest_generic(output_dir+'testSet.txt',trainingFlag,output_dir+'classify.txt',INSTALLATION_DIR)        
-    make_tbl([organismPath],output_dir+'classify.txt',output_dir+'initial_tbl.txt',40,INSTALLATION_DIR)            
+    # Make classify.txt file
+    call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR)        
+    # Make initial_tbl.txt file
+    make_initial_tbl(organismPath,output_dir,40,INSTALLATION_DIR)            
 
-    cmd2 = "rm "+output_dir+'testSet.txt'
-    os.system(cmd2)
-    cmd2 = "rm "+output_dir+'classify.txt'
-    os.system(cmd2)
+    os.remove(output_dir + 'testSet.txt')
+    os.remove(output_dir + 'classify.txt')

@@ -8,7 +8,7 @@ def unknown_func(x):
 
     if (
        (len(x) == 0) or
-       ('hypoth' in x_lower) or
+       #('hypoth' in x_lower) or
        ('conserved protein' in x_lower) or
        ('gene product' in x_lower) or
        ('interpro' in x_lower) or
