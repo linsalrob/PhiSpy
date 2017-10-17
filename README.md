@@ -26,7 +26,7 @@ The program should run on all Unix platforms, although it was not tested in all 
 
 # SOFTWARE REQUIREMENTS
 
-PhiSpy requires following programs to be installed in the system.
+PhiSpy requires following programs to be installed in the system. NOTE: You can ignore this if you're using the singularity container method of installation.
 
 1. Python - version 2.7.2 or later
 2. Biopython - version 1.58 or later 
@@ -41,6 +41,11 @@ PhiSpy requires following programs to be installed in the system.
 2. `% cd PhiSpy-X.X`
 3. `% make`
 
+# ALTERNATE INSTALLATION
+
+1. Get [singularity](http://singularity.lbl.gov/all-releases).
+2. Build phispy.img using this [repository](https://github.com/hurwitzlab/singularity-phispy).
+3. Run the singularity image as an executable `% ./phispy.img` or explicitly call the script `% singularity exec phispy.img PhiSpy.py` 
 
 TO TEST THE PROGRAM
 
