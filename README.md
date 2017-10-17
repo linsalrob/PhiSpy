@@ -43,9 +43,9 @@ PhiSpy requires following programs to be installed in the system. NOTE: You can 
 
 # ALTERNATE INSTALLATION
 
-1. Get [singularity](http://singularity.lbl.gov/all-releases).
-2. Build phispy.img using this [repository](https://github.com/hurwitzlab/singularity-phispy).
-3. Run the singularity image as an executable `% ./phispy.img`.
+1. Get [singularity](http://singularity.lbl.gov/all-releases)
+2. Build phispy.img using this [repository](https://github.com/hurwitzlab/singularity-phispy)
+3. Run the singularity image as an executable `% ./phispy.img`
 4. OR explicitly call the script `% singularity exec phispy.img PhiSpy.py` 
 
 TO TEST THE PROGRAM
