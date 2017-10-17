@@ -51,11 +51,8 @@ PhiSpy requires following programs to be installed in the system. NOTE: You can 
 
 TO TEST THE PROGRAM
 
-1. Download the example Organism directory ([Test_Organism.zip](Test_Organism.zip)) 
-2. Uncompress Test_Organism.zip
-3. Move 'Test_Organism' to the current PhiSpy directory
-4. `% cd PhiSpy`
-5. `% ./PhiSpy.py -i Test_Organism/160490.1/ -o output_directory -t 25`
+1. `% cd PhiSpy`
+2. `% ./PhiSpy.py -i Test_Organism/160490.1/ -o output_directory -t 25`
 
 Test_Organism/160490.1/ is a seed annotation directory for genome 'Streptococcus pyogenes M1 GAS'. 
 You will find the output files of this genome at output_directory.
