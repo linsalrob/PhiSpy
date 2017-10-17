@@ -38,8 +38,9 @@ PhiSpy requires following programs to be installed in the system. NOTE: You can 
 # INSTALLATION
 
 1. Clone this repository
-2. `% cd PhiSpy-X.X`
+2. `% cd PhiSpy`
 3. `% make`
+4. For ease of use, add the location of PhiSpy.py to your $PATH.
 
 # ALTERNATE INSTALLATION
 
