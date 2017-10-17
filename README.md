@@ -37,7 +37,7 @@ PhiSpy requires following programs to be installed in the system. NOTE: You can 
 
 # INSTALLATION
 
-1. `% tar xvfz PhiSpy-X.X `
+1. Clone this repository
 2. `% cd PhiSpy-X.X`
 3. `% make`
 
@@ -45,8 +45,8 @@ PhiSpy requires following programs to be installed in the system. NOTE: You can 
 
 1. Get [singularity](http://singularity.lbl.gov/all-releases)
 2. Build phispy.img using this [repository](https://github.com/hurwitzlab/singularity-phispy)
-3. Run the singularity image as an executable `% ./phispy.img`
-4. OR explicitly call the script `% singularity exec phispy.img PhiSpy.py` 
+3. Run the singularity image `% singularity exec phispy.img PhiSpy.py`
+4. NOTE: if you haven't used singularity before you'll need to know about [binding directories](http://singularity.lbl.gov/quickstart#working-with-files) so that PhiSpy can find your input and output.
 
 TO TEST THE PROGRAM
 
