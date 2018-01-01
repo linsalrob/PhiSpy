@@ -57,10 +57,10 @@ def convert_contigs(argv):
 
         # write some information about the genome
         orgout = open(os.path.join(org_dir, 'GENOME'), 'w')
-        if 'source' in seq_record.annoations:
-            orgout.write(seq_record.annoations['source'])
-        elif 'organism' in seq_record.annoations:
-            orgout.write(seq_record.annoations['organism'])
+        if 'source' in seq_record.annotations:
+            orgout.write(seq_record.annotations['source'])
+        elif 'organism' in seq_record.annotations:
+            orgout.write(seq_record.annotations['organism'])
         else:
             sys.stderr.write("Couldn't find either source or organism so no information written\n")
         orgout.close()
