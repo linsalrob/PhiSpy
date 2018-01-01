@@ -20,13 +20,13 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
 def call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR):
     infile = output_dir + "testSet.txt"
     outfile = output_dir + "classify.txt"
-    print 'Using training flag: ', trainingFlag
+    print('Using training flag: ', trainingFlag)
     trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
     if len(trainingFile)<2:
         return
-    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile 
+    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile
     os.system(cmd)
-        
+
 def my_sort(orf_list):
      n = len(orf_list)
      i = 1
@@ -149,8 +149,8 @@ def calc_function_3files(organism):
 
     return my_func
 
-def input_bactpp(organism,INSTALLATION_DIR):
-    bact_file = organism+'/Features/peg/tbl'     
+def input_bactpp(organism, INSTALLATION_DIR):
+    bact_file = organism+'/Features/peg/tbl'
     try:
         fh = open(bact_file,'r')
     except:
@@ -214,25 +214,27 @@ def input_bactpp(organism,INSTALLATION_DIR):
             index = index+1
     return all
 
-def make_initial_tbl(organismPath, output_dir,window,INSTALLATION_DIR):
+def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         try:
             infile = open(output_dir+'classify.txt','r')
             outfile = open(output_dir+'initial_tbl.txt','w')
         except:
+            sys.stderr.write("Tried to open " + infile + " and " + outfile + "\n")
             sys.exit('ERROR: Cannot open '+output_dir+'classify.txt')
         x = input_bactpp(organismPath,INSTALLATION_DIR)
+        sys.stderr.write("Have a data structure with " + str(len(x)) + " elements\n")
         j = 1
-	ranks = [[] for n in xrange(len(x))]
+        ranks = [[] for n in xrange(len(x))]
         for line in infile:
             val = float(line.strip())
             for k in range(j-int(window/2),j+int(window/2)):
-                 if( (k <= 0) or (k >= len(x)) or x[k]['contig'] <> x[j]['contig']):
-                      continue
-                 ranks[k].append(val)
+                if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] <> x[j]['contig']:
+                    continue
+                ranks[k].append(val)
             j += 1
         infile.close()
-	#calculate threshold
 
+        #calculate threshold
         y = []
         j = 1
         while j < len(x):

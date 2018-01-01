@@ -131,7 +131,7 @@ def my_sort(orf_list):
 
 
 def complement(gene):
-    complements = str.maketrans('acgtrymkbdhvACGTRYMKBDHV', 'tgcayrkmvhdbTGCAYRKMVHDB')
+    complements = string.maketrans('acgtrymkbdhvACGTRYMKBDHV', 'tgcayrkmvhdbTGCAYRKMVHDB')
     rcseq = gene.translate(complements)[::-1]
     return rcseq
 
