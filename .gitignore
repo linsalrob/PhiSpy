@@ -90,3 +90,6 @@ ENV/
 
 # pycharm
 .idea/
+
+# Repeat Finder that we make
+source/repeatFinder
