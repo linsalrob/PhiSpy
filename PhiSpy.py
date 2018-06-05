@@ -30,7 +30,7 @@ def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evalua
             return
         if (quietMode == 0):
             print 'Start Classification Algorithm'
-        classification.call_classificaton(organismPath, output_dir, trainingFlag, INSTALLATION_DIR)
+        classification.call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR)
 
         if (quietMode == 0):
             print 'Done with classification Algorithm'

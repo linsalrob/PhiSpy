@@ -113,12 +113,12 @@ def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
             rep[index]['e2'] = temp[3] + st
             index += 1
     infile.close()
-    """
+
     if os.path.exists(output_dir + tempOutFile):
         os.remove(output_dir + tempOutFile)
     if os.path.exists(output_dir + tempOutFile + ".repeatfinder"):
         os.remove(output_dir + tempOutFile + ".repeatfinder")
-    """
+
     return rep
 
 def check_intg(prophage_sta,prophage_sto,rep,integ,con):
@@ -202,7 +202,7 @@ def check_pp(contig,start,stop,pp):
 
     for j in pp:
         if contig == pp[j]['contig']:
-            if pp[j]['start'] < start and pp[j]['stop'] > stop:
+            if pp[j]['start'] <= start and pp[j]['stop'] >= stop:
                 return j
     return 0
 
@@ -352,8 +352,6 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
 
     infile.close()
 
-
-
     # filter based on how many genes are in the window
     temppp = {}
     j = 1
@@ -365,7 +363,7 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
             sys.stderr.write("Potential prophage from " + str(pp[i]['start']) + " to " + str(pp[i]['stop']))
             sys.stderr.write(" dropped because it only has " + str(pp[i]['num genes']) + " genes which is below the threshold\n")
     pp = temppp
-
+    sys.stderr.write("\n")
     # find start end for all pp using repeat finder
     dna = read_contig(organism_path)
     extraDNA = 2000
@@ -554,41 +552,32 @@ def make_prophage_tbl(inputf, outputf):
 
     pp = {}
     ppindx = 0
-    flag = 0
-    total_phage_gene = 0
-    prev_contig = ''
+    prev_contig = None
+    inphage = False
 
+    header = f.readline()
     for line in f:
-        if flag == 0:
-            flag = 1
-            continue
-        temp = re.split('\t', line.strip())
-        if int(temp[9]) == 1:
-            if total_phage_gene == 0 or prev_contig != temp[2]:
-                id_temp = temp[0][:len(temp[0]) - temp[0][::-1].find('.') - 4]
-                id_temp = id_temp + 'pp.' + str(ppindx)
-                loc_temp = temp[2] + '_'
-                if int(temp[3]) > int(temp[4]):
-                    loc_temp = loc_temp + temp[4] + '_'
-                else:
-                    loc_temp = loc_temp + temp[3] + '_'
+        temp = line.strip().split("\t")
+        if int(temp[9]) > 0:
+            newphage = False
+            if temp[2] != prev_contig:
+                newphage = True
+            if not inphage:
+                newphage = True
 
-                pp[ppindx] = id_temp + '\t' + loc_temp
-                ppindx = ppindx + 1
-                prev_contig = temp[2]
-                total_phage_gene = 0
-
-            total_phage_gene = total_phage_gene + 1
-
-            if int(temp[3]) > int(temp[4]):
-                pp[ppindx - 1] = pp[ppindx - 1][:len(pp[ppindx - 1]) - pp[ppindx - 1][::-1].find('_')] + temp[3]
+            if newphage:
+                ppindx += 1
+                pp[ppindx]['contig'] = temp[2]
+                pp[ppindx]['start'] = min(int(temp[3], int(temp[4])))
+                pp[ppindx]['stop'] = max(int(temp[3], int(temp[4])))
             else:
-                pp[ppindx - 1] = pp[ppindx - 1][:len(pp[ppindx - 1]) - pp[ppindx - 1][::-1].find('_')] + temp[4]
+                pp[ppindx]['stop'] = max(int(temp[3], int(temp[4])))
+            inphage = True
         else:
-            total_phage_gene = 0
+            inphage = False
 
     for i in pp:
-        fw.write(pp[i] + '\n')
+        fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + pp[i]['start'] + "_" + pp[i]['stop'] + "\n")
 
     f.close()
     fw.close()
@@ -600,5 +589,5 @@ def make_prophage_tbl(inputf, outputf):
 def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
     # Make the prophage_tbl_temp.txt file.
     fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)
-    fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
+    #fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
     # make_prophage_tbl(output_dir + 'prophage_tbl.txt', output_dir + 'prophage.tbl')

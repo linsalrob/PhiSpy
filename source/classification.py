@@ -258,7 +258,7 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         Note added by Rob:
         At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
         start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
-        or 
+        or just a plain threshold.
         
         """
 
@@ -291,11 +291,11 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
 
 ##########################################################################
 
-def call_classificaton(organismPath,output_dir,trainingFlag,INSTALLATION_DIR):
+def call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR):
     # Make classify.tsv file
     call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR)        
     # Make initial_tbl.tsv file
-    make_initial_tbl(organismPath,output_dir,40,INSTALLATION_DIR)            
+    make_initial_tbl(organismPath,output_dir,phageWindowSize,INSTALLATION_DIR)
 
-    #os.remove(output_dir + 'testSet.txt')
-    #os.remove(output_dir + 'classify.tsv')
+    os.remove(output_dir + 'testSet.txt')
+    os.remove(output_dir + 'classify.tsv')
