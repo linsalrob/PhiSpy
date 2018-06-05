@@ -2,6 +2,8 @@ import re
 import sys
 import string
 import os
+from sklearn.cluster import KMeans
+from numpy import array
 
 def find_training_genome(trainingFlag,INSTALLATION_DIR):
     try:
@@ -19,7 +21,7 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
 
 def call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR):
     infile = output_dir + "testSet.txt"
-    outfile = output_dir + "classify.txt"
+    outfile = output_dir + "classify.tsv"
     print('Using training flag: ', trainingFlag)
     trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
     if len(trainingFile)<2:
@@ -216,11 +218,11 @@ def input_bactpp(organism, INSTALLATION_DIR):
 
 def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         try:
-            infile = open(output_dir+'classify.txt','r')
-            outfile = open(output_dir+'initial_tbl.txt','w')
+            infile = open(output_dir+'classify.tsv','r')
+            outfile = open(output_dir+'initial_tbl.tsv','w')
         except:
             sys.stderr.write("Tried to open " + infile + " and " + outfile + "\n")
-            sys.exit('ERROR: Cannot open '+output_dir+'classify.txt')
+            sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
         x = input_bactpp(organismPath,INSTALLATION_DIR)
         sys.stderr.write("Have a data structure with " + str(len(x)) + " elements\n")
         j = 1
@@ -243,11 +245,23 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
             y.append(x[j]['rank'])
             #y.append([x[j]['rank']])
             j = j+1
-        threshold = max(y)/2
-        #km = KMeans(n_clusters = 2)
-        #km.fit(y2)
-        #centers = km.cluster_centers_
-            
+
+        #threshold = max(y)/2
+
+        y2=array(y).reshape(-1,1)
+        km = KMeans(n_clusters = 2)
+        km.fit(y2)
+        centers = km.cluster_centers_
+        threshold = max(centers[0][0], centers[1][0])
+
+        """
+        Note added by Rob:
+        At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
+        start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
+        or 
+        
+        """
+
         j = 1
         outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
         while j < len(x):
@@ -278,10 +292,10 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
 ##########################################################################
 
 def call_classificaton(organismPath,output_dir,trainingFlag,INSTALLATION_DIR):
-    # Make classify.txt file
+    # Make classify.tsv file
     call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR)        
-    # Make initial_tbl.txt file
+    # Make initial_tbl.tsv file
     make_initial_tbl(organismPath,output_dir,40,INSTALLATION_DIR)            
 
-    os.remove(output_dir + 'testSet.txt')
-    os.remove(output_dir + 'classify.txt')
+    #os.remove(output_dir + 'testSet.txt')
+    #os.remove(output_dir + 'classify.tsv')

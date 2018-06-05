@@ -78,7 +78,7 @@ def start_propgram(argv):
 
     args_parser = argparse.ArgumentParser(
         description="phiSpy is a program for identifying prophages from among microbial genome sequences",
-        epilog="(c) 2008-2017 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
+        epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
     args_parser.add_argument('-t', '--training_set', default=0, type=int,
                              help='Choose a training set from the list of training sets.')
     args_parser.add_argument('-l', '--list', type=bool, default=False, const=True, nargs='?',
