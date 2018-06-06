@@ -83,6 +83,9 @@ iii. assigned_functions file: organism_directory/assigned_functions or organism_
 iv.  tbl file for rna: organism_directory/Features/rna/tbl
 
 
+_Note:_
+The assigned functions file may not be in the RAST genome directory. You can create it from proposed_functions and proposed_non_ff_functions or you can use [this perl script](/home/redwards/Dropbox/GitHubs/EdwardsLab/RAST/make_assigned_functions.pl) to create an assigned_functions file for you.
+
 # REQUIRED INPUT OPTION 
 
 The program will take 1 command line input.
