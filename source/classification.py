@@ -90,17 +90,18 @@ def calc_pp(func,INSTALLATION_DIR):
        'prophage'      in a or
        'portal'        in a or
        'terminase'     in a or
+       'tapemeasure'   in a or
        'baseplate'     in a or 
        'virion'        in a or
        'antirepressor' in a or
-       'excisionase' in a or
+       'excisionase'   in a or
+       'mobile element protein' == func or
        re.search(r"\b%s\b" % "tape measure", func) or
        re.search(r"\b%s\b" % "Cro-like repressor", func) or
        re.search(r"\b%s\b" % "CI-like repressor", func) or
        re.search(r"\b%s\b" % "rIIA lysis", func) or
        re.search(r"\b%s\b" % "rI lysis", func) or
        re.search(r"\b%s\b" % "rIIB lysis", func) or
-       re.search(r"\b%s\b" % "tape measure", func) or
        re.search(r"\b%s\b" % "base plate", func)
        ):
            x = 1
