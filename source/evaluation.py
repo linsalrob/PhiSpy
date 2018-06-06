@@ -352,18 +352,37 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
 
     infile.close()
 
-    # filter based on how many genes are in the window
+    #######################################################################################
+    #                                                                                     #
+    # Filter the potential prophages based on how many potential prophage genes are       #
+    # in the window, and tell us which ones were dropped.                                 #
+    #                                                                                     #
+    #######################################################################################
+
+
     temppp = {}
     j = 1
+    dropped = []
     for i in pp:
         if pp[i]['num genes'] >= phageWindowSize:
             temppp[j] = pp[i]
             j += 1
         else:
-            sys.stderr.write("Potential prophage from " + str(pp[i]['start']) + " to " + str(pp[i]['stop']))
-            sys.stderr.write(" dropped because it only has " + str(pp[i]['num genes']) + " genes which is below the threshold\n")
+            dropped.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes']])
+
+    # reverse sort the list as we print it out
+    if dropped:
+        sys.stderr.write('Potential prophages dropped because not enough genes (sorted highest to lowest)\n')
+        sys.stderr.write('Contig\tStart\tStop\tNumber of potential genes\n')
+        for d in sorted(dropped, key=lambda x: x[3], reverse=True):
+            sys.stderr.write("\t".join(map(str, d)) + "\n")
+
     pp = temppp
     sys.stderr.write("\n")
+
+
+    # End filtering
+
     # find start end for all pp using repeat finder
     dna = read_contig(organism_path)
     extraDNA = 2000
@@ -443,7 +462,7 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
     # fix start end for all pp
     try:
         infile = open(output_dir + 'initial_tbl.tsv', 'r')
-        outfile = open(output_dir + 'prophage_tbl_temp.tsv', 'w')
+        outfile = open(output_dir + 'prophage_tbl.tsv', 'w')
     except:
         sys.exit('ERROR: Cannot open ' + output_dir + 'initial_tbl.tsv')
 
@@ -460,7 +479,7 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
 
     infile.close()
     outfile.close()
-    # os.remove(output_dir + 'initial_tbl.tsv')
+    os.remove(output_dir + 'initial_tbl.tsv')
 
     # print the prophage coordinates:
     out = open(output_dir + 'prophage_coordinates.tsv', 'w')
@@ -468,78 +487,16 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
         if 'att' not in pp[i]:
             pp[i]['att']=""
         out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['att']])) + "\n")
-        out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['stop'], pp[i]['start'], pp[i]['att']])) + "\n")
+    out.close()
+
+    # write the prophage location table
+
+    out = open(output_dir + "prophage.tbl", "w")
+    for i in pp:
+        out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
     out.close()
 
 
-############################## added in new version  ##################################################
-def fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize):
-    try:
-        infile = open(output_dir + 'prophage_tbl_temp.tsv', 'r')
-    except:
-        sys.exit("ERROR: Cannot open " + output_dir + "prophage_tbl_temp.tsv")
-
-    pp_change = []
-    fn_end = 0
-    fn_start = 0
-    count_fn = 0
-    temp = []
-    print("Threshold for fn is ", threshold_for_FN)
-    for line in infile:
-        oldtemp = temp
-        temp = re.split('\t', line.strip())
-        if temp[1] == 'function':
-            continue
-
-        me = int(temp[9])
-        pp = float(temp[8])
-
-        if temp[2] != oldtemp[2]:  # new contig
-            count_fn = 0
-
-        if count_fn == 0:
-            if me == 0 and pp >= 1:
-                count_fn = 1
-                fn_start = int(temp[5])
-            elif me == 1 or pp >= 1:
-                count_fn = 1
-                fn_start = int(temp[5])
-                fn_end = int(temp[5])
-        else:
-            if me == 1 or pp >= 1:
-                count_fn += 1  # we are in a run of prophage genes
-                fn_end = int(temp[5])
-            else:
-                # we are not in a run of prophage genes, or in the midst of one, but we'll go to the last
-                # gene we've seen
-                if (int(temp[5]) - fn_start) > 2 * phageWindowSize:
-                    if count_fn > threshold_for_FN:
-                        while fn_start <= fn_end:
-                            pp_change.append(fn_start)
-                            fn_start = fn_start + 1
-                    count_fn = 0
-    infile.close()
-
-    try:
-        infile = open(output_dir + 'prophage_tbl_temp.tsv', 'r')
-        outfile = open(output_dir + "prophage_tbl.tsv", 'w')
-    except:
-        sys.exit("ERROR: Cannot open " + output_dir + "prophage_tbl.tsv")
-
-    for line in infile:
-        temp = re.split('\t', line.strip())
-        if temp[1] == 'function':
-            outfile.write(line)
-            continue
-
-        position = int(temp[5])
-        if position in pp_change:
-            line = line.strip()
-            line = line[0:len(line) - 1] + '1' + '\n'
-        outfile.write(line)
-    infile.close()
-    outfile.close()
-    #os.remove(output_dir + 'prophage_tbl_temp.tsv')
 
 
 def make_prophage_tbl(inputf, outputf):
@@ -567,17 +524,19 @@ def make_prophage_tbl(inputf, outputf):
 
             if newphage:
                 ppindx += 1
+                pp[ppindx] = {}
                 pp[ppindx]['contig'] = temp[2]
-                pp[ppindx]['start'] = min(int(temp[3], int(temp[4])))
-                pp[ppindx]['stop'] = max(int(temp[3], int(temp[4])))
+                pp[ppindx]['start'] = min(int(temp[3]), int(temp[4]))
+                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
             else:
-                pp[ppindx]['stop'] = max(int(temp[3], int(temp[4])))
+                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
             inphage = True
+            prev_contig = temp[2]
         else:
             inphage = False
 
     for i in pp:
-        fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + pp[i]['start'] + "_" + pp[i]['stop'] + "\n")
+        fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
 
     f.close()
     fw.close()
@@ -589,5 +548,4 @@ def make_prophage_tbl(inputf, outputf):
 def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
     # Make the prophage_tbl_temp.txt file.
     fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)
-    #fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
-    # make_prophage_tbl(output_dir + 'prophage_tbl.txt', output_dir + 'prophage.tbl')
+    #make_prophage_tbl(output_dir + 'prophage_tbl.tsv', output_dir + 'prophage.tbl')
