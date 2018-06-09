@@ -20,6 +20,7 @@ def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evalua
     import evaluation
     import unknownFunction
 
+    sys.stderr.write("Running PhiSpy on " + organismPath + "\n")
     if (not evaluateOnly):
         if (quietMode == 0):
             print 'Making Test Set... (need couple of minutes)'
