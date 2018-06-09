@@ -225,7 +225,6 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
             sys.stderr.write("Tried to open " + infile + " and " + outfile + "\n")
             sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
         x = input_bactpp(organismPath,INSTALLATION_DIR)
-        sys.stderr.write("Have a data structure with " + str(len(x)) + " elements\n")
         j = 1
         ranks = [[] for n in xrange(len(x))]
         for line in infile:
