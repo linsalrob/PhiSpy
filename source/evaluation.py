@@ -362,20 +362,21 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
 
     temppp = {}
     j = 1
-    dropped = []
+    prophagesummary = []
     for i in pp:
         if pp[i]['num genes'] >= phageWindowSize:
             temppp[j] = pp[i]
             j += 1
+            prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
         else:
-            dropped.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes']])
+            prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Dropped. Not enough genes"])
 
-    # reverse sort the list as we print it out
-    if dropped:
-        sys.stderr.write('Potential prophages dropped because not enough genes (sorted highest to lowest)\n')
-        sys.stderr.write('Contig\tStart\tStop\tNumber of potential genes\n')
-        for d in sorted(dropped, key=lambda x: x[3], reverse=True):
-            sys.stderr.write("\t".join(map(str, d)) + "\n")
+    # print a list of all prophages and the number of genes
+    if prophagesummary:
+        sys.stderr.write('Potential prophages (sorted highest to lowest)\n')
+        sys.stderr.write('Contig\tStart\tStop\tNumber of potential genes\tStatus\n')
+        for p in sorted(prophagesummary, key=lambda x: x[3], reverse=True):
+            sys.stderr.write("\t".join(map(str, p)) + "\n")
 
     pp = temppp
     sys.stderr.write("\n")
