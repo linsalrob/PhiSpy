@@ -13,12 +13,17 @@ except ImportError:
 def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
 
     sys.path.append(INSTALLATION_DIR+'source/')
+    import makeTrain
     import makeTest
     import classification
     import evaluation
     import unknownFunction
     
     if ( not evaluateOnly ):
+        if trainingFlag == -1:
+            print('Making Train Set... (need couple of minutes)')
+            my_make_train_flag = makeTrain.call_make_train_set(organismPath,output_dir,INSTALLATION_DIR)
+            exit()
         if (quietMode == 0):
             print('Making Test Set... (need couple of minutes)')
         
@@ -73,6 +78,7 @@ def start_propgram(argv):
         INSTALLATION_DIR = './'
 
     args_parser = argparse.ArgumentParser(description="phiSpy is a program for identifying prophages from among microbial genome sequences", epilog="(c) 2008-2017 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
+    args_parser.add_argument('-m', '--make_training_data', type=bool, default=False, const=True, nargs='?', help='Create training data from a set of annotated genome files')
     args_parser.add_argument('-t', '--training_set', default=0, type=int, help='Choose a training set from the list of training sets.')
     args_parser.add_argument('-l', '--list', type=bool, default=False, const=True, nargs='?', help='List the available training sets and exit')
     args_parser.add_argument('-c', '--choose', type=bool, default=False, const=True, nargs='?', help='Choose a training set from a list (overrides -t)')
@@ -94,6 +100,7 @@ def start_propgram(argv):
     organismPath = args_parser.input_dir
     trainingFlag = args_parser.training_set
 
+
     output_dir = output_dir.strip()
     if output_dir[len(output_dir)-1]!='/':
         output_dir = output_dir+'/'
@@ -112,6 +119,11 @@ def start_propgram(argv):
     organismPath = organismPath.strip()
     if organismPath[len(organismPath)-1]=='/':
         organismPath = organismPath[0:len(organismPath)-1]
+
+    
+    if args_parser.make_training_data:
+        call_phiSpy(organismPath,output_dir,-1,INSTALLATION_DIR,args_parser.evaluate, args_parser.number, args_parser.window_size,args_parser.quiet,args_parser.keep)
+        exit()
 
     try:
         f_dna = open(organismPath+'/contigs','r')
