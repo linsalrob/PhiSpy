@@ -21,20 +21,15 @@ def convert_contigs(argv):
         print 'Organism Directory: ',org_dir
     
     try:
-        f_contig = open(org_dir+'/contigs','w')
-        f_func = open(org_dir+'/assigned_functions','w')
+        f_contig = open(os.path.join(org_dir, 'contigs'),'w')
+        f_func = open(os.path.join(org_dir, 'assigned_functions'),'w')
 
-        cmd = 'mkdir '+ org_dir + '/Features'
-        os.system(cmd)
-        cmd = 'mkdir '+ org_dir + '/Features/peg'
-        os.system(cmd)
-        
-        f_peg = open(org_dir +'/Features/peg/tbl', 'w')
-         
-        cmd = 'mkdir '+ org_dir + '/Features/rna'
-        os.system(cmd)
+        os.mkdir(os.path.join(org_dir, 'Features'))
+        os.mkdir(os.path.join(org_dir, 'Features/peg'))
+        os.mkdir(os.path.join(org_dir, 'Features/rna'))
 
-        f_rna = open(org_dir +'/Features/rna/tbl', 'w')
+        f_peg = open(os.path.join(org_dir, 'Features/peg/tbl'), 'w')
+        f_rna = open(os.path.join(org_dir, 'Features/rna/tbl'), 'w')
     except:
         print 'ERROR: Can\'t write file(s) in',org_dir
         return
@@ -59,6 +54,24 @@ def convert_contigs(argv):
             print 'In the GenBank file, the sequence or contig_id is missing.'
             check_status = 1
             break
+
+        # write some information about the genome
+        orgout = open(os.path.join(org_dir, 'GENOME'), 'w')
+        if 'source' in seq_record.annotations:
+            orgout.write(seq_record.annotations['source'])
+        elif 'organism' in seq_record.annotations:
+            orgout.write(seq_record.annotations['organism'])
+        else:
+            sys.stderr.write("Couldn't find either source or organism so no information written\n")
+        orgout.close()
+
+        descout = open(os.path.join(org_dir, 'DESCRIPTION'), 'w')
+        descout.write(seq_record.description)
+        descout.close()
+
+
+
+
 
         # for peg/tbl and assigned_functions
         records = seq_record.features

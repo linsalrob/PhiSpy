@@ -2,6 +2,8 @@ import re
 import sys
 import string
 import os
+from sklearn.cluster import KMeans
+from numpy import array
 
 def find_training_genome(trainingFlag,INSTALLATION_DIR):
     try:
@@ -19,14 +21,14 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
 
 def call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR):
     infile = output_dir + "testSet.txt"
-    outfile = output_dir + "classify.txt"
-    print 'Using training flag: ', trainingFlag
+    outfile = output_dir + "classify.tsv"
+    print('Using training flag: ', trainingFlag)
     trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
     if len(trainingFile)<2:
         return
-    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile 
+    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile
     os.system(cmd)
-        
+
 def my_sort(orf_list):
      n = len(orf_list)
      i = 1
@@ -88,17 +90,18 @@ def calc_pp(func,INSTALLATION_DIR):
        'prophage'      in a or
        'portal'        in a or
        'terminase'     in a or
+       'tapemeasure'   in a or
        'baseplate'     in a or 
        'virion'        in a or
        'antirepressor' in a or
-       'excisionase' in a or
+       'excisionase'   in a or
+       'mobile element protein' == func or
        re.search(r"\b%s\b" % "tape measure", func) or
        re.search(r"\b%s\b" % "Cro-like repressor", func) or
        re.search(r"\b%s\b" % "CI-like repressor", func) or
        re.search(r"\b%s\b" % "rIIA lysis", func) or
        re.search(r"\b%s\b" % "rI lysis", func) or
        re.search(r"\b%s\b" % "rIIB lysis", func) or
-       re.search(r"\b%s\b" % "tape measure", func) or
        re.search(r"\b%s\b" % "base plate", func)
        ):
            x = 1
@@ -149,8 +152,8 @@ def calc_function_3files(organism):
 
     return my_func
 
-def input_bactpp(organism,INSTALLATION_DIR):
-    bact_file = organism+'/Features/peg/tbl'     
+def input_bactpp(organism, INSTALLATION_DIR):
+    bact_file = organism+'/Features/peg/tbl'
     try:
         fh = open(bact_file,'r')
     except:
@@ -214,25 +217,26 @@ def input_bactpp(organism,INSTALLATION_DIR):
             index = index+1
     return all
 
-def make_initial_tbl(organismPath, output_dir,window,INSTALLATION_DIR):
+def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         try:
-            infile = open(output_dir+'classify.txt','r')
-            outfile = open(output_dir+'initial_tbl.txt','w')
+            infile = open(output_dir+'classify.tsv','r')
+            outfile = open(output_dir+'initial_tbl.tsv','w')
         except:
-            sys.exit('ERROR: Cannot open '+output_dir+'classify.txt')
+            sys.stderr.write("Tried to open " + infile + " and " + outfile + "\n")
+            sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
         x = input_bactpp(organismPath,INSTALLATION_DIR)
         j = 1
-	ranks = [[] for n in xrange(len(x))]
+        ranks = [[] for n in xrange(len(x))]
         for line in infile:
             val = float(line.strip())
             for k in range(j-int(window/2),j+int(window/2)):
-                 if( (k <= 0) or (k >= len(x)) or x[k]['contig'] <> x[j]['contig']):
-                      continue
-                 ranks[k].append(val)
+                if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] <> x[j]['contig']:
+                    continue
+                ranks[k].append(val)
             j += 1
         infile.close()
-	#calculate threshold
 
+        #calculate threshold
         y = []
         j = 1
         while j < len(x):
@@ -241,11 +245,23 @@ def make_initial_tbl(organismPath, output_dir,window,INSTALLATION_DIR):
             y.append(x[j]['rank'])
             #y.append([x[j]['rank']])
             j = j+1
-        threshold = max(y)/2
-        #km = KMeans(n_clusters = 2)
-        #km.fit(y2)
-        #centers = km.cluster_centers_
-            
+
+        #threshold = max(y)/2
+
+        y2=array(y).reshape(-1,1)
+        km = KMeans(n_clusters = 2)
+        km.fit(y2)
+        centers = km.cluster_centers_
+        threshold = max(centers[0][0], centers[1][0])
+
+        """
+        Note added by Rob:
+        At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
+        start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
+        or just a plain threshold.
+        
+        """
+
         j = 1
         outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
         while j < len(x):
@@ -275,11 +291,11 @@ def make_initial_tbl(organismPath, output_dir,window,INSTALLATION_DIR):
 
 ##########################################################################
 
-def call_classificaton(organismPath,output_dir,trainingFlag,INSTALLATION_DIR):
-    # Make classify.txt file
+def call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR):
+    # Make classify.tsv file
     call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR)        
-    # Make initial_tbl.txt file
-    make_initial_tbl(organismPath,output_dir,40,INSTALLATION_DIR)            
+    # Make initial_tbl.tsv file
+    make_initial_tbl(organismPath,output_dir,phageWindowSize,INSTALLATION_DIR)
 
     os.remove(output_dir + 'testSet.txt')
-    os.remove(output_dir + 'classify.txt')
+    os.remove(output_dir + 'classify.tsv')
