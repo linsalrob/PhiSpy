@@ -9,7 +9,7 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
     try:
         f = open(INSTALLATION_DIR+"data/trainingGenome_list.txt","r")
     except:
-        print'cannot open '+INSTALLATION_DIR+'data/trainingGenome_list.txt'
+        print('cannot open '+INSTALLATION_DIR+'data/trainingGenome_list.txt')
         return ''
 
     for line in f:
@@ -157,7 +157,7 @@ def input_bactpp(organism, INSTALLATION_DIR):
     try:
         fh = open(bact_file,'r')
     except:
-        print 'cant open file- assigned functions/tbl file:',organism
+        print('cant open file- assigned functions/tbl file:',organism)
         return {}
  
     my_func = calc_function_3files(organism)
@@ -222,15 +222,14 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
             infile = open(output_dir+'classify.tsv','r')
             outfile = open(output_dir+'initial_tbl.tsv','w')
         except:
-            sys.stderr.write("Tried to open " + infile + " and " + outfile + "\n")
             sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
         x = input_bactpp(organismPath,INSTALLATION_DIR)
         j = 1
-        ranks = [[] for n in xrange(len(x))]
+        ranks = [[] for n in range(len(x))]
         for line in infile:
             val = float(line.strip())
             for k in range(j-int(window/2),j+int(window/2)):
-                if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] <> x[j]['contig']:
+                if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                     continue
                 ranks[k].append(val)
             j += 1
@@ -253,7 +252,6 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         km.fit(y2)
         centers = km.cluster_centers_
         threshold = max(centers[0][0], centers[1][0])
-
         """
         Note added by Rob:
         At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
@@ -261,7 +259,6 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         or just a plain threshold.
         
         """
-
         j = 1
         outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
         while j < len(x):
