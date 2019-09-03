@@ -79,40 +79,44 @@ def read_contig(organismPath):
      return dna
 
 def read_genbank(organismPath):
-	try:
-		f_dna = open(organismPath,'r')
-	except:
-		print('cant open genbank file ',organismPath)
-		return ''
-	dna = {}
-	peg = {}
-	seq = ''
-	name = ''
-	for line in f_dna:
-		if line.startswith('LOCUS '):
-			dna[name] = seq	
-			name = line.split()[1]
-			peg[name] = {}
-		elif line.startswith('ORIGIN'):
-			line = next(f_dna)
-			while not line.startswith('//'):
-				seq += ''.join(line.split()[1:])
-				line = next(f_dna)
-		elif line.startswith('     CDS '):
-			x = len(peg[name])
-			peg[name][x] = {}
-			loc = ''.join(c for c in line.split()[1] if c in '0123456789.,').replace('.',' ').replace(',',' ').split()
-			#line.split()[1].replace('complement(','').replace(')') 
-			peg[name][x]['start'] = int(loc[0])
-			peg[name][x]['stop'] = int(loc[-1])
-			peg[name][x]['peg'] = name + "_" + loc[0] + "_" + loc[-1]
-			peg[name][x]['is_phage'] = 0
-		elif line.startswith('                     /is_phage='):
-			x = len(peg[name])-1
-			peg[name][x]['is_phage'] = int(line.split('=')[1])
-	del dna['']
-	dna[name] = seq	
-	return dna, peg
+    try:
+        f_dna = open(organismPath,'r')
+    except:
+        print('cant open genbank file ',organismPath)
+        return ''
+    dna = {}
+    peg = {}
+    seq = ''
+    name = ''
+    for line in f_dna:
+        if line.startswith('LOCUS '):
+            dna[name] = seq    
+            name = line.split()[1]
+            peg[name] = {}
+        elif line.startswith('ORIGIN'):
+            line = next(f_dna)
+            while not line.startswith('//'):
+                seq += ''.join(line.split()[1:])
+                line = next(f_dna)
+        elif line.startswith('     CDS '):
+            x = len(peg[name])
+            peg[name][x] = {}
+            loc = ''.join(c for c in line.split()[1] if c in '0123456789.,').replace('.',' ').replace(',',' ').split()
+            #line.split()[1].replace('complement(','').replace(')') 
+            if 'complement' in line:
+                peg[name][x]['stop'] = int(loc[0])
+                peg[name][x]['start'] = int(loc[-1])
+            else:
+                peg[name][x]['start'] = int(loc[0])
+                peg[name][x]['stop'] = int(loc[-1])
+            peg[name][x]['peg'] = name + "_" + loc[0] + "_" + loc[-1]
+            peg[name][x]['is_phage'] = 0
+        elif line.startswith('                     /is_phage='):
+            x = len(peg[name])-1
+            peg[name][x]['is_phage'] = int(line.split('=')[1])
+    del dna['']
+    dna[name] = seq    
+    return dna, peg
 
 def my_sort(orf_list):
      n = len(orf_list)
@@ -329,6 +333,9 @@ def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
           orf_list = my_sort(all_orf_list[mycontig])
           ######################
           #avg_length = find_avg_length(orf_list)
+
+          if not orf_list:
+              continue
           all_median = find_all_median(orf_list)
           avg_at_skew, avg_gc_skew = find_avg_atgc_skew(orf_list,mycontig,dna)
           #####################
@@ -434,8 +441,7 @@ def call_make_train_set(organismPath,output_dir,INSTALLATION_DIR):
      except:
           sys.exit('ERROR: Cannot open file for writing:'+outfile)
      outfile.close()
-     for genbank_file in os.listdir(organismPath):
-         make_set_train(organismPath+"/"+genbank_file,output_dir,window,INSTALLATION_DIR)
+     make_set_train(organismPath, output_dir, window, INSTALLATION_DIR)
      # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
      num_lines = sum(1 for line in open(output_dir+'trainSet.txt','r'))
      if(num_lines > 0):

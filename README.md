@@ -87,7 +87,10 @@ iii. assigned_functions file: organism_directory/assigned_functions or organism_
 iv.  tbl file for rna: organism_directory/Features/rna/tbl
 
 
-# REQUIRED INPUT OPTION 
+_Note:_
+The assigned functions file may not be in the RAST genome directory. You can create it from proposed_functions and proposed_non_ff_functions or you can use [this perl script](/home/redwards/Dropbox/GitHubs/EdwardsLab/RAST/make_assigned_functions.pl) to create an assigned_functions file for you.
+
+# REQUIRED INPUT OPTIONS
 
 The program will take 1 command line input.
 
@@ -105,15 +108,54 @@ For the help menu use the -h option:
 
 # OUTPUT FILES
 
-There are 2 output files, located in output directory.
+There are 3 output files, located in output directory.
 
 1. prophage.tbl: This file has two columns separated by tabs [id, location]. 
-The id should be in the format: fig|genomeid.pp.number, where genome id is the id of the genome that is being processed, 
-and number is a sequential number of the prophage (starting at 1). 
-Location should be in the format: contig_start_stop that encompasses the prophage.
+The id is in the format: pp_number, where number is a sequential number of the prophage (starting at 1). 
+Location is be in the format: contig_start_stop that encompasses the prophage.
  
-2. prophage_tbl.txt: This is a tab seperated file. The file contains all the genes of the genome. The tenth colum represents the status of a gene. If this column is 1 then the gene is a phage like gene; otherwise it is a bacterial gene. 
-This file has 16 columns:(i) fig_no: the id of each gene; (ii) function: function of the gene;	(iii) contig; (iv) start: start location of the gene; (v) stop: end location of the gene; (vi) position: a sequential number of the gene (starting at 1); (vii)	rank: rank of each gene provided by random forest; (viii) my_status: status of each gene based on random forest; (ix) pp: classification of each gene based on their function; (x) Final_status: the status of each gene, if this column is 1 then the gene is a phage like gene, otherwise it is a bacterial gene; (xi) start of attL; (xii) end of attL; (xiii) start of attR; (xiv) end of attR; (xv) sequence of attL; (xvi) sequence of attR.
+2. prophage_tbl.tsv: This is a tab seperated file. The file contains all the genes of the genome. The tenth colum represents the status of a gene. If this column is 1 then the gene is a phage like gene; otherwise it is a bacterial gene. 
+
+This file has 16 columns:(i) fig_no: the id of each gene; (ii) function: function of the gene;	(iii) contig; (iv) start: start location of the gene; (v) stop: end location of the gene; (vi) position: a sequential number of the gene (starting at 1); (vii)	rank: rank of each gene provided by random forest; (viii) my_status: status of each gene based on random forest; (ix) pp: classification of each gene based on their function; (x) Final_status: the status of each gene. For prophages, this column has the number of the prophage as listed in prophage.tbl above; If the column contains a 0 we believe that it is a bacterial gene. If we can detect the _att_ sites, the additional columns will be: (xi) start of _attL_; (xii) end of _attL_; (xiii) start of _attR_; (xiv) end of _attR_; (xv) sequence of _attL_; (xvi) sequence of _attR_.
+
+3. prophage_coordinates.tsv: This file has the prophage ID, contig, start, stop, and potential _att_ sites identified for the phages.
 
 
- 
+# EXAMPLE DATA
+
+We have provided two different example data sets.
+
+* _Streptococcus pyogenes_ M1 GAS which has a single genome contig. The genome contains four prophages.
+
+To analyse this data, you can use:
+
+```
+python2.7 PhiSpy.py -t 25 -i Test_Organism/160490.1/ -o Test_Organism/160490.1.output
+```
+
+And you should get a prophage table that has this information:
+
+| Prophage number | Contig | Start | Stop |
+| --- | --- | --- | --- | 
+pp_1 | NC_002737 | 529631 | 604720
+pp_2 | NC_002737 | 778642 | 846824
+pp_3 | NC_002737 | 1191309 | 1255536
+pp_4 | NC_002737 | 1607352 | 1637214
+
+* _Salmonella enterica_ serovar Enteritidis LK5
+
+This is an early draft of the genome (the published sequence has a single contig), but this draft has 1,410 contigs and some phage like regions.
+
+If you run PhiSpy on this draft genome with the default parameters you will not find any prophage because they are all filtered out for not having enough genes. By default, PhiSpy requires 30 genes in a prophage. You can alter that stringency on the command line, and for example reducing the phage gene window size to 10 results in 3 prophage regions being identified.
+
+```
+python2.7 PhiSpy.py -t 21 -w 10 -i Test_Organism/272989.13/ -o Test_Organism/272989.13.output
+```
+
+You should get a prophage table that has this information:
+
+| Prophage number | Contig | Start | Stop |
+| --- | --- | --- | --- | 
+pp_1 | Contig_2300_10.15 | 1630 | 10400
+pp_2 | Contig_2294_10.15 | 175 | 11290
+pp_3 | Contig_2077_10.15 | 318 | 12625
