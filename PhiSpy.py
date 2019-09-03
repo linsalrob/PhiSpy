@@ -1,18 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
 import sys
 import re
 import subprocess
 import argparse
 
-def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN,
-                phageWindowSize, quietMode, keep):
-    sys.path.append(INSTALLATION_DIR + 'source/')
+
+def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
+    sys.path.append(INSTALLATION_DIR+'source/')
     import makeTrain
     import makeTest
     import classification
     import evaluation
     import unknownFunction
+
     sys.stderr.write("Running PhiSpy on " + organismPath + "\n")
     if (not evaluateOnly):
         if trainingFlag == -1:
@@ -28,6 +29,9 @@ def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evalua
         if (quietMode == 0):
             print('Start Classification Algorithm')
         classification.call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR)
+        if (quietMode == 0):
+            print('Done with classification Algorithm')
+        classification.call_classificaton(organismPath,output_dir,trainingFlag,INSTALLATION_DIR)    
         if (quietMode == 0):
             print('Done with classification Algorithm')
         ###### added in this version 2.2 ##### 
@@ -55,7 +59,6 @@ def print_list(INSTALLATION_DIR):
             printstr = printstr + temp[0] + ' ' + temp[2] + '\n'
     print(printstr)
     f.close()
-
 
 def start_propgram(argv):
     try:
@@ -147,7 +150,6 @@ def start_propgram(argv):
     except:
         print("Cannot open", organismPath + '/Features/rna/tbl')
         # return
-
     if (args_parser.choose):
         while (1):
             print_list(INSTALLATION_DIR)
@@ -163,6 +165,5 @@ def start_propgram(argv):
         print('')
     call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, args_parser.evaluate, args_parser.number,
                 args_parser.window_size, args_parser.quiet, args_parser.keep)
-
 
 start_propgram(sys.argv)

@@ -33,7 +33,7 @@ def my_sort(orf_list):
      n = len(orf_list)
      i = 1
      while( i <= n ):
-          j = i + 1 
+          j = i + 1
           while( j < n ):
                flag = 0
                #direction for both
@@ -57,7 +57,6 @@ def my_sort(orf_list):
                     else:
                          if orf_list[i]['stop']>orf_list[j]['start']:
                               flag = 1
-                    
                #swap
                if flag == 1:
                     temp = orf_list[i]
@@ -68,7 +67,6 @@ def my_sort(orf_list):
      return orf_list
 
 def find_mean(all_len):
-     
      sum = 0.0
      for i in all_len:
           sum = sum + i
@@ -139,7 +137,7 @@ def calc_function_3files(organism):
         f_fun.close()
     except:
         x = x + 1
-        
+
     try:
         f_fun = open(organism+'/assigned_functions','r')
         for line in f_fun:
@@ -159,32 +157,24 @@ def input_bactpp(organism, INSTALLATION_DIR):
     except:
         print('cant open file- assigned functions/tbl file:',organism)
         return {}
- 
     my_func = calc_function_3files(organism)
-    
     all_orf_list = {}
     for i in fh:
         temp = re.split('\t',i.strip())
         temp1 = re.split('_',temp[1])
-
         if ',' in temp[1]:
             ttemp = re.split(',',temp[1])
             temp[1] = ttemp[len(ttemp)-1]
         temp1 = re.split('_',temp[1])
-
         contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-            
         start = int(temp1[len(temp1)-2])
         stop = int(temp1[len(temp1)-1])
-
-              
         #save info for sorting orf
         if contig in all_orf_list:
             x = len(all_orf_list[contig]) + 1
         else:
             x = 1
             all_orf_list[contig]={}
-
         all_orf_list[contig][x]={}
         all_orf_list[contig][x]['fig'] = temp[0]
         all_orf_list[contig][x]['contig'] = str(contig)
@@ -197,7 +187,6 @@ def input_bactpp(organism, INSTALLATION_DIR):
             all_orf_list[contig][x]['function'] = "-"
             all_orf_list[contig][x]['pp'] = 0.5
     fh.close()
-   
     all = {}
     index = 1
     for mycontig in all_orf_list:
@@ -285,7 +274,6 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
             j = j+1
         outfile.close()
         
-
 ##########################################################################
 
 def call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR):
@@ -293,6 +281,5 @@ def call_classification(organismPath, output_dir, trainingFlag, phageWindowSize,
     call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR)        
     # Make initial_tbl.tsv file
     make_initial_tbl(organismPath,output_dir,phageWindowSize,INSTALLATION_DIR)
-
     os.remove(output_dir + 'testSet.txt')
     os.remove(output_dir + 'classify.tsv')

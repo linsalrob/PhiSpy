@@ -7,7 +7,6 @@ import array
 
 
 class ShannonScore:
-
     def __init__(self, INSTALLATION_DIR):
         # Create a hash of the kmers that points to the index of an array that holds the value
         self._key_to_index = {}
@@ -103,7 +102,6 @@ def my_sort(orf_list):
                 dir_j = 1
             else:
                 dir_j = -1
-
             # check whether swap need or not
             if dir_i == dir_j:
                 if orf_list[i]['start'] > orf_list[j]['start']:
@@ -187,7 +185,6 @@ def find_atgc_skew(seq):
         sys.exit("a total of zero")
     return float(counts[0]) / total_at, float(counts[3]) / total_at, float(counts[1]) / total_gc, float(counts[2]) / total_gc
 
-
 def find_avg_atgc_skew(orf_list, mycontig, dna):
     a_skew = []
     t_skew = []
@@ -203,10 +200,8 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
             bact = dna[mycontig][stop - 1:start]
             bact = bact[::-1]
             bact = complement(bact)
-
         if len(bact) < 3:
             continue
-
         xa, xt, xg, xc = find_atgc_skew(bact)
         a_skew.append(xa)
         t_skew.append(xt)
@@ -220,7 +215,6 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     at = math.fabs(a - t)
     gc = math.fabs(g - c)
     return at, gc
-
 
 ######################################################################################
 
