@@ -3,9 +3,7 @@ import string
 import os
 
 def unknown_func(x):
-
     x_lower = x.lower()
-
     if (
        (len(x) == 0) or
        #('hypoth' in x_lower) or
@@ -42,7 +40,6 @@ def unknown_func(x):
        re.match('bh\d+', x_lower) or
        re.match('y[a-z]{2,4}\\b', x) or
        re.match('[a-z]{2,3}\d+[^:\+\-0-9]', x_lower) ):
-        
         return 1
     else:
         return 0
@@ -53,27 +50,23 @@ def add_unknown_function_initial_tbl(infile,outfile):
         fw = open(outfile,'w')
     except:
         return 0
-    
     flag = 0
     for line in f:
         if flag == 0:
             fw.write(line)
             flag = 1
             continue
-
         line = line.strip()
         temp = re.split('\t',line)
         i = 0
         while i<8:
             fw.write(temp[i]+'\t')
             i = i + 1
-
         x = unknown_func(temp[1])
         if x == 0:
             fw.write(temp[8]+'\n')
         else:
             fw.write('0.5\n')
- 
     f.close()
     fw.close()
     return 1
@@ -83,6 +76,5 @@ def consider_unknown(output_dir):
     if (x == 1):
         cmd2 = "rm " + output_dir+'initial_tbl.txt'
         os.system(cmd2)
-
         cmd2 = "mv "+output_dir+'initial_tbl_2.txt '+output_dir+'initial_tbl.txt'
         os.system(cmd2)

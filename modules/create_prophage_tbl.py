@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Create a prophage.tbl file from a phispy directory that does not contain one.
 """
@@ -5,15 +6,18 @@ Create a prophage.tbl file from a phispy directory that does not contain one.
 import os
 import sys
 import argparse
+
+INSTALLATION_DIR = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(INSTALLATION_DIR)
+
 from evaluation import  make_prophage_tbl
 
-def make_new_prophage_tbl(phispydir):
+def main(phispydir):
     """
     Make a new prophage table
     :param phispydir: the directory to read the input and create the output
     :return: nothing
     """
-
     make_prophage_tbl(os.path.join(phispydir, 'prophage_tbl.txt'), os.path.join(phispydir, 'prophage.tbl'))
 
 if __name__ == '__main__':
@@ -21,5 +25,4 @@ if __name__ == '__main__':
     parser.add_argument('-d', help='phispy directory')
     parser.add_argument('-v', help='verbose output', action="store_true")
     args = parser.parse_args()
-
-    make_new_prophage_tbl(args.d)
+    main(args.d)

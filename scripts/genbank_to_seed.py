@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import re
@@ -13,7 +15,6 @@ def convert_contigs(argv):
     else:
         gbk_file = argv[2] 
         org_dir = argv[1]
-
     try:
         cmd = 'mkdir '+ org_dir
         os.system(cmd)
@@ -23,21 +24,17 @@ def convert_contigs(argv):
     try:
         f_contig = open(os.path.join(org_dir, 'contigs'),'w')
         f_func = open(os.path.join(org_dir, 'assigned_functions'),'w')
-
         os.mkdir(os.path.join(org_dir, 'Features'))
         os.mkdir(os.path.join(org_dir, 'Features/peg'))
         os.mkdir(os.path.join(org_dir, 'Features/rna'))
-
         f_peg = open(os.path.join(org_dir, 'Features/peg/tbl'), 'w')
         f_rna = open(os.path.join(org_dir, 'Features/rna/tbl'), 'w')
     except:
         print('ERROR: Can\'t write file(s) in',org_dir)
         return
-
     name = ''
     seq = ''
     check_status = 0
-
     for seq_record in SeqIO.parse(gbk_file, "genbank"):
         try:
             name = seq_record.name.strip()
@@ -54,7 +51,6 @@ def convert_contigs(argv):
             print('In the GenBank file, the sequence or contig_id is missing.')
             check_status = 1
             break
-
         # write some information about the genome
         orgout = open(os.path.join(org_dir, 'GENOME'), 'w')
         if 'source' in seq_record.annotations:
@@ -64,21 +60,13 @@ def convert_contigs(argv):
         else:
             sys.stderr.write("Couldn't find either source or organism so no information written\n")
         orgout.close()
-
         descout = open(os.path.join(org_dir, 'DESCRIPTION'), 'w')
         descout.write(seq_record.description)
         descout.close()
-
-
-
-
-
         # for peg/tbl and assigned_functions
         records = seq_record.features
-
         if check_status == 1:
             break
-
         for r in records:
             if 'CD' in r.type.upper():
                 try:
@@ -92,7 +80,6 @@ def convert_contigs(argv):
                     function = r.qualifiers['product'][0]
                 except:
                     function = 'unknown'
-                
                 try:
                     if r.strand == -1:
                         start = str(r.location.nofuzzy_end)
@@ -104,10 +91,8 @@ def convert_contigs(argv):
                     print('In the GenBank file, the location of a gene is missing.\nPlease make sure that each gene has its location and run the program again.')
                     check_status = 1
                     break
-                
                 f_peg.write(id+'\t'+codon+'_'+start+'_'+stop+'\n')
                 f_func.write(id+'\t'+function+'\n')
-                
             if 'RNA' in r.type.upper():
                 try:
                     id = r.qualifiers['locus_tag'][0]
@@ -116,12 +101,10 @@ def convert_contigs(argv):
                     print('In the GenBank file, for a gene/RNA, locus_tag is missing. locus_tag is required for each gene/RNA.\nPlease make sure that each gene/RNA has locus_tag and run the program again.')
                     check_status = 1
                     break
-
                 try:
                     function = r.qualifiers['product'][0]
                 except:
                     function = 'unknown'
-                
                 try:
                     if r.strand == -1:
                         start = str(r.location.nofuzzy_end)
@@ -133,10 +116,8 @@ def convert_contigs(argv):
                     print('In the GenBank file, the location of a gene/RNA is missing.\nPlease make sure that each gene/RNA has its location and run the program again.')
                     check_status = 1
                     break
-
                 f_rna.write(id+'\t'+codon+'_'+start+'_'+stop+'\t'+function+'\n')
                 f_func.write(id+'\t'+function+'\n')
-
     f_contig.close()
     f_rna.close()
     f_func.close()
@@ -158,5 +139,5 @@ def convert_contigs(argv):
         except:
             print('Cannot remove',org_dir)
 
-
-convert_contigs(sys.argv)
+if __name__== "__main__":
+    main(sys.argv)

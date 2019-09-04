@@ -1,19 +1,56 @@
 #!/usr/bin/env python
+#############################################################################################
+## PhiSpy is a computer program written in C++, Python and R to 
+## identify prophages in a complete bacterial genome sequences.
+##
+## Initial versions of PhiSpy were written by
+## Sajia Akhter (sajia@stanford.edu) PhD Student Edwards Bioinformatics Lab 
+## (http://edwards.sdsu.edu/labsite/), Computational Science Research Center 
+## (http://www.csrc.sdsu.edu/csrc/), San Diego State University (http://www.sdsu.edu/)
+##
+## Improvements, bug fixes, and other changes were made by
+## Katelyn McNair Edwards Bioinformatics Lab (http://edwards.sdsu.edu/labsite/) 
+## San Diego State University (http://www.sdsu.edu/)
+## Jose F. Sanchez Herrero, Bioinformatics Unit IGTP,
+## Hospital German Trias i Pujol (http://www.germanstrias.org/technology-services/genomica-bioinformatica/)
+## 
+## The MIT License (MIT)
+## Copyright (c) 2016 Rob Edwards
+## Permission is hereby granted, free of charge, to any person obtaining a copy
+## of this software and associated documentation files (the "Software"), to deal
+## in the Software without restriction, including without limitation the rights
+## to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+## copies of the Software, and to permit persons to whom the Software is
+## furnished to do so, subject to the following conditions:
+## 
+## The above copyright notice and this permission notice shall be included in all
+## copies or substantial portions of the Software.
+## 
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+## SOFTWARE.
+## 
+#############################################################################################
 import os
 import sys
 import re
 import subprocess
 import argparse
 
+INSTALLATION_DIR = os.path.dirname(os.path.dirname(__file__)) + '/'
+sys.path.append(INSTALLATION_DIR)
+
+from modules import makeTrain
+from modules import makeTest
+from modules import classification
+from modules import evaluation
+from modules import unknownFunction
 
 def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
-    sys.path.append(INSTALLATION_DIR+'source/')
-    import makeTrain
-    import makeTest
-    import classification
-    import evaluation
-    import unknownFunction
-
     sys.stderr.write("Running PhiSpy on " + organismPath + "\n")
     if (not evaluateOnly):
         if trainingFlag == -1:
@@ -29,9 +66,6 @@ def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evalua
         if (quietMode == 0):
             print('Start Classification Algorithm')
         classification.call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR)
-        if (quietMode == 0):
-            print('Done with classification Algorithm')
-        classification.call_classificaton(organismPath,output_dir,trainingFlag,INSTALLATION_DIR)    
         if (quietMode == 0):
             print('Done with classification Algorithm')
         ###### added in this version 2.2 ##### 
@@ -60,16 +94,11 @@ def print_list(INSTALLATION_DIR):
     print(printstr)
     f.close()
 
-def start_propgram(argv):
+def main(argv):
     try:
         subprocess.call("type Rscript", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
     except OSError:
         sys.exit("The R programming language is not installed")
-    INSTALLATION_DIR = argv[0]
-    if '/' in argv[0]:
-        INSTALLATION_DIR = INSTALLATION_DIR[0:len(INSTALLATION_DIR) - INSTALLATION_DIR[::-1].find('/')]
-    else:
-        INSTALLATION_DIR = './'
     args_parser = argparse.ArgumentParser(
         description="phiSpy is a program for identifying prophages from among microbial genome sequences",
         epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
@@ -166,4 +195,5 @@ def start_propgram(argv):
     call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, args_parser.evaluate, args_parser.number,
                 args_parser.window_size, args_parser.quiet, args_parser.keep)
 
-start_propgram(sys.argv)
+if __name__== "__main__":
+    main(sys.argv)

@@ -10,13 +10,11 @@ Edwards Bioinformatics Lab (http://edwards.sdsu.edu/labsite/)
 Computational Science Research Center (http://www.csrc.sdsu.edu/csrc/)
 San Diego State University (http://www.sdsu.edu/)
 
-
 Improvements, bug fixes, and other changes were made by
 
 Katelyn McNair
 Edwards Bioinformatics Lab (http://edwards.sdsu.edu/labsite/)
 San Diego State University (http://www.sdsu.edu/)
-
 
 
 # SYSTEM REQUIREMENTS
@@ -28,16 +26,15 @@ The program should run on all Unix platforms, although it was not tested in all 
 
 PhiSpy requires following programs to be installed in the system. NOTE: You can ignore this if you're using the singularity container method of installation.
 
-1. Python - version 2.7.2 or later
+1. Python - version 3.4 or later
 2. Biopython - version 1.58 or later 
 3. gcc - GNU project C and C++ compiler - version 4.4.1 or later
 4. The R Project for Statistical Computing - version 2.9.2 or later
 5. Package randomForest in R - version 4.5-36 or later
  
-
 # INSTALLATION
 
-1. Clone this repository
+1. git clone https://github.com/linsalrob/PhiSpy.git
 2. `% cd PhiSpy`
 3. `% make`
 4. For ease of use, add the location of PhiSpy.py to your $PATH.
@@ -52,9 +49,9 @@ PhiSpy requires following programs to be installed in the system. NOTE: You can 
 TO TEST THE PROGRAM
 
 1. `% cd PhiSpy`
-2. `% ./PhiSpy.py -i Test_Organism/160490.1/ -o output_directory -t 25`
+2. `% python PhiSpy.py -i tests/160490.1/ -o output_directory -t 25`
 
-Test_Organism/160490.1/ is a seed annotation directory for genome 'Streptococcus pyogenes M1 GAS'. 
+tests/160490.1/ is a seed annotation directory for genome 'Streptococcus pyogenes M1 GAS'. 
 You will find the output files of this genome at output_directory.
 
 
@@ -75,7 +72,7 @@ After annotation, you can download the genome directory from the server.
 
 Or, 
 If you have the GenBank file (containing sequence) of the genome, you can convert it using the following command:
-`% python genbank_to_seed.py GenBank_file.gb organism_directory`
+`% python scripts/genbank_to_seed.py GenBank_file.gb organism_directory`
 
 Now to run PhiSpy, use organism_directory as 'organism directory'. 
  
@@ -103,8 +100,9 @@ Otherwise, enter 0 to run with generic training set.
 # HELP
 
 For the help menu use the -h option:
+`
 % python PhiSpy.py -h
-
+`
 
 # OUTPUT FILES
 
@@ -120,17 +118,16 @@ This file has 16 columns:(i) fig_no: the id of each gene; (ii) function: functio
 
 3. prophage_coordinates.tsv: This file has the prophage ID, contig, start, stop, and potential _att_ sites identified for the phages.
 
-
 # EXAMPLE DATA
 
 We have provided two different example data sets.
 
 * _Streptococcus pyogenes_ M1 GAS which has a single genome contig. The genome contains four prophages.
 
-To analyse this data, you can use:
+To analyze this data, you can use:
 
 ```
-python2.7 PhiSpy.py -t 25 -i Test_Organism/160490.1/ -o Test_Organism/160490.1.output
+python PhiSpy.py -t 25 -i tests/160490.1/ -o tests/160490.1.output
 ```
 
 And you should get a prophage table that has this information:
@@ -149,7 +146,7 @@ This is an early draft of the genome (the published sequence has a single contig
 If you run PhiSpy on this draft genome with the default parameters you will not find any prophage because they are all filtered out for not having enough genes. By default, PhiSpy requires 30 genes in a prophage. You can alter that stringency on the command line, and for example reducing the phage gene window size to 10 results in 3 prophage regions being identified.
 
 ```
-python2.7 PhiSpy.py -t 21 -w 10 -i Test_Organism/272989.13/ -o Test_Organism/272989.13.output
+python PhiSpy.py -t 21 -w 10 -i tests/272989.13/ -o tests/272989.13.output
 ```
 
 You should get a prophage table that has this information:

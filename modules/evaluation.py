@@ -48,10 +48,9 @@ def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
 
     outfile.write('>pp' + str(ppno) + '\n' + fn)
     outfile.close()
-
     # call repeat finder
     try:
-        cmd1 = INSTALLATION_DIR + "source/repeatFinder -f " + output_dir + tempOutFile
+        cmd1 = INSTALLATION_DIR + "bin/repeatFinder -f " + output_dir + tempOutFile
         os.system(cmd1)
     except:
         print('repeat finder did not work for ', len(fn))
@@ -80,7 +79,6 @@ def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
             rep[index]['e1'] = int(t1[1])+st
             rep[index]['e2'] = int(t2[1])+st
             index = index + 1
-
        # Sajia's version 2
         temp = re.split('\t',line.strip())
         if math.fabs(int(temp[0]) - int(temp[3])) > 10000:
@@ -109,12 +107,10 @@ def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
             rep[index]['e2'] = temp[3] + st
             index += 1
     infile.close()
-
     if os.path.exists(output_dir + tempOutFile):
         os.remove(output_dir + tempOutFile)
     if os.path.exists(output_dir + tempOutFile + ".repeatfinder"):
         os.remove(output_dir + tempOutFile + ".repeatfinder")
-
     return rep
 
 def check_intg(prophage_sta,prophage_sto,rep,integ,con):
@@ -158,10 +154,8 @@ def find_rna(prophage_start, prophage_stop, repeat_list, organism_path, cont, in
                 ttemp = re.split(',', temp[1])
                 temp[1] = ttemp[len(ttemp) - 1]
             temp1 = re.split('_', temp[1])
-
             # contig = temp1[len(temp1)-3]
             contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-
             start = int(temp1[len(temp1) - 2])
             stop = int(temp1[len(temp1) - 1])
             if cont == contig:
@@ -220,7 +214,6 @@ def check_phage_word_start(sjcontig, a, b, c):
     else:
         return b
 
-
 def check_phage_word_end(sjcontig, a, b, c):
     j = 0
     tot = 0
@@ -272,9 +265,7 @@ def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_st
     else:
         e = check_phage_word_end(sjcontig, aft_stop, bef_stop, genome)
     se = final_check_phage_word(sjcontig, s, e, genome)
-
     return se
-
 
 def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSize, non_prophage_gene_gaps=10):
     try:
@@ -339,7 +330,6 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
         genome[index]['contig'] = temp[2]
         genome[index]['function'] = temp[1]
         genome[index]['rank'] = float(temp[6])
-
         index += 1
     infile.close()
     #######################################################################################
@@ -459,7 +449,6 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
             outfile.write(line.strip() + '\t0' + '\n')
         else:
             outfile.write(line.strip() + '\t' + str(me) + '\n')
-
     infile.close()
     outfile.close()
     os.remove(output_dir + 'initial_tbl.tsv')
@@ -496,7 +485,6 @@ def make_prophage_tbl(inputf, outputf):
                 newphage = True
             if not inphage:
                 newphage = True
-
             if newphage:
                 ppindx += 1
                 pp[ppindx] = {}
@@ -515,7 +503,6 @@ def make_prophage_tbl(inputf, outputf):
     fw.close()
 
 ################################################################################
-
 def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
     # Make the prophage_tbl_temp.txt file.
     #fixing_start_end(output_dir,organismPath,INSTALLATION_DIR)
@@ -523,6 +510,4 @@ def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for
     #make_prophage_tbl(output_dir + 'prophage_tbl.tsv', output_dir + 'prophage.tbl')
     #fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
     # Make the prophage_tbl_temp.txt file.
-     
-    
-     #make_prophage_tbl(output_dir+'prophage_tbl.txt',output_dir+'prophage.tbl')
+    #make_prophage_tbl(output_dir+'prophage_tbl.txt',output_dir+'prophage.tbl')

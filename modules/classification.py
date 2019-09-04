@@ -26,7 +26,7 @@ def call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR):
     trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
     if len(trainingFile)<2:
         return
-    cmd = "Rscript "+INSTALLATION_DIR+"source/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile
+    cmd = "Rscript "+INSTALLATION_DIR+"modules/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile
     os.system(cmd)
 
 def my_sort(orf_list):
@@ -127,7 +127,6 @@ def calc_function_3files(organism):
         f_fun.close()
     except:
         x = x + 1
-
     try:
         f_fun = open(organism+'/proposed_functions','r')
         for line in f_fun:
@@ -137,7 +136,6 @@ def calc_function_3files(organism):
         f_fun.close()
     except:
         x = x + 1
-
     try:
         f_fun = open(organism+'/assigned_functions','r')
         for line in f_fun:
@@ -217,26 +215,23 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         ranks = [[] for n in range(len(x))]
         for line in infile:
             val = float(line.strip())
-            for k in range(j-int(window/2),j+int(window/2)):
+            for k in range(j-int(window/2), j+int(window/2)):
                 if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                     continue
                 ranks[k].append(val)
             j += 1
         infile.close()
-
         #calculate threshold
         y = []
         j = 1
         while j < len(x):
-            x[j]['rank'] = sum(ranks[j])/len(ranks[j]) 
+            x[j]['rank'] = sum(ranks[j]) / len(ranks[j]) 
             x[j]['extra'] =  ranks[j] 
             y.append(x[j]['rank'])
             #y.append([x[j]['rank']])
             j = j+1
-
         #threshold = max(y)/2
-
-        y2=array(y).reshape(-1,1)
+        y2 = array(y).reshape(-1, 1)
         km = KMeans(n_clusters = 2)
         km.fit(y2)
         centers = km.cluster_centers_

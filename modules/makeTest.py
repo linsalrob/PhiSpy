@@ -5,7 +5,6 @@ import pprint
 import sys
 import array
 
-
 class ShannonScore:
     def __init__(self, INSTALLATION_DIR):
         # Create a hash of the kmers that points to the index of an array that holds the value
@@ -207,7 +206,6 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
         t_skew.append(xt)
         g_skew.append(xg)
         c_skew.append(xc)
-
     a = sum(a_skew) / len(a_skew)
     t = sum(t_skew) / len(t_skew)
     g = sum(g_skew) / len(g_skew)
@@ -217,7 +215,6 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     return at, gc
 
 ######################################################################################
-
 def make_set_test(organismPath, output_dir, window, INSTALLATION_DIR):
     my_shannon_scores = ShannonScore(INSTALLATION_DIR)
     all_orf_list = {}
@@ -348,9 +345,7 @@ def make_set_test(organismPath, output_dir, window, INSTALLATION_DIR):
 
 def call_make_test_set(organismPath, output_dir, INSTALLATION_DIR):
     window = 40
-
     make_set_test(organismPath, output_dir, window, INSTALLATION_DIR)
-
     # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
     num_lines = sum(1 for line in open(output_dir + 'testSet.txt', 'r'))
     if (num_lines > 0):
