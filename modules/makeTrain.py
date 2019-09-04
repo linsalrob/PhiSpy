@@ -294,12 +294,12 @@ def find_avg_atgc_skew(orf_list,mycontig,dna):
 
 ######################################################################################
 
-def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
+def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
      my_shannon_scores = ShannonScore(INSTALLATION_DIR)
      all_orf_list = {}
      dna, all_orf_list = read_genbank(organismPath)
      try:
-          outfile = open(output_dir+'trainSet.txt','a')
+          outfile = open(output_dir+trainSet,'a')
      except:
           sys.exit('ERROR: Cannot open file for writing:'+outfile)
      outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
@@ -394,16 +394,16 @@ def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
 
 ##################### function call #################################
 
-def call_make_train_set(organismPath,output_dir,INSTALLATION_DIR):
+def call_make_train_set(trainSet,organismPath,output_dir,INSTALLATION_DIR):
      window = 40
      try:
-          outfile = open(output_dir+'trainSet.txt','w')
+          outfile = open(output_dir+trainSet,'w')
      except:
           sys.exit('ERROR: Cannot open file for writing:'+outfile)
      outfile.close()
-     make_set_train(organismPath, output_dir, window, INSTALLATION_DIR)
+     make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
      # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
-     num_lines = sum(1 for line in open(output_dir+'trainSet.txt','r'))
+     num_lines = sum(1 for line in open(output_dir+trainSet,'r'))
      if(num_lines > 0):
           return 1
      else:
