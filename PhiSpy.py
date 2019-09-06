@@ -1,47 +1,11 @@
 #!/usr/bin/env python
-#############################################################################################
-## PhiSpy is a computer program written in C++, Python and R to 
-## identify prophages in a complete bacterial genome sequences.
-##
-## Initial versions of PhiSpy were written by
-## Sajia Akhter (sajia@stanford.edu) PhD Student Edwards Bioinformatics Lab 
-## (http://edwards.sdsu.edu/labsite/), Computational Science Research Center 
-## (http://www.csrc.sdsu.edu/csrc/), San Diego State University (http://www.sdsu.edu/)
-##
-## Improvements, bug fixes, and other changes were made by
-## Katelyn McNair Edwards Bioinformatics Lab (http://edwards.sdsu.edu/labsite/) 
-## San Diego State University (http://www.sdsu.edu/)
-## Jose F. Sanchez Herrero, Bioinformatics Unit IGTP,
-## Hospital German Trias i Pujol (http://www.germanstrias.org/technology-services/genomica-bioinformatica/)
-## 
-## The MIT License (MIT)
-## Copyright (c) 2016 Rob Edwards
-## Permission is hereby granted, free of charge, to any person obtaining a copy
-## of this software and associated documentation files (the "Software"), to deal
-## in the Software without restriction, including without limitation the rights
-## to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-## copies of the Software, and to permit persons to whom the Software is
-## furnished to do so, subject to the following conditions:
-## 
-## The above copyright notice and this permission notice shall be included in all
-## copies or substantial portions of the Software.
-## 
-## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-## SOFTWARE.
-## 
-#############################################################################################
 import os
 import sys
 import re
 import subprocess
 import argparse
 
-INSTALLATION_DIR = os.path.dirname(os.path.dirname(__file__)) + '/'
+INSTALLATION_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 sys.path.append(INSTALLATION_DIR)
 
 from modules import makeTrain
@@ -49,6 +13,13 @@ from modules import makeTest
 from modules import classification
 from modules import evaluation
 from modules import unknownFunction
+
+def is_valid_file(x):
+    if not x:
+        x = os.path.join(os.path.dirname(os.path.relpath(__file__)),'data/genericAll.txt')
+    if not os.path.exists(x):
+        raise argparse.ArgumentTypeError("{0} does not exist".format(x))
+    return x
 
 def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
     sys.stderr.write("Running PhiSpy on " + organismPath + "\n")
@@ -104,12 +75,12 @@ def main(argv):
         epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
     args_parser.add_argument('-m', '--make_training_data', action='store_true',
                              help='Create training data from a set of annotated genome files')
-    args_parser.add_argument('-t', '--training_set', default=0, type=int,
-                             help='Choose a training set from the list of training sets.')
+    args_parser.add_argument('-t', '--training_set', action='store', type=is_valid_file, default='',
+                             help='The most closely related set to your genome.')
     args_parser.add_argument('-l', '--list', type=bool, default=False, const=True, nargs='?',
                              help='List the available training sets and exit')
-    args_parser.add_argument('-c', '--choose', type=bool, default=False, const=True, nargs='?',
-                             help='Choose a training set from a list (overrides -t)')
+    #args_parser.add_argument('-c', '--choose', type=bool, default=False, const=True, nargs='?',
+    #                         help='Choose a training set from a list (overrides -t)')
     args_parser.add_argument('-e', '--evaluate', type=bool, default=False, const=True, nargs='?',
                              help='Run in evaluation mode -- does not generate new data, but reruns the evaluation')
     args_parser.add_argument('-n', '--number', default=5, type=int,
@@ -179,19 +150,19 @@ def main(argv):
     except:
         print("Cannot open", organismPath + '/Features/rna/tbl')
         # return
-    if (args_parser.choose):
-        while (1):
-            print_list(INSTALLATION_DIR)
-            temp = raw_input(
-                "Please choose the number for a closely related organism we can use for training, or choose 0 if you don't know: ")
-            try:
-                trainingFlag = int(temp)
-            except:
-                continue
-            if trainingFlag < 0 or trainingFlag > 30:
-                continue
-            break
-        print('')
+    #if (args_parser.choose):
+    #    while (1):
+    #        print_list(INSTALLATION_DIR)
+    #        temp = raw_input(
+    #            "Please choose the number for a closely related organism we can use for training, or choose 0 if you don't know: ")
+    #        try:
+    #            trainingFlag = int(temp)
+    #        except:
+    #            continue
+    #        if trainingFlag < 0 or trainingFlag > 30:
+    #            continue
+    #        break
+    #    print('')
     call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, args_parser.evaluate, args_parser.number,
                 args_parser.window_size, args_parser.quiet, args_parser.keep)
 

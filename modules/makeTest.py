@@ -4,6 +4,8 @@ import string
 import pprint
 import sys
 import array
+import pkg_resources
+
 
 class ShannonScore:
     def __init__(self, INSTALLATION_DIR):
@@ -11,10 +13,11 @@ class ShannonScore:
         self._key_to_index = {}
         self._values = array.array('i')
         self.total = 0
+        DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
         try:
-            infile = open(INSTALLATION_DIR + 'data/mer_ORF_list.txt', 'r')
+            infile = open(DATA_PATH + 'mer_ORF_list.txt', 'r')
         except:
-            sys.exit('ERROR: Cannot open data/mer_ORF_list.txt')
+            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'mer_ORF_list.txt')
         for line in infile:
             line = line.strip()
             self._values.append(0)
