@@ -128,14 +128,14 @@ def convert_contigs(argv):
         print('For your GenBank file, the SEED directory cannot be created.\nPlease check your GenBank file and run this program again.\n')
         try:
             #cmd = 'rm -fr '+ org_dir
-	    os.remove(org_dir+'/contigs')
+            os.remove(org_dir+'/contigs')
             os.remove(org_dir+'/assigned_functions')
             os.remove(org_dir +'/Features/peg/tbl')
             os.remove(org_dir +'/Features/rna/tbl')
             os.rmdir(org_dir + '/Features/peg')
             os.rmdir(org_dir + '/Features/rna')
             os.rmdir(org_dir + '/Features')
-	    os.rmdir(org_dir)
+            os.rmdir(org_dir)
         except:
             print('Cannot remove',org_dir)
 
