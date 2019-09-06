@@ -302,6 +302,7 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
           outfile = open(output_dir+trainSet,'a')
      except:
           sys.exit('ERROR: Cannot open file for writing:'+outfile)
+          exit()
      outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
      for mycontig in all_orf_list:
           orf_list = my_sort(all_orf_list[mycontig])
