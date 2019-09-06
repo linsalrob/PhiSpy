@@ -140,4 +140,4 @@ def convert_contigs(argv):
             print('Cannot remove',org_dir)
 
 if __name__== "__main__":
-    main(sys.argv)
+    convert_contigs(sys.argv)
