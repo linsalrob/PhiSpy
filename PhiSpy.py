@@ -24,9 +24,9 @@ def is_valid_file(x):
 def call_phiSpy(organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
     sys.stderr.write("Running PhiSpy on " + organismPath + "\n")
     if (not evaluateOnly):
-        if trainingFlag == -1:
+        if type(trainingFlag) == str:
             print('Making Train Set... (need couple of minutes)')
-            my_make_train_flag = makeTrain.call_make_train_set(organismPath, output_dir, INSTALLATION_DIR)
+            my_make_train_flag = makeTrain.call_make_train_set(trainingFlag, organismPath, output_dir, INSTALLATION_DIR)
             exit()
         if (quietMode == 0):
             print('Making Test Set... (need couple of minutes)')
@@ -73,7 +73,7 @@ def main(argv):
     args_parser = argparse.ArgumentParser(
         description="phiSpy is a program for identifying prophages from among microbial genome sequences",
         epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
-    args_parser.add_argument('-m', '--make_training_data', action='store_true',
+    args_parser.add_argument('-m', '--make_training_data', type=str,
                              help='Create training data from a set of annotated genome files')
     args_parser.add_argument('-t', '--training_set', action='store', type=is_valid_file, default='',
                              help='The most closely related set to your genome.')
@@ -123,7 +123,7 @@ def main(argv):
         organismPath = organismPath[0:len(organismPath) - 1]
     # this is a hack to add in ability to make train set
     if args_parser.make_training_data:
-        call_phiSpy(organismPath,output_dir,-1,INSTALLATION_DIR,args_parser.evaluate, args_parser.number, args_parser.window_size,args_parser.quiet,args_parser.keep)
+        call_phiSpy(organismPath,output_dir,args_parser.make_training_data,INSTALLATION_DIR,args_parser.evaluate, args_parser.number, args_parser.window_size,args_parser.quiet,args_parser.keep)
         exit()
     #
     try:
