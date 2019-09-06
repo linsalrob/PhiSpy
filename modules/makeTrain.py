@@ -154,25 +154,6 @@ def my_sort(orf_list):
           i += 1
      return orf_list
 
-def complement(gene):
-    x = ''
-    gene = gene.upper()
-    for i in gene:
-        if i == 'A':
-            x = x+'T'
-        else:
-            if i == 'T':
-                x = x+'A'
-            else:
-                if i == 'C':
-                    x = x+'G'
-                else:
-                    if i == 'G':
-                        x = x+'C'
-                    else:
-                         x = x + i
-    return x
-
 def find_all_median(x):
      all_len = []
      for i in x:
@@ -299,33 +280,26 @@ def find_avg_atgc_skew(orf_list,mycontig,dna):
           stop = orf_list[i]['stop']
           if start<stop:
                bact = dna[mycontig][start-1:stop]
+               xa, xt, xg, xc = find_atgc_skew(bact)
           else:
                bact = dna[mycontig][stop-1:start]
-               bact = bact[::-1]
-               bact = complement(bact)
+               xt, xa, xc, xg = find_atgc_skew(bact)
           if len(bact)<3:
                continue
-          xa, xt, xg, xc = find_atgc_skew(bact)
           a_skew.append(xa)
           t_skew.append(xt)
           g_skew.append(xg)
           c_skew.append(xc)
-     a = sum(a_skew)/len(a_skew)
-     t = sum(t_skew)/len(t_skew)
-     g = sum(g_skew)/len(g_skew)
-     c = sum(c_skew)/len(c_skew)
-     at = math.fabs(a-t)
-     gc = math.fabs(g-c)
-     return at, gc
+     return a_skew, t_skew, g_skew, c_skew
 
 ######################################################################################
 
-def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
+def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
      my_shannon_scores = ShannonScore(INSTALLATION_DIR)
      all_orf_list = {}
      dna, all_orf_list = read_genbank(organismPath)
      try:
-          outfile = open(output_dir+'trainSet.txt','a')
+          outfile = open(output_dir+trainSet,'a')
      except:
           sys.exit('ERROR: Cannot open file for writing:'+outfile)
      outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
@@ -336,71 +310,56 @@ def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
 
           if not orf_list:
               continue
+
           all_median = find_all_median(orf_list)
-          avg_at_skew, avg_gc_skew = find_avg_atgc_skew(orf_list,mycontig,dna)
+          lengths = []
+          directions = []
+          for i in orf_list:
+              lengths.append(abs(orf_list[i]['start']-orf_list[i]['stop'])+1) # find_all_median can be deleted now
+              directions.append(1 if orf_list[i]['start'] < orf_list[i]['stop'] else -1)
+
+          # shannons = [] # to consider!
+          ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list,mycontig,dna)
+          a = sum(ga_skew)/len(ga_skew)
+          t = sum(gt_skew)/len(gt_skew)
+          g = sum(gg_skew)/len(gg_skew)
+          c = sum(gc_skew)/len(gc_skew)
+          avg_at_skew, avg_gc_skew = math.fabs(a-t), math.fabs(g-c)
           #####################
           i = 0
           #while i<len(orf_list)-window +1:
           while(i < len(orf_list) ):
                #initialize
+               j_start = i - int(window/2)
+               j_stop = i + int(window/2)
+               if (j_start < 0):
+                   j_start = 0
+               elif (j_stop >= len(orf_list)):
+                      j_stop = len(orf_list)
+               # at and gc skews
+               ja_skew = ga_skew[j_start:j_stop]
+               jt_skew = gt_skew[j_start:j_stop]
+               jc_skew = gc_skew[j_start:j_stop]
+               jg_skew = gg_skew[j_start:j_stop]
+               ja = sum(ja_skew)/len(ja_skew)
+               jt = sum(jt_skew)/len(jt_skew)
+               jc = sum(jc_skew)/len(jc_skew)
+               jg = sum(jg_skew)/len(jg_skew)
+               jat = math.fabs(ja-jt)/avg_at_skew if avg_at_skew else 0
+               jgc = math.fabs(jg-jc)/avg_gc_skew if avg_gc_skew else 0
+               my_length = find_median(lengths[j_start:j_stop]) - all_median
                my_shannon_scores.reset()
-               length = []
-               direction = []
-               a_skew = []
-               t_skew = []
-               g_skew = []
-               c_skew = []
-               j = 0
-               #while j < (i+window):
-               for j in range(i-int(window/2),i+int(window/2)):
-                    if( (j < 0) or (j >= len(orf_list)) ):
-                         continue
+               for j in range(j_start, j_stop):
                     start = orf_list[j]['start']
                     stop = orf_list[j]['stop']
-                    if start<stop:
-                         bact = dna[mycontig][start-1:stop]
-                         direction.append(1) # direction
-                    else:
-                         bact = dna[mycontig][stop-1:start]
-                         bact = bact[::-1]
-                         bact = complement(bact)
-                         direction.append(-1) # direction
-                    if len(bact)<3:
-                         print('Short Protein Found!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                         j += 1
-                         continue
-                        #at skew
-                    xa, xt, xg, xc = find_atgc_skew(bact)
-                    a_skew.append(xa)
-                    t_skew.append(xt)
-                    g_skew.append(xg)
-                    c_skew.append(xc)
-                    #length
-                    length.append(len(bact))
-                    #shannon
-                    my_shannon_scores.addValue(bact)
-                    j += 1
-               # write in file for one window
-               mylength = find_median(length) - all_median #find_mean(length)
-               outfile.write(str(mylength))
-               outfile.write('\t')
-               outfile.write(str(my_shannon_scores.getSlope()))
-               outfile.write('\t')
-               a = sum(a_skew)/len(a_skew)
-               t = sum(t_skew)/len(t_skew)
-               c = sum(c_skew)/len(c_skew)
-               g = sum(g_skew)/len(g_skew)
-               at = math.fabs(a-t)/avg_at_skew if avg_at_skew else 0
-               gc = math.fabs(g-c)/avg_gc_skew if avg_gc_skew else 0
-               outfile.write(str(at))
-               outfile.write('\t')
-               outfile.write(str(gc))
-               outfile.write('\t')
-               #orf direction
+                    if start > stop: 
+                        start, stop = stop, start
+                    my_shannon_scores.addValue(dna[mycontig][start - 1 : stop])
+               # orf direction
                orf = []
                x = 0
                flag = 0
-               for ii in direction:
+               for ii in directions[j_start:j_stop]:
                    if( ii == 1 ):
                        if( flag == 0 ):
                            x += 1
@@ -418,32 +377,33 @@ def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
                            flag = 1
                orf.append(x)
                orf.sort()
-               if len(orf) == 1:
-                   outfile.write(str(orf[len(orf)-1]))
-               else:
-                   outfile.write(str(orf[len(orf)-1]+orf[len(orf)-2]))
+               outfile.write(str(my_length))
                outfile.write('\t')
-               
-               if orf_list[i]['is_phage']:
-                   outfile.write('1')
-               else:
-                   outfile.write('0')
+               outfile.write(str(my_shannon_scores.getSlope()))
+               outfile.write('\t')
+               outfile.write(str(jat))
+               outfile.write('\t')
+               outfile.write(str(jgc))
+               outfile.write('\t')
+               outfile.write(str(orf[len(orf)-1]) if len(orf) == 1 else str(orf[len(orf)-1]+orf[len(orf)-2]))
+               outfile.write('\t')
+               outfile.write('1' if orf_list[i]['is_phage'] else '0')
                outfile.write('\n')
                i += 1
      outfile.close()
 
 ##################### function call #################################
 
-def call_make_train_set(organismPath,output_dir,INSTALLATION_DIR):
+def call_make_train_set(trainSet,organismPath,output_dir,INSTALLATION_DIR):
      window = 40
      try:
-          outfile = open(output_dir+'trainSet.txt','w')
+          outfile = open(output_dir+trainSet,'w')
      except:
           sys.exit('ERROR: Cannot open file for writing:'+outfile)
      outfile.close()
-     make_set_train(organismPath, output_dir, window, INSTALLATION_DIR)
+     make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
      # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
-     num_lines = sum(1 for line in open(output_dir+'trainSet.txt','r'))
+     num_lines = sum(1 for line in open(output_dir+trainSet,'r'))
      if(num_lines > 0):
           return 1
      else:
