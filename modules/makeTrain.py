@@ -72,15 +72,14 @@ class ShannonScore:
                  return 0
            H = 0.0
            # cnt = 0
-           print(len(range(start, stop)))
-           exit()
-           for i in range(start, stop): #self._key_to_index: # read all 100k mers
+           p = 1 / total
+           for i in range(found_total): #self._key_to_index: # read all 100k mers
                  # p = float(self._values[self._key_to_index[i]])/self.total # the p of certain mers number within analyzed window / all mers identified within windown
-                 p = float(self._kmers_phage[i])/total
-                 if( p > 0 ):
+                 # p = float(self._kmers_phage[i])/total
+                 # if( p > 0 ):
                        # print(p)
                        # cnt += self._kmers_phage[i]
-                       H = H + p * (math.log(p)/math.log(2))
+                 H = H + p * (math.log(p)/math.log(2))
                        # found_total += self._values[self._key_to_index[i]]
                        # found_total += self._values[i]
 
