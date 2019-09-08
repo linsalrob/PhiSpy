@@ -8,49 +8,90 @@ import array
 
 
 class ShannonScore:
+     """
+        To measure the abundance of phage ‘words’, Shannon’s
+        index (19,20) and the frequency of the presence of phage
+        words were calculated.
+        Shannon’s index was calculated by the following
+        formula:
+        H = - SUMi(pi * log(pi))
+        where pi is the frequency of those words which are
+        present in the ‘phage word library’. The frequency of
+        words (F) of a window was calculated by dividing the
+        number of available phage words with the total number
+        of words. For a given window, the abundance of phage
+        words is F/H
+     """
+
      def __init__(self,INSTALLATION_DIR):
           # Create a hash of the kmers that points to the index of an array that holds the value
           self._key_to_index = {}
-          self._values = array.array('i')
+          self._values_ = array.array('i')
           self.total = 0
+          self._kmers_phage = []
+          self._kmers_all = []
           try:
                infile = open(INSTALLATION_DIR+'data/mer_ORF_list.txt','r')
           except:
                sys.exit('ERROR: Cannot open data/mer_ORF_list.txt')
           for line in infile:
                line = line.strip()
-               self._values.append(0)
-               self._key_to_index[line] = len(self._values) - 1
+               # self._values.append(0) # the size of mer_ORF_list lines number
+               self._key_to_index[line] = '' # len(self._values) - 1 # kept the index of referring selv._values
      def reset(self):
           self.total = 0
           #self._values = array.array('i', '\x00'*self._values.itemsize*len(self._values))
           self._values = array.array('i', [0] * len(self._values))
      def addValue(self, seq):
+          # it checks how many phage-like 12-mers are present in each gene -> stored in self._values[]
           mer = 12
           seq = seq.strip().upper()
           pos = 0
+          # if len(self._kmers_phage) < 20: print('seq:', len(seq))
+          self._kmers_phage.append(0)
+          self._kmers_all.append(0)
           while( pos <= (len(seq) - mer) ):
                substr = seq[pos:pos+mer]
                pos = pos + mer
-               if substr in self._key_to_index:
-                    self._values[self._key_to_index[substr]] += 1
-               self.total += 1
-     def getSlope(self):
-           if self.total == 0:
+               # if substr in self._key_to_index:
+                    # self._values.[self._key_to_index[substr]] += 1 # {0: 5, 1: 20, 2:0}
+               self._kmers_all[-1] += 1 
+               try:               
+                    self._key_to_index[substr]
+                    self._kmers_phage[-1] += 1
+                    # if len(self._kmers_phage) < 21:print(1)
+               except KeyError:
+                    continue
+               # self.total += 1
+     def getSlope(self, start, stop):
+           total = sum(self._kmers_all[start : stop])
+           found_total = sum(self._kmers_phage[start: stop])
+           # print(found_total, total)
+           # if self.total ==0: # total number of mers identified within the analyzed window
+           if total == 0:
                  return 0
            H = 0.0
-           found_total = 0.0
-           for i in self._key_to_index:
-                 p = float(self._values[self._key_to_index[i]])/self.total
+           # cnt = 0
+           print(len(range(start, stop)))
+           exit()
+           for i in range(start, stop): #self._key_to_index: # read all 100k mers
+                 # p = float(self._values[self._key_to_index[i]])/self.total # the p of certain mers number within analyzed window / all mers identified within windown
+                 p = float(self._kmers_phage[i])/total
                  if( p > 0 ):
+                       # print(p)
+                       # cnt += self._kmers_phage[i]
                        H = H + p * (math.log(p)/math.log(2))
-                       found_total = found_total+ self._values[self._key_to_index[i]]
+                       # found_total += self._values[self._key_to_index[i]]
+                       # found_total += self._values[i]
 
-           H = -H
-           if H <= 0:
+           # H = -H
+           if H > 0:
                  return 0
-           freq_found = found_total/float(self.total)
-           myslope = freq_found/H
+           # freq_found = found_total/float(self.total)
+           freq_found = found_total/float(total)
+           myslope = -freq_found/H
+           # print('aaaa', cnt, myslope, 'bbbb', start, stop, len(self._key_to_index))
+           # exit()
            return myslope
 
 def read_contig(organismPath):
@@ -317,8 +358,12 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
           for i in orf_list:
               lengths.append(abs(orf_list[i]['start']-orf_list[i]['stop'])+1) # find_all_median can be deleted now
               directions.append(1 if orf_list[i]['start'] < orf_list[i]['stop'] else -1)
+              if orf_list[i]['start'] < orf_list[i]['stop']:
+                   seq = dna[mycontig][orf_list[i]['start'] - 1 : orf_list[i]['stop']]
+              else:
+                   seq = dna[mycontig][orf_list[i]['stop'] - 1 : orf_list[i]['start']]
+              my_shannon_scores.addValue(seq)
 
-          # shannons = [] # to consider!
           ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list,mycontig,dna)
           a = sum(ga_skew)/len(ga_skew)
           t = sum(gt_skew)/len(gt_skew)
@@ -348,13 +393,13 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
                jat = math.fabs(ja-jt)/avg_at_skew if avg_at_skew else 0
                jgc = math.fabs(jg-jc)/avg_gc_skew if avg_gc_skew else 0
                my_length = find_median(lengths[j_start:j_stop]) - all_median
-               my_shannon_scores.reset()
+               # my_shannon_scores.reset()
                for j in range(j_start, j_stop):
                     start = orf_list[j]['start']
                     stop = orf_list[j]['stop']
                     if start > stop: 
                         start, stop = stop, start
-                    my_shannon_scores.addValue(dna[mycontig][start - 1 : stop])
+                    # my_shannon_scores.addValue(dna[mycontig][start - 1 : stop])
                # orf direction
                orf = []
                x = 0
@@ -379,7 +424,7 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
                orf.sort()
                outfile.write(str(my_length))
                outfile.write('\t')
-               outfile.write(str(my_shannon_scores.getSlope()))
+               outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
                outfile.write('\t')
                outfile.write(str(jat))
                outfile.write('\t')
