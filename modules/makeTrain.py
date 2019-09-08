@@ -1,7 +1,7 @@
+import Bio.SeqIO
 import re
 import math
 import sys
-
 
 class ShannonScore:
     def __init__(self,INSTALLATION_DIR):
@@ -15,29 +15,39 @@ class ShannonScore:
         for line in infile:
             line = line.strip()
             self._kmers[line] = ''
+    def reset(self):
+        self._kmers_phage = []
+        self._kmers_all = []
     def addValue(self, seq):
         mer = 12
         seq = seq.strip().upper()
         pos = 0
-        self._kmers_phage.append(0)
+        self._kmers_phage.append([])
         self._kmers_all.append(0)
         while( pos <= (len(seq) - mer) ):
             substr = seq[pos:pos+mer]
             pos = pos + mer
             self._kmers_all[-1] += 1 
             try:            
-                self._kmers
-                self._kmers_phage[-1] += 1
+                self._kmers[substr]
+                self._kmers_phage[-1].append(substr)
             except KeyError:
                 continue
     def getSlope(self, start, stop):
         total = sum(self._kmers_all[start : stop])
-        found_total = sum(self._kmers_phage[start: stop])
+        found_total = sum([len(x) for x in self._kmers_phage[start : stop]])
         if total == 0:
             return 0
         H = 0.0
-        p = 1 / total
-        for i in range(found_total):
+        window_kmers = {}
+        for kl in self._kmers_phage[start : stop]:
+            for k in kl:
+                try:
+                    window_kmers[k] += 1.0
+                except KeyError:
+                    window_kmers[k] = 1.0
+        for i in window_kmers.values():
+            p = i/total
             H = H + p * (math.log(p)/math.log(2))
         if H > 0:
             return 0
@@ -78,36 +88,23 @@ def read_genbank(organismPath):
         return ''
     dna = {}
     peg = {}
-    seq = ''
-    name = ''
-    for line in f_dna:
-        if line.startswith('LOCUS '):
-            dna[name] = seq    
-            name = line.split()[1]
-            peg[name] = {}
-        elif line.startswith('ORIGIN'):
-            line = next(f_dna)
-            while not line.startswith('//'):
-                seq += ''.join(line.split()[1:])
-                line = next(f_dna)
-        elif line.startswith('     CDS '):
-            x = len(peg[name])
-            peg[name][x] = {}
-            loc = ''.join(c for c in line.split()[1] if c in '0123456789.,').replace('.',' ').replace(',',' ').split()
-            #line.split()[1].replace('complement(','').replace(')') 
-            if 'complement' in line:
-                peg[name][x]['stop'] = int(loc[0])
-                peg[name][x]['start'] = int(loc[-1])
-            else:
-                peg[name][x]['start'] = int(loc[0])
-                peg[name][x]['stop'] = int(loc[-1])
-            peg[name][x]['peg'] = name + "_" + loc[0] + "_" + loc[-1]
-            peg[name][x]['is_phage'] = 0
-        elif line.startswith('                     /is_phage='):
-            x = len(peg[name])-1
-            peg[name][x]['is_phage'] = int(line.split('=')[1])
-    del dna['']
-    dna[name] = seq    
+    for record in Bio.SeqIO.parse(organismPath, 'genbank'):
+        name = record.id
+        dna[name] = str(record.seq)
+        peg[name] = {}
+        for f in record.features:
+            if f.type == 'CDS':
+                x = len(peg[name])
+                start = int(f.location.start) + 1
+                stop = int(f.location.end)
+                if f.location.strand == -1:
+                    start, stop = stop, start
+                peg[name][x] = {'start': start, 'stop': stop}
+                peg[name][x]['peg'] = name + '_' + str(f.location.start) + '_' + str(f.location.end)
+                try:
+                    peg[name][x]['is_phage'] = int(f.qualifiers['is_phage'][0])
+                except KeyError:
+                    peg[name][x]['is_phage'] = 0
     return dna, peg
 
 def my_sort(orf_list):
@@ -259,7 +256,8 @@ def find_atgc_skew(seq):
             print("base", base)
             sys.exit("ERROR: Non nucleotide base found")
     if(total_at * total_gc) == 0:
-        sys.exit("a total of zero")
+        print(seq)
+        sys.exit("a total of zero total_at*total_gc")
     return float(a)/total_at, float(t)/total_at, float(g)/total_gc, float(c)/total_gc
 
 def find_avg_atgc_skew(orf_list,mycontig,dna):
@@ -383,6 +381,7 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
             outfile.write('1' if orf_list[i]['is_phage'] else '0')
             outfile.write('\n')
             i += 1
+        my_shannon_scores.reset()
     outfile.close()
 
 ##################### function call #################################
