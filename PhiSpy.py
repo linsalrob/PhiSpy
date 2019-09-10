@@ -32,7 +32,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     # in future support other types
     input_file = SeqIO.parse(args_parser.infile, "genbank")
     args_parser.records = input_file
-    os.mkdir(args_parser.output_dir)
+    os.makedirs(args_parser.output_dir, exist_ok=True)
 
     ######################################
     #         make training set          #
@@ -55,7 +55,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         do classification          #
     ######################################
     print('Start Classification Algorithm')
-    classification.call_classification(**vars(args_parser))
+    classification.call_randomforest(**vars(args_parser))
 
     ######################################
     #         i dont know what           #

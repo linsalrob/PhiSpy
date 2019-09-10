@@ -21,14 +21,13 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
             return temp[1].strip()
     return ''
 
-def call_randomForest_generic(output_dir,trainingFile,INSTALLATION_DIR):
+def call_randomforest(**kwargs):
+    output_dir = kwargs['output_dir']
+    trainingFile = kwargs['training_set']
     bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
-    infile = output_dir + "testSet.txt"
-    outfile = output_dir + "classify.tsv"
-    print('Using training genome: ', trainingFile)
+    infile = os.path.join(output_dir, "testSet.txt")
+    outfile = os.path.join(output_dir, "classify.tsv")
     #trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
-    if len(trainingFile)<2:
-        return
     #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1)
     #test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     #clf = RandomForestClassifier()
@@ -278,13 +277,3 @@ def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
         outfile.write('\n')
         j = j+1
     outfile.close()
-        
-##########################################################################
-
-def call_classification(organismPath, output_dir, trainingFlag, phageWindowSize, INSTALLATION_DIR):
-    # Make classify.tsv file
-    call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR)        
-    # Make initial_tbl.tsv file
-    make_initial_tbl(organismPath,output_dir,phageWindowSize,INSTALLATION_DIR)
-    os.remove(output_dir + 'testSet.txt')
-    os.remove(output_dir + 'classify.tsv')

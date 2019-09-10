@@ -285,21 +285,21 @@ def find_avg_atgc_skew(orf_list,mycontig,dna):
 ######################################################################################
 
 def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
-     my_shannon_scores = ShannonScore(INSTALLATION_DIR)
-     all_orf_list = {}
-     dna, all_orf_list = read_genbank(organismPath)
-     try:
-          outfile = open(output_dir+trainSet,'a')
-     except:
-          sys.exit('ERROR: Cannot open file for writing')
-     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
-     for mycontig in all_orf_list:
-          orf_list = my_sort(all_orf_list[mycontig])
-          ######################
-          #avg_length = find_avg_length(orf_list)
+    my_shannon_scores = ShannonScore(INSTALLATION_DIR)
+    all_orf_list = {}
+    dna, all_orf_list = read_genbank(organismPath)
+    try:
+         outfile = open(output_dir+trainSet,'a')
+    except:
+         sys.exit('ERROR: Cannot open file for writing')
+    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
+    for mycontig in all_orf_list:
+        orf_list = my_sort(all_orf_list[mycontig])
+        ######################
+        #avg_length = find_avg_length(orf_list)
 
         if not orf_list:
-            continue
+           continue
 
         all_median = find_all_median(orf_list)
         lengths = []

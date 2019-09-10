@@ -264,7 +264,6 @@ def make_test_set(**kwargs):
     #    all_orf_list[contig][x]['stop'] = stop
     #    all_orf_list[contig][x]['peg'] = temp[0]
     #infile.close()
-    print(os.path.join(self.output_dir, 'testSet.txt'))
     try:
         outfile = open(os.path.join(self.output_dir, 'testSet.txt'), 'w')
     except:
