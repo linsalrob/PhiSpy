@@ -298,11 +298,11 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
      my_shannon_scores = ShannonScore(INSTALLATION_DIR)
      all_orf_list = {}
      dna, all_orf_list = read_genbank(organismPath)
+     print("-" + output_dir)
      try:
           outfile = open(output_dir+trainSet,'a')
      except:
-          sys.exit('ERROR: Cannot open file for writing:'+outfile)
-          exit()
+          sys.exit('ERROR: Cannot open file for writing')
      outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
      for mycontig in all_orf_list:
           orf_list = my_sort(all_orf_list[mycontig])
@@ -400,7 +400,7 @@ def call_make_train_set(trainSet,organismPath,output_dir,INSTALLATION_DIR):
      try:
           outfile = open(output_dir+trainSet,'w')
      except:
-          sys.exit('ERROR: Cannot open file for writing:'+outfile)
+          sys.exit('ERROR: Cannot open file for writing')
      outfile.close()
      make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
      # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
