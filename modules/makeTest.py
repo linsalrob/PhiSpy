@@ -1,10 +1,7 @@
 import os
 import re
 import math
-import string
-import pprint
 import sys
-import array
 import pkg_resources
 from argparse import Namespace
 
@@ -12,9 +9,9 @@ from argparse import Namespace
 class ShannonScore:
     def __init__(self):
         # Create a hash of the kmers that points to the index of an array that holds the value
-        self._key_to_index = {}
-        self._values = array.array('i')
-        self.total = 0
+        self._kmers = {}
+        self._kmers_phage = []
+        self._kmers_all = []
         DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
         try:
             infile = open(DATA_PATH + 'mer_ORF_list.txt', 'r')
@@ -22,40 +19,48 @@ class ShannonScore:
             sys.exit('ERROR: Cannot open ' + DATA_PATH + 'mer_ORF_list.txt')
         for line in infile:
             line = line.strip()
-            self._values.append(0)
-            self._key_to_index[line] = len(self._values) - 1
+            self._kmers[line] = ''
 
     def reset(self):
-        self.total = 0
-        #self._values = array.array('i', '\x00' * self._values.itemsize * len(self._values))
-        self._values = array.array('i', [0] * len(self._values))
+        self._kmers_phage = []
+        self._kmers_all = []
 
     def addValue(self, seq):
         mer = 12
         seq = seq.strip().upper()
         pos = 0
+        self._kmers_phage.append([])
+        self._kmers_all.append(0)
         while (pos <= (len(seq) - mer)):
             substr = seq[pos:pos + mer]
             pos = pos + mer
-            if substr in self._key_to_index:
-                self._values[self._key_to_index[substr]] += 1
-            self.total += 1
+            self._kmers_all[-1] += 1 
+            try:            
+                self._kmers[substr]
+                self._kmers_phage[-1].append(substr)
+            except KeyError:
+                continue
 
-    def getSlope(self):
-        if self.total == 0:
+    def getSlope(self, start, stop):
+        total = sum(self._kmers_all[start : stop])
+        found_total = sum([len(x) for x in self._kmers_phage[start : stop]])
+        if total == 0:
             return 0
         H = 0.0
-        found_total = 0.0
-        for i in self._key_to_index:
-            p = float(self._values[self._key_to_index[i]]) / self.total
-            if (p > 0):
-                H = H + p * (math.log(p) / math.log(2))
-                found_total = found_total + self._values[self._key_to_index[i]]
-        H = -H
-        if H <= 0:
+        window_kmers = {}
+        for kl in self._kmers_phage[start : stop]:
+            for k in kl:
+                try:
+                    window_kmers[k] += 1.0
+                except KeyError:
+                    window_kmers[k] = 1.0
+        for i in window_kmers.values():
+            p = i/total
+            H = H + p * (math.log(p)/math.log(2))
+        if H > 0:
             return 0
-        freq_found = found_total / float(self.total)
-        myslope = freq_found / H
+        freq_found = found_total / float(total)
+        myslope = - freq_found / H
         return myslope
 
 def read_contig(organismPath):
@@ -93,9 +98,9 @@ def read_contig(organismPath):
 def my_sort(orf_list):
     n = len(orf_list)
     i = 0
-    while (i < n):
+    while i < n:
         j = i + 1
-        while (j < n):
+        while j < n:
             flag = 0
             # direction for both
             if orf_list[i]['start'] < orf_list[i]['stop']:
@@ -126,18 +131,10 @@ def my_sort(orf_list):
         i += 1
     return orf_list
 
-def complement(gene):
-    try:
-        complements = string.maketrans('acgtrymkbdhvACGTRYMKBDHV', 'tgcayrkmvhdbTGCAYRKMVHDB')
-    except:
-        complements = ''.maketrans('acgtrymkbdhvACGTRYMKBDHV', 'tgcayrkmvhdbTGCAYRKMVHDB')
-    rcseq = gene.translate(complements)[::-1]
-    return rcseq
-
-def find_all_median(x):
+def find_all_median(orf_list):
     all_len = []
-    for item in x:
-        all_len.append((abs(item['start'] - item['stop'])) + 1)
+    for i in orf_list:
+        all_len.append((abs(i['start'] - i['stop'])) + 1)
     return find_median(all_len)
 
 def find_median(all_len):
@@ -158,36 +155,128 @@ def find_atgc_skew(seq):
     seq = seq.upper()
     total_at = 0.0
     total_gc = 0.0
-    #          A    G     C   T
-    scores = {
-        'A': [1.0, 0.0, 0.0, 0.0],
-        'T': [0.0, 0.0, 0.0, 1.0],
-        'G': [0.0, 1.0, 0.0, 0.0],
-        'C': [0.0, 0.0, 1.0, 0.0],
-        'R': [0.5, 0.5, 0.0, 0.0], #ag
-        'Y': [0.0, 0.0, 0.5, 0.5], #ct
-        'S': [0.0, 0.5, 0.5, 0.0], #gc
-        'W': [0.5, 0.0, 0.0, 0.5], #at
-        'K': [0.0, 0.5, 0.0, 0.5], #gt
-        'M': [0.5, 0.0, 0.5, 0.0], #ac
-        'B': [0.0, 0.3, 0.3, 0.3], #cgt
-        'D': [0.3, 0.3, 0.0, 0.3], #agt
-        'H': [0.3, 0.0, 0.3, 0.3], #act
-        'V': [0.3, 0.3, 0.3, 0.0], #acg
-        'N': [0.25, 0.25, 0.25, 0.25], #acgt
-    }
-    counts = [0, 0, 0, 0]
+    # #          A    G     C   T
+    # scores = {
+    #     'A': [1.0, 0.0, 0.0, 0.0],
+    #     'T': [0.0, 0.0, 0.0, 1.0],
+    #     'G': [0.0, 1.0, 0.0, 0.0],
+    #     'C': [0.0, 0.0, 1.0, 0.0],
+    #     'R': [0.5, 0.5, 0.0, 0.0], #ag
+    #     'Y': [0.0, 0.0, 0.5, 0.5], #ct
+    #     'S': [0.0, 0.5, 0.5, 0.0], #gc
+    #     'W': [0.5, 0.0, 0.0, 0.5], #at
+    #     'K': [0.0, 0.5, 0.0, 0.5], #gt
+    #     'M': [0.5, 0.0, 0.5, 0.0], #ac
+    #     'B': [0.0, 0.3, 0.3, 0.3], #cgt
+    #     'D': [0.3, 0.3, 0.0, 0.3], #agt
+    #     'H': [0.3, 0.0, 0.3, 0.3], #act
+    #     'V': [0.3, 0.3, 0.3, 0.0], #acg
+    #     'N': [0.25, 0.25, 0.25, 0.25], #acgt
+    # }
+    # counts = [0, 0, 0, 0]
+    # for base in seq:
+    #     if base not in scores:
+    #         sys.stderr.write("ERROR: found base " + base + " that is not in the iupac code. Skipped\n")
+    #         continue
+    #     for i,j in enumerate(scores[base]):
+    #         counts[i] += j
+    # total_at = counts[0] + counts[3]
+    # total_gc = counts[1] + counts[2]
+    # if (total_at * total_gc) == 0:
+    #     sys.exit("a total of zero")
+    # return float(counts[0]) / total_at, float(counts[3]) / total_at, float(counts[1]) / total_gc, float(counts[2]) / total_gc
+    a = 0
+    t = 0
+    c = 0
+    g = 0
     for base in seq:
-        if base not in scores:
-            sys.stderr.write("ERROR: found base " + base + " that is not in the iupac code. Skipped\n")
-            continue
-        for i,j in enumerate(scores[base]):
-            counts[i] += j
-    total_at = counts[0] + counts[3]
-    total_gc = counts[1] + counts[2]
-    if (total_at * total_gc) == 0:
-        sys.exit("a total of zero")
-    return float(counts[0]) / total_at, float(counts[3]) / total_at, float(counts[1]) / total_gc, float(counts[2]) / total_gc
+        if base == 'A':
+            a += 1
+            total_at += 1
+        elif base == 'T':
+            t += 1
+            total_at += 1
+        elif base == 'G':
+            g += 1
+            total_gc += 1
+        elif base == 'C':
+            c += 1
+            total_gc += 1
+        elif base == 'R':
+            a += 0.5
+            total_at += 0.5
+            g += 0.5
+            total_gc += 0.5
+        elif base == 'Y':
+            c += 0.5
+            total_gc += 0.5
+            t += 0.5
+            total_at += 0.5
+        elif base == 'S':
+            g += 0.5
+            total_gc += 0.5
+            c += 0.5
+            total_gc += 0.5
+        elif base == 'W':
+            a += 0.5
+            total_at += 0.5
+            t += 0.5
+            total_at += 0.5
+        elif base == 'K':
+            g += 0.5
+            total_gc += 0.5
+            t += 0.5
+            total_at += 0.5
+        elif base == 'M':
+            c += 0.5
+            total_gc += 0.5
+            a += 0.5
+            total_at += 0.5
+        elif base == 'B':
+            c += 0.3
+            total_gc += 0.3
+            g += 0.3
+            total_gc += 0.3
+            t += 0.3
+            total_at += 0.3
+        elif base == 'D':
+            a += 0.3
+            total_at += 0.3
+            g += 0.3
+            total_gc += 0.3
+            t += 0.3
+            total_at += 0.3
+        elif base == 'H':
+            a += 0.3
+            total_at += 0.3
+            c += 0.3
+            total_gc += 0.3
+            t += 0.3
+            total_at += 0.3
+        elif base == 'V':
+            a += 0.3
+            total_at += 0.3
+            c += 0.3
+            total_gc += 0.3
+            g += 0.3
+            total_gc += 0.3
+        elif base == 'N':
+            a += 0.25
+            total_at += 0.25
+            t += 0.25
+            total_at += 0.25
+            g += 0.25
+            total_gc += 0.25
+            c += 0.25
+            total_gc += 0.25
+        else:
+            print("seq", seq)
+            print("base", base)
+            sys.exit("ERROR: Non nucleotide base found")
+    if(total_at * total_gc) == 0:
+        print(seq)
+        sys.exit("a total of zero total_at*total_gc")
+    return float(a)/total_at, float(t)/total_at, float(g)/total_gc, float(c)/total_gc
 
 def find_avg_atgc_skew(orf_list, mycontig, dna):
     a_skew = []
@@ -199,24 +288,17 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
         stop = orf['stop']
         if start < stop:
             bact = dna[mycontig][start - 1:stop]
+            xa, xt, xg, xc = find_atgc_skew(bact)
         else:
             bact = dna[mycontig][stop - 1:start]
-            bact = bact[::-1]
-            bact = complement(bact)
+            xt, xa, xc, xg = find_atgc_skew(bact)
         if len(bact) < 3:
             continue
-        xa, xt, xg, xc = find_atgc_skew(bact)
         a_skew.append(xa)
         t_skew.append(xt)
         g_skew.append(xg)
         c_skew.append(xc)
-    a = sum(a_skew) / len(a_skew)
-    t = sum(t_skew) / len(t_skew)
-    g = sum(g_skew) / len(g_skew)
-    c = sum(c_skew) / len(c_skew)
-    at = math.fabs(a - t)
-    gc = math.fabs(g - c)
-    return at, gc
+    return a_skew, t_skew, g_skew, c_skew
 
 ######################################################################################
 def make_test_set(**kwargs):
@@ -238,7 +320,7 @@ def make_test_set(**kwargs):
             if feature.type == 'CDS':
                 orf_list = all_orf_list.get(record.id, [])
                 orf_list.append(
-                               {'start' : int(feature.location.start),
+                               {'start' : int(feature.location.start) + 1,
                                 'stop'  : int(feature.location.end),
                                 'peg'   : 'peg'
                                }
@@ -275,90 +357,84 @@ def make_test_set(**kwargs):
         ######################
         # avg_length = find_avg_length(orf_list)
         all_median = find_all_median(orf_list)
-        avg_at_skew, avg_gc_skew = find_avg_atgc_skew(orf_list, mycontig, dna)
+        lengths = []
+        directions = []
+        for i in orf_list:
+            lengths.append(abs(i['start'] - i['stop']) + 1) # find_all_median can be deleted now
+            directions.append(1 if i['start'] < i['stop'] else -1)
+            if i['start'] < i['stop']:
+                seq = dna[mycontig][i['start'] - 1 : i['stop']]
+            else:
+                seq = dna[mycontig][i['stop'] - 1 : i['start']]
+            my_shannon_scores.addValue(seq)
+
+        ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list, mycontig, dna)
+        a = sum(ga_skew) / len(ga_skew)
+        t = sum(gt_skew) / len(gt_skew)
+        g = sum(gg_skew) / len(gg_skew)
+        c = sum(gc_skew) / len(gc_skew)
+        avg_at_skew, avg_gc_skew = math.fabs(a - t), math.fabs(g - c)
         #####################
         i = 0
         # while i<len(orf_list)-window +1:
-        while (i < len(orf_list)):
+        while i < len(orf_list):
             # initialize
-            my_shannon_scores.reset()
-            length = []
-            direction = []
-            a_skew = []
-            t_skew = []
-            g_skew = []
-            c_skew = []
-            for j in range(i - int(window / 2), i + int(window / 2)):
-                if ((j < 0) or (j >= len(orf_list))):
-                    continue
+            j_start = i - int(window / 2)
+            j_stop = i + int(window / 2)
+            if j_start < 0:
+                j_start = 0
+            elif j_stop >= len(orf_list):
+                j_stop = len(orf_list)
+            # at and gc skews
+            ja_skew = ga_skew[j_start:j_stop]
+            jt_skew = gt_skew[j_start:j_stop]
+            jc_skew = gc_skew[j_start:j_stop]
+            jg_skew = gg_skew[j_start:j_stop]
+            ja = sum(ja_skew) / len(ja_skew)
+            jt = sum(jt_skew) / len(jt_skew)
+            jc = sum(jc_skew) / len(jc_skew)
+            jg = sum(jg_skew) / len(jg_skew)
+            jat = math.fabs(ja - jt) / avg_at_skew if avg_at_skew else 0
+            jgc = math.fabs(jg - jc) / avg_gc_skew if avg_gc_skew else 0
+            my_length = find_median(lengths[j_start:j_stop]) - all_median
+            for j in range(j_start, j_stop):
                 start = orf_list[j]['start']
                 stop = orf_list[j]['stop']
-                if start < stop:
-                    bact = dna[mycontig][start - 1:stop]
-                    direction.append(1)  # direction
-                else:
-                    bact = dna[mycontig][stop - 1:start]
-                    bact = bact[::-1]
-                    bact = complement(bact)
-                    direction.append(-1)  # direction
-                if len(bact) < 3:
-                    print('Short Protein Found!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                    j += 1
-                    continue
-                    # at skew
-                xa, xt, xg, xc = find_atgc_skew(bact)
-                a_skew.append(xa)
-                t_skew.append(xt)
-                g_skew.append(xg)
-                c_skew.append(xc)
-                # length
-                length.append(len(bact))
-                # shannon
-                my_shannon_scores.addValue(bact)
-                j += 1
-            # write in file for one window
-            mylength = find_median(length) - all_median  # find_mean(length)
-            outfile.write(str(mylength))
-            outfile.write('\t')
-            outfile.write(str(my_shannon_scores.getSlope()))
-            outfile.write('\t')
-            a = sum(a_skew) / len(a_skew)
-            t = sum(t_skew) / len(t_skew)
-            c = sum(c_skew) / len(c_skew)
-            g = sum(g_skew) / len(g_skew)
-            at = math.fabs(a - t) / avg_at_skew if avg_at_skew else 0
-            gc = math.fabs(g - c) / avg_gc_skew if avg_gc_skew else 0
-            outfile.write(str(at))
-            outfile.write('\t')
-            outfile.write(str(gc))
-            outfile.write('\t')
+                if start > stop:
+                    start, stop = stop, start
             # orf direction
             orf = []
             x = 0
             flag = 0
-            for ii in direction:
-                if (ii == 1):
-                    if (flag == 0):
+            for ii in directions[j_start:j_stop]:
+                if ii == 1:
+                    if flag == 0:
                         x += 1
                     else:
                         orf.append(x)
                         x = 1
                         flag = 0
                 else:
-                    if (flag == 1):
+                    if flag == 1:
                         x += 1
                     else:
-                        if (flag < 1 and x > 0):
+                        if flag < 1 and x > 0:
                             orf.append(x)
                         x = 1
                         flag = 1
             orf.append(x)
             orf.sort()
-            if len(orf) == 1:
-                outfile.write(str(orf[len(orf)-1]))
-            else:
-                outfile.write(str(orf[len(orf)-1]+orf[len(orf)-2]))
+            outfile.write(str(my_length))
+            outfile.write('\t')
+            outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
+            outfile.write('\t')
+            outfile.write(str(jat))
+            outfile.write('\t')
+            outfile.write(str(jgc))
+            outfile.write('\t')
+            outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
             outfile.write('\n')
             i += 1
+        my_shannon_scores.reset()
     outfile.close()
 
