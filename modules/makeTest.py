@@ -1,3 +1,4 @@
+import os
 import re
 import math
 import string
@@ -193,10 +194,9 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     t_skew = []
     g_skew = []
     c_skew = []
-    for i in orf_list:
-        start = orf_list[i]['start']
-        stop = orf_list[i]['stop']
-
+    for orf in orf_list:
+        start = orf['start']
+        stop = orf['stop']
         if start < stop:
             bact = dna[mycontig][start - 1:stop]
         else:
@@ -225,6 +225,7 @@ def make_test_set(**kwargs):
     my_shannon_scores = ShannonScore()
     all_orf_list = {}
     dna = {}
+    window = 40
     #try:
     #    infile = open(organismPath + '/Features/peg/tbl', 'r')
     #except:
@@ -263,8 +264,9 @@ def make_test_set(**kwargs):
     #    all_orf_list[contig][x]['stop'] = stop
     #    all_orf_list[contig][x]['peg'] = temp[0]
     #infile.close()
+    print(os.path.join(self.output_dir, 'testSet.txt'))
     try:
-        outfile = open(self.output_dir + 'testSet.txt', 'w')
+        outfile = open(os.path.join(self.output_dir, 'testSet.txt'), 'w')
     except:
         sys.exit('ERROR: Cannot open file for writing: testSet.txt')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\n')

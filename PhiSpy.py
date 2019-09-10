@@ -32,6 +32,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     # in future support other types
     input_file = SeqIO.parse(args_parser.infile, "genbank")
     args_parser.records = input_file
+    os.mkdir(args_parser.output_dir)
 
     ######################################
     #         make training set          #
@@ -46,7 +47,6 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     print('Making Test Set... (need couple of minutes)')
     my_make_test_flag = makeTest.make_test_set(**vars(args_parser))
-    exit()
     # check file im,plement later
     #if (my_make_test_flag == 0):
     #    print('The input organism is too small to predict prophages. Please consider large contig (having at least 40 genes) to use PhiSpy.')
@@ -56,7 +56,6 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     print('Start Classification Algorithm')
     classification.call_classification(**vars(args_parser))
-    print('Done with classification Algorithm')
 
     ######################################
     #         i dont know what           #
