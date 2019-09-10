@@ -37,9 +37,9 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     #         make training set          #
     ######################################
-    if 0:
+    if args_parser.make_training_data:
         print('Making Train Set... (need couple of minutes)')
-        my_make_train_flag = makeTrain.call_make_train_set(**vars(args_parser))
+        my_make_train_flag = makeTrain.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
@@ -60,16 +60,16 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     #         i dont know what           #
     ######################################
-    ###### added in this version 2.2 ##### 
-    if (trainingFlag == 0):
+    ###### added in this version 2.2 #####
+    if (args_parser.training_set == 'data/genericAll.txt'):
         print('As training flag is zero, considering unknown functions')
-        unknownFunction.consider_unknown(output_dir)
+        unknownFunction.consider_unknown(args_parser.output_dir)
 
     ######################################
     #         do evaluation              #
     ######################################
     print('Start evaluation...')
-    evaluation.call_start_end_fix(**vars(args_parser))
+    evaluation.fixing_start_end(**vars(args_parser))
     print('Done!!!')
 
     ######################################
