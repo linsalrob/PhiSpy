@@ -298,7 +298,6 @@ def make_set_train(trainSet,organismPath,output_dir,window,INSTALLATION_DIR):
      my_shannon_scores = ShannonScore(INSTALLATION_DIR)
      all_orf_list = {}
      dna, all_orf_list = read_genbank(organismPath)
-     print("-" + output_dir)
      try:
           outfile = open(output_dir+trainSet,'a')
      except:
