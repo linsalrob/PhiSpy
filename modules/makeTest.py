@@ -4,17 +4,21 @@ import string
 import pprint
 import sys
 import array
+import pkg_resources
+from argparse import Namespace
+
 
 class ShannonScore:
-    def __init__(self, INSTALLATION_DIR):
+    def __init__(self):
         # Create a hash of the kmers that points to the index of an array that holds the value
         self._key_to_index = {}
         self._values = array.array('i')
         self.total = 0
+        DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
         try:
-            infile = open(INSTALLATION_DIR + 'data/mer_ORF_list.txt', 'r')
+            infile = open(DATA_PATH + 'mer_ORF_list.txt', 'r')
         except:
-            sys.exit('ERROR: Cannot open data/mer_ORF_list.txt')
+            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'mer_ORF_list.txt')
         for line in infile:
             line = line.strip()
             self._values.append(0)
@@ -131,8 +135,8 @@ def complement(gene):
 
 def find_all_median(x):
     all_len = []
-    for i in x:
-        all_len.append((abs(x[i]['start'] - x[i]['stop'])) + 1)
+    for item in x:
+        all_len.append((abs(item['start'] - item['stop'])) + 1)
     return find_median(all_len)
 
 def find_median(all_len):
@@ -215,42 +219,58 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     return at, gc
 
 ######################################################################################
-def make_set_test(organismPath, output_dir, window, INSTALLATION_DIR):
-    my_shannon_scores = ShannonScore(INSTALLATION_DIR)
+def make_test_set(**kwargs):
+    # line below is so that later we can make this a class
+    self = Namespace(**kwargs)
+    my_shannon_scores = ShannonScore()
     all_orf_list = {}
-    try:
-        infile = open(organismPath + '/Features/peg/tbl', 'r')
-    except:
-        sys.exit('ERROR: Cannot open file ' + organismPath + '/Features/peg/tbl')
-    dna = read_contig(organismPath)
+    dna = {}
+    #try:
+    #    infile = open(organismPath + '/Features/peg/tbl', 'r')
+    #except:
+    #    sys.exit('ERROR: Cannot open file ' + organismPath + '/Features/peg/tbl')
+    #dna = read_contig(organismPath)
     # open host/bact dna file which has a contig
-    for line in infile:
-        temp = re.split('\t', line.strip())
-        if ',' in temp[1]:
-            ttemp = re.split(',', temp[1])
-            temp[1] = ttemp[len(ttemp) - 1]
-        temp1 = re.split('_', temp[1])
-        contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-        start = int(temp1[len(temp1) - 2])
-        stop = int(temp1[len(temp1) - 1])
+    for record in self.records:
+        dna[record.id] = str(record.seq)
+        for feature in record.features:
+            if feature.type == 'CDS':
+                orf_list = all_orf_list.get(record.id, [])
+                orf_list.append(
+                               {'start' : int(feature.location.start),
+                                'stop'  : int(feature.location.end),
+                                'peg'   : 'peg'
+                               }
+                )
+                all_orf_list[record.id] = orf_list
+    #for line in infile:
+    #    temp = re.split('\t', line.strip())
+    #    if ',' in temp[1]:
+    #        ttemp = re.split(',', temp[1])
+    #        temp[1] = ttemp[len(ttemp) - 1]
+    #    temp1 = re.split('_', temp[1])
+    #    contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
+    #    start = int(temp1[len(temp1) - 2])
+    #    stop = int(temp1[len(temp1) - 1])
         # save info for sorting orf
-        if contig in all_orf_list:
-            x = len(all_orf_list[contig])
-        else:
-            x = 0
-            all_orf_list[contig] = {}
-        all_orf_list[contig][x] = {}
-        all_orf_list[contig][x]['start'] = start
-        all_orf_list[contig][x]['stop'] = stop
-        all_orf_list[contig][x]['peg'] = temp[0]
-    infile.close()
+    #    if contig in all_orf_list:
+    #        x = len(all_orf_list[contig])
+    #    else:
+    #        x = 0
+    #        all_orf_list[contig] = {}
+    #    all_orf_list[contig][x] = {}
+    #    all_orf_list[contig][x]['start'] = start
+    #    all_orf_list[contig][x]['stop'] = stop
+    #    all_orf_list[contig][x]['peg'] = temp[0]
+    #infile.close()
     try:
-        outfile = open(output_dir + 'testSet.txt', 'w')
+        outfile = open(self.output_dir + 'testSet.txt', 'w')
     except:
         sys.exit('ERROR: Cannot open file for writing: testSet.txt')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\n')
     for mycontig in all_orf_list:
-        orf_list = my_sort(all_orf_list[mycontig])
+        #orf_list = my_sort(all_orf_list[mycontig])
+        orf_list = all_orf_list[mycontig]
         ######################
         # avg_length = find_avg_length(orf_list)
         all_median = find_all_median(orf_list)
@@ -341,14 +361,3 @@ def make_set_test(organismPath, output_dir, window, INSTALLATION_DIR):
             i += 1
     outfile.close()
 
-##################### function call #################################
-
-def call_make_test_set(organismPath, output_dir, INSTALLATION_DIR):
-    window = 40
-    make_set_test(organismPath, output_dir, window, INSTALLATION_DIR)
-    # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
-    num_lines = sum(1 for line in open(output_dir + 'testSet.txt', 'r'))
-    if (num_lines > 0):
-        return 1
-    else:
-        return 0

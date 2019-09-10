@@ -36,6 +36,7 @@ def read_contig(organism):
     return dna
 
 def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
+    bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     if len(fn) == 0:
         print("Len sequence is 0 so ignoring\n")
         return {}
@@ -50,7 +51,7 @@ def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
     outfile.close()
     # call repeat finder
     try:
-        cmd1 = INSTALLATION_DIR + "bin/repeatFinder -f " + output_dir + tempOutFile
+        cmd1 = bin_path + "/repeatFinder -f " + output_dir + tempOutFile
         os.system(cmd1)
     except:
         print('repeat finder did not work for ', len(fn))

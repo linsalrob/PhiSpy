@@ -3,7 +3,9 @@ import sys
 import string
 import os
 from sklearn.cluster import KMeans
-from numpy import array
+from sklearn.ensemble import RandomForestClassifier
+#from numpy import array
+import numpy as np
 
 def find_training_genome(trainingFlag,INSTALLATION_DIR):
     try:
@@ -19,14 +21,22 @@ def find_training_genome(trainingFlag,INSTALLATION_DIR):
             return temp[1].strip()
     return ''
 
-def call_randomForest_generic(output_dir,trainingFlag,INSTALLATION_DIR):
+def call_randomForest_generic(output_dir,trainingFile,INSTALLATION_DIR):
+    bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     infile = output_dir + "testSet.txt"
     outfile = output_dir + "classify.tsv"
-    print('Using training flag: ', trainingFlag)
-    trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
+    print('Using training genome: ', trainingFile)
+    #trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
     if len(trainingFile)<2:
         return
-    cmd = "Rscript "+INSTALLATION_DIR+"modules/randomForest.r "+INSTALLATION_DIR+" "+trainingFile+" "+infile+" "+outfile
+    #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1)
+    #test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
+    #clf = RandomForestClassifier()
+    #clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
+    #print(clf.predict(test_data))
+    #exit()
+    cmd = "Rscript " + bin_path + "/randomForest.r " + trainingFile + " " + infile + " " + outfile
+    print(cmd)
     os.system(cmd)
 
 def my_sort(orf_list):
@@ -205,69 +215,69 @@ def input_bactpp(organism, INSTALLATION_DIR):
     return all
 
 def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
-        try:
-            infile = open(output_dir+'classify.tsv','r')
-            outfile = open(output_dir+'initial_tbl.tsv','w')
-        except:
-            sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
-        x = input_bactpp(organismPath,INSTALLATION_DIR)
-        j = 1
-        ranks = [[] for n in range(len(x))]
-        for line in infile:
-            val = float(line.strip())
-            for k in range(j-int(window/2), j+int(window/2)):
-                if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
-                    continue
-                ranks[k].append(val)
-            j += 1
-        infile.close()
-        #calculate threshold
-        y = []
-        j = 1
-        while j < len(x):
-            x[j]['rank'] = sum(ranks[j]) / len(ranks[j]) 
-            x[j]['extra'] =  ranks[j] 
-            y.append(x[j]['rank'])
-            #y.append([x[j]['rank']])
-            j = j+1
-        #threshold = max(y)/2
-        y2 = array(y).reshape(-1, 1)
-        km = KMeans(n_clusters = 2)
-        km.fit(y2)
-        centers = km.cluster_centers_
-        threshold = max(centers[0][0], centers[1][0])
-        """
-        Note added by Rob:
-        At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
-        start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
-        or just a plain threshold.
-        
-        """
-        j = 1
-        outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
-        while j < len(x):
-            if x[j]['rank'] > threshold:
-                x[j]['status'] = 1
-            outfile.write(str(x[j]['fig']))
-            outfile.write('\t')
-            outfile.write(str(x[j]['function']))
-            outfile.write('\t')
-            outfile.write(str(x[j]['contig']))
-            outfile.write('\t')
-            outfile.write(str(x[j]['start']))
-            outfile.write('\t')
-            outfile.write(str(x[j]['stop']))
-            outfile.write('\t')
-            outfile.write(str(j))
-            outfile.write('\t')
-            outfile.write(str(x[j]['rank']))
-            outfile.write('\t')
-            outfile.write(str(x[j]['status']))
-            outfile.write('\t')
-            outfile.write(str(x[j]['pp']))
-            outfile.write('\n')
-            j = j+1
-        outfile.close()
+    try:
+        infile = open(output_dir+'classify.tsv','r')
+        outfile = open(output_dir+'initial_tbl.tsv','w')
+    except:
+        sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
+    x = input_bactpp(organismPath,INSTALLATION_DIR)
+    j = 1
+    ranks = [[] for n in range(len(x))]
+    for line in infile:
+        val = float(line.strip())
+        for k in range(j-int(window/2), j+int(window/2)):
+            if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
+                continue
+            ranks[k].append(val)
+        j += 1
+    infile.close()
+    #calculate threshold
+    y = []
+    j = 1
+    while j < len(x):
+        x[j]['rank'] = sum(ranks[j]) / len(ranks[j]) 
+        x[j]['extra'] =  ranks[j] 
+        y.append(x[j]['rank'])
+        #y.append([x[j]['rank']])
+        j = j+1
+    #threshold = max(y)/2
+    y2 = np.array(y).reshape(-1, 1)
+    km = KMeans(n_clusters = 2)
+    km.fit(y2)
+    centers = km.cluster_centers_
+    threshold = max(centers[0][0], centers[1][0])
+    """
+    Note added by Rob:
+    At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
+    start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
+    or just a plain threshold.
+    
+    """
+    j = 1
+    outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
+    while j < len(x):
+        if x[j]['rank'] > threshold:
+            x[j]['status'] = 1
+        outfile.write(str(x[j]['fig']))
+        outfile.write('\t')
+        outfile.write(str(x[j]['function']))
+        outfile.write('\t')
+        outfile.write(str(x[j]['contig']))
+        outfile.write('\t')
+        outfile.write(str(x[j]['start']))
+        outfile.write('\t')
+        outfile.write(str(x[j]['stop']))
+        outfile.write('\t')
+        outfile.write(str(j))
+        outfile.write('\t')
+        outfile.write(str(x[j]['rank']))
+        outfile.write('\t')
+        outfile.write(str(x[j]['status']))
+        outfile.write('\t')
+        outfile.write(str(x[j]['pp']))
+        outfile.write('\n')
+        j = j+1
+    outfile.close()
         
 ##########################################################################
 

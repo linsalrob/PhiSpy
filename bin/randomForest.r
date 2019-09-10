@@ -1,9 +1,9 @@
 suppressMessages(require('randomForest'))
 
 args <- commandArgs(trailingOnly = TRUE)
-trainingFile = paste(args[1], "data/trainingSet/", args[2], sep='')
-testingFile = args[3]
-writingFile = args[4]
+trainingFile = args[1] #paste(args[1], "data/trainingSet/", args[2], sep='')
+testingFile = args[2]
+writingFile = args[3]
 
 t = read.table(trainingFile,header = TRUE)
 t1 = read.table(testingFile,header = TRUE)

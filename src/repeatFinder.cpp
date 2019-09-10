@@ -1,11 +1,11 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <iostream>
 #include <string>
-#include <stdio.h>
 #include <vector>
 
-#include <stdlib.h>
-#include <string.h>
 using namespace std;
 
 #define REPEAT_LEN                    11
@@ -31,6 +31,7 @@ struct repeat{
 
 vector<repeat> rep;
 int gap_len = 0;//allow gap < gap_len
+
 
 void input()
 {
