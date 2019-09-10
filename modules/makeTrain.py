@@ -1,17 +1,20 @@
-import Bio.SeqIO
 import re
 import math
+import os
 import sys
+import pkg_resources
+from argparse import Namespace
 
 class ShannonScore:
-    def __init__(self,INSTALLATION_DIR):
+    def __init__(self):
         self._kmers = {}
         self._kmers_phage = []
         self._kmers_all = []
+        DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
         try:
-            infile = open(INSTALLATION_DIR + 'data/mer_ORF_list.txt','r')
+            infile = open(DATA_PATH + 'mer_ORF_list.txt', 'r')
         except:
-            sys.exit('ERROR: Cannot open data/mer_ORF_list.txt')
+            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'mer_ORF_list.txt')
         for line in infile:
             line = line.strip()
             self._kmers[line] = ''
@@ -83,33 +86,6 @@ def read_contig(organismPath):
     f_dna.close()
     return dna
 
-def read_genbank(organismPath):
-    try:
-        f_dna = open(organismPath, 'r')
-    except:
-        print('cant open genbank file ', organismPath)
-        return ''
-    dna = {}
-    peg = {}
-    for record in Bio.SeqIO.parse(organismPath, 'genbank'):
-        name = record.id
-        dna[name] = str(record.seq)
-        peg[name] = {}
-        for f in record.features:
-            if f.type == 'CDS':
-                x = len(peg[name])
-                start = int(f.location.start) + 1
-                stop = int(f.location.end)
-                if f.location.strand == -1:
-                    start, stop = stop, start
-                peg[name][x] = {'start': start, 'stop': stop}
-                peg[name][x]['peg'] = name + '_' + str(f.location.start) + '_' + str(f.location.end)
-                try:
-                    peg[name][x]['is_phage'] = int(f.qualifiers['is_phage'][0])
-                except KeyError:
-                    peg[name][x]['is_phage'] = 0
-    return dna, peg
-
 def my_sort(orf_list):
     n = len(orf_list)
     i = 0
@@ -149,7 +125,7 @@ def my_sort(orf_list):
 def find_all_median(orf_list):
     all_len = []
     for i in orf_list:
-        all_len.append((abs(orf_list[i]['start'] - orf_list[i]['stop'])) + 1)
+        all_len.append((abs(i['start'] - i['stop'])) + 1)
     return find_median(all_len)
 
 def find_median(all_len):
@@ -159,12 +135,6 @@ def find_median(all_len):
         return (all_len[n] + all_len[n - 1]) / float(2)
     else:
         return all_len[n]
-
-def find_avg_length(orf_list):
-    x = []
-    for i in orf_list:
-        x.append(abs(orf_list[i]['start'] - orf_list[i]['stop']))
-    return sum(x) / len(x)
 
 def find_atgc_skew(seq):
     seq = seq.upper()
@@ -269,8 +239,8 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     g_skew = []
     c_skew = []
     for i in orf_list:
-        start = orf_list[i]['start']
-        stop = orf_list[i]['stop']
+        start = i['start']
+        stop = i['stop']
         if start < stop:
             bact = dna[mycontig][start - 1:stop]
             xa, xt, xg, xc = find_atgc_skew(bact)
@@ -287,19 +257,38 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
 
 ######################################################################################
 
-def make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR):
-    my_shannon_scores = ShannonScore(INSTALLATION_DIR)
+def make_set_train(**kwargs): #trainSet, organismPath, output_dir, window, INSTALLATION_DIR):
+    self = Namespace(**kwargs)
+    my_shannon_scores = ShannonScore()
     all_orf_list = {}
-    dna, all_orf_list = read_genbank(organismPath)
+    dna = {}
+    window = 40
+    for record in self.records:
+        dna[record.id] = str(record.seq)
+        for feature in record.features:
+            if feature.type == 'CDS':
+                orf_list = all_orf_list.get(record.id, [])
+                start = int(feature.location.start) + 1
+                stop = int(feature.location.end)
+                is_phage = int(feature.qualifiers['is_phage'][0]) if 'is_phage' in feature.qualifiers else 0
+                if feature.location.strand == -1:
+                    start, stop = stop, start
+                orf_list.append(
+                               {'start'   : start,
+                                'stop'    : stop,
+                                'peg'     : 'peg',
+                                'is_phage': is_phage
+                               }
+                )
+                all_orf_list[record.id] = orf_list
     try:
-        outfile = open(output_dir+trainSet,'a')
+        outfile = open(os.path.join(self.output_dir, self.make_training_data),'w')
     except:
-        sys.exit('ERROR: Cannot open file for writing')
+        sys.exit('ERROR: Cannot open', os.path.join(self.output_dir, self.make_training_data), 'for writing.')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
     for mycontig in all_orf_list:
         orf_list = my_sort(all_orf_list[mycontig])
         ######################
-        # avg_length = find_avg_length(orf_list)
 
         if not orf_list:
             continue
@@ -308,15 +297,15 @@ def make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
         lengths = []
         directions = []
         for i in orf_list:
-            lengths.append(abs(orf_list[i]['start'] - orf_list[i]['stop']) + 1) # find_all_median can be deleted now
-            directions.append(1 if orf_list[i]['start'] < orf_list[i]['stop'] else -1)
-            if orf_list[i]['start'] < orf_list[i]['stop']:
-                seq = dna[mycontig][orf_list[i]['start'] - 1 : orf_list[i]['stop']]
+            lengths.append(abs(i['start'] - i['stop']) + 1) # find_all_median can be deleted now
+            directions.append(1 if i['start'] < i['stop'] else -1)
+            if i['start'] < i['stop']:
+                seq = dna[mycontig][i['start'] - 1 : i['stop']]
             else:
-                seq = dna[mycontig][orf_list[i]['stop'] - 1 : orf_list[i]['start']]
+                seq = dna[mycontig][i['stop'] - 1 : i['start']]
             my_shannon_scores.addValue(seq)
 
-        ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list,mycontig,dna)
+        ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list, mycontig, dna)
         a = sum(ga_skew) / len(ga_skew)
         t = sum(gt_skew) / len(gt_skew)
         g = sum(gg_skew) / len(gg_skew)
@@ -342,8 +331,8 @@ def make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
             jt = sum(jt_skew) / len(jt_skew)
             jc = sum(jc_skew) / len(jc_skew)
             jg = sum(jg_skew) / len(jg_skew)
-            jat = math.fabs(ja - jt)/avg_at_skew if avg_at_skew else 0
-            jgc = math.fabs(jg - jc)/avg_gc_skew if avg_gc_skew else 0
+            jat = math.fabs(ja - jt) / avg_at_skew if avg_at_skew else 0
+            jgc = math.fabs(jg - jc) / avg_gc_skew if avg_gc_skew else 0
             my_length = find_median(lengths[j_start:j_stop]) - all_median
             for j in range(j_start, j_stop):
                 start = orf_list[j]['start']
@@ -380,29 +369,10 @@ def make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
             outfile.write('\t')
             outfile.write(str(jgc))
             outfile.write('\t')
-            outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1]+orf[len(orf) - 2]))
+            outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
             outfile.write('\t')
             outfile.write('1' if orf_list[i]['is_phage'] else '0')
             outfile.write('\n')
             i += 1
         my_shannon_scores.reset()
     outfile.close()
-
-##################### function call #################################
-
-def call_make_train_set(trainSet,organismPath,output_dir,INSTALLATION_DIR):
-     window = 40
-     try:
-          outfile = open(output_dir+trainSet,'w')
-     except:
-          sys.exit('ERROR: Cannot open file for writing')
-     outfile.close()
-     make_set_train(trainSet, organismPath, output_dir, window, INSTALLATION_DIR)
-     # Check whether the output file has data. For shorter genomes (less that 40 genes) phiSpy will not work)
-     num_lines = sum(1 for line in open(output_dir+trainSet,'r'))
-     if(num_lines > 0):
-          return 1
-     else:
-          return 0
-
-

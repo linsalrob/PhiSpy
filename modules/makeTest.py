@@ -145,12 +145,6 @@ def find_median(all_len):
     else:
         return all_len[n]
 
-def find_avg_length(orf_list):
-    x = []
-    for i in orf_list:
-        x.append(abs(orf_list[i]['start'] - orf_list[i]['stop']))
-    return sum(x) / len(x)
-
 def find_atgc_skew(seq):
     seq = seq.upper()
     total_at = 0.0
@@ -283,9 +277,9 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     t_skew = []
     g_skew = []
     c_skew = []
-    for orf in orf_list:
-        start = orf['start']
-        stop = orf['stop']
+    for i in orf_list:
+        start = i['start']
+        stop = i['stop']
         if start < stop:
             bact = dna[mycontig][start - 1:stop]
             xa, xt, xg, xc = find_atgc_skew(bact)
@@ -319,9 +313,13 @@ def make_test_set(**kwargs):
         for feature in record.features:
             if feature.type == 'CDS':
                 orf_list = all_orf_list.get(record.id, [])
+                start = int(feature.location.start) + 1
+                stop = int(feature.location.end)
+                if feature.location.strand == -1:
+                    start, stop = stop, start
                 orf_list.append(
-                               {'start' : int(feature.location.start) + 1,
-                                'stop'  : int(feature.location.end),
+                               {'start' : start,
+                                'stop'  : stop,
                                 'peg'   : 'peg'
                                }
                 )
@@ -355,7 +353,6 @@ def make_test_set(**kwargs):
         #orf_list = my_sort(all_orf_list[mycontig])
         orf_list = all_orf_list[mycontig]
         ######################
-        # avg_length = find_avg_length(orf_list)
         all_median = find_all_median(orf_list)
         lengths = []
         directions = []
