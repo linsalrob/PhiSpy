@@ -2,6 +2,7 @@ import os
 import re
 import math
 import sys
+from argparse import Namespace
 
 def read_contig(organism):
     try:
@@ -268,14 +269,15 @@ def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_st
     se = final_check_phage_word(sjcontig, s, e, genome)
     return se
 
-def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSize, non_prophage_gene_gaps=10):
+def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, phageWindowSize, non_prophage_gene_gaps=10):
+    self = Namespace(**kwargs)
     try:
-        infile = open(output_dir+'initial_tbl.tsv', 'r')
+        infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
     except:
-        sys.exit('ERROR: Cannot open ' + output_dir + 'initial_tbl.tsv')
+        sys.exit('ERROR: Cannot open initial_tbl.tsv')
 
     #make all predicted pp list
-    print("Checking prophages in " + output_dir + "initial_tbl.tsv\n")
+    print("Checking prophages in initial_tbl.tsv\n")
     pp = {}
     i = 0
     flag = 0
@@ -343,7 +345,7 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
     j = 1
     prophagesummary = []
     for i in pp:
-        if pp[i]['num genes'] >= phageWindowSize:
+        if pp[i]['num genes'] >= self.phageWindowSize:
             temppp[j] = pp[i]
             j += 1
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
@@ -359,7 +361,8 @@ def fixing_start_end(output_dir, organism_path, INSTALLATION_DIR, phageWindowSiz
     sys.stderr.write("\n")
     # End filtering
     # find start end for all pp using repeat finder
-    dna = read_contig(organism_path)
+    #dna = read_contig(organism_path)
+    dna = {record.id : str(record.seq) for record in self.records}
     extraDNA = 2000
     for i in pp:
         print("PROPHAGE: " + str(i) + " Contig: " + str(pp[i]['contig']) + " Start: " + str(
@@ -504,7 +507,7 @@ def make_prophage_tbl(inputf, outputf):
     fw.close()
 
 ################################################################################
-def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
+#def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
     # Make the prophage_tbl_temp.txt file.
     #fixing_start_end(output_dir,organismPath,INSTALLATION_DIR)
     fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)

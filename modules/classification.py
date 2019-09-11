@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
 #from numpy import array
 import numpy as np
+from argparse import Namespace
 
 def find_training_genome(trainingFlag,INSTALLATION_DIR):
     try:
@@ -35,7 +36,6 @@ def call_randomforest(**kwargs):
     #print(clf.predict(test_data))
     #exit()
     cmd = "Rscript " + bin_path + "/randomForest.r " + trainingFile + " " + infile + " " + outfile
-    print(cmd)
     os.system(cmd)
 
 def my_sort(orf_list):
@@ -157,14 +157,17 @@ def calc_function_3files(organism):
 
     return my_func
 
-def input_bactpp(organism, INSTALLATION_DIR):
-    bact_file = organism+'/Features/peg/tbl'
-    try:
-        fh = open(bact_file,'r')
-    except:
-        print('cant open file- assigned functions/tbl file:',organism)
-        return {}
-    my_func = calc_function_3files(organism)
+def input_bactpp(**kwargs):
+    print(kwargs)
+    exit()
+   
+    #bact_file = organism+'/Features/peg/tbl'
+    #try:
+    #    fh = open(bact_file,'r')
+    #except:
+    #    print('cant open file- assigned functions/tbl file:',organism)
+    #    return {}
+    #my_func = calc_function_3files(organism)
     all_orf_list = {}
     for i in fh:
         temp = re.split('\t',i.strip())
@@ -213,13 +216,30 @@ def input_bactpp(organism, INSTALLATION_DIR):
             index = index+1
     return all
 
-def make_initial_tbl(organismPath, output_dir, window, INSTALLATION_DIR):
+def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_DIR):
+    self = Namespace(**kwargs)
+    x = []
+    for entry in self.record:
+        for feature in entry.features:
+            if feature.type == 'CDS':
+                all = {}
+                all['fig'] = orf_list[i]['fig']
+                all['function'] = orf_list[i]['function']
+                all['contig'] = orf_list[i]['contig']
+                all['start'] = orf_list[i]['start']
+                all['stop'] = orf_list[i]['stop']
+                all['rank'] = 0.0
+                all['status'] = 0
+                all['pp'] = orf_list[i]['pp']
+                x.append(all)
+    print(x)
+    exit()
     try:
-        infile = open(output_dir+'classify.tsv','r')
-        outfile = open(output_dir+'initial_tbl.tsv','w')
+        infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
+        outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except:
-        sys.exit('ERROR: Cannot open '+output_dir+'classify.tsv')
-    x = input_bactpp(organismPath,INSTALLATION_DIR)
+        sys.exit('ERROR: Cannot open classify.tsv')
+    x = input_bactpp(**kwargs)
     j = 1
     ranks = [[] for n in range(len(x))]
     for line in infile:

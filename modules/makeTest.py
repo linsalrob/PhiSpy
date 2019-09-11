@@ -57,7 +57,7 @@ class ShannonScore:
         for i in window_kmers.values():
             p = i/total
             H = H + p * (math.log(p)/math.log(2))
-        if H > 0:
+        if H >= 0:
             return 0
         freq_found = found_total / float(total)
         myslope = - freq_found / H
@@ -308,22 +308,22 @@ def make_test_set(**kwargs):
     #    sys.exit('ERROR: Cannot open file ' + organismPath + '/Features/peg/tbl')
     #dna = read_contig(organismPath)
     # open host/bact dna file which has a contig
-    for record in self.records:
-        dna[record.id] = str(record.seq)
-        for feature in record.features:
+    for entry in self.record:
+        dna[entry.id] = str(entry.seq)
+        for feature in entry.features:
             if feature.type == 'CDS':
-                orf_list = all_orf_list.get(record.id, [])
+                orf_list = all_orf_list.get(entry.id, [])
                 start = int(feature.location.start) + 1
                 stop = int(feature.location.end)
                 if feature.location.strand == -1:
                     start, stop = stop, start
                 orf_list.append(
-                               {'start' : start,
-                                'stop'  : stop,
-                                'peg'   : 'peg'
-                               }
+                       {'start' : start,
+                        'stop'  : stop,
+                        'peg'   : 'peg'
+                       }
                 )
-                all_orf_list[record.id] = orf_list
+                all_orf_list[entry.id] = orf_list
     #for line in infile:
     #    temp = re.split('\t', line.strip())
     #    if ',' in temp[1]:
