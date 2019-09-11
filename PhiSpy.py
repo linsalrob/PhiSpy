@@ -2,54 +2,20 @@
 import os
 import sys
 import subprocess
+import types
 
 from Bio import SeqIO
 
 INSTALLATION_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 sys.path.append(INSTALLATION_DIR)
 
+from modules import seqio_filter
 from modules import makeTrain
 from modules import makeTest
 from modules import classification
 from modules import evaluation
 from modules import unknownFunction
 import modules.helper_functions as helpers
-
-class SeqioFilter( object ):
-    """This is class to allow filtering of the Biopython SeqIO record
-
-    SeqIO returns a generator object so anytime you want to perform
-    an action on it, you must iterate through the entire list. This
-    class add the ability to filter and return only a subset of the
-    features.
-
-    Note:
-        To use simply pass a SeqIO.parse object to it and then when
-        the object is called a keyword is passed to it and only those
-        features matching the keyword are returned.
-    Example:
-        record = SeqioFilter(SeqIO.parse(infile)):
-        #no change to standard SeqIO calls
-        for entry in record:
-            print(entry.id, entry.seq)
-        #now we can get only certain features
-        for cds in record.get_feature('CDS'):
-            print(cds)
-
-    """
-    def __init__( self, content ):
-        self.__content = content
-    def __iter__(self):
-        for item in self.__content:
-            yield item
-    def __call__( self, keyword='' ):
-        pass
-    #def get_features( self, keyword='' ):
-    #    for item in self.__content:
-    #        for line in item.features:
-    #            if not keyword or line.type == keyword:
-    #                line.id = item.id
-    #                yield line
 
 
 def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
@@ -66,7 +32,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     args_parser = helpers.get_args()
     # in future support other types
-    input_file = SeqIO.parse(args_parser.infile, "genbank")
+    input_file = seqio_filter.SeqioFilter(SeqIO.parse(args_parser.infile, "genbank"))
     args_parser.record = input_file
     os.makedirs(args_parser.output_dir, exist_ok=True)
 

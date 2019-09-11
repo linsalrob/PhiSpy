@@ -81,7 +81,7 @@ def find_mean(all_len):
           sum = sum + i
      return float(sum)/len(all_len)
 
-def calc_pp(func,INSTALLATION_DIR):
+def calc_pp(func):
     x = 0
     func = func.replace('-',' ')
     func = func.replace(',',' ')
@@ -220,31 +220,28 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
     self = Namespace(**kwargs)
     x = []
     for entry in self.record:
-        for feature in entry.features:
-            if feature.type == 'CDS':
-                all = {}
-                all['fig'] = orf_list[i]['fig']
-                all['function'] = orf_list[i]['function']
-                all['contig'] = orf_list[i]['contig']
-                all['start'] = orf_list[i]['start']
-                all['stop'] = orf_list[i]['stop']
-                all['rank'] = 0.0
-                all['status'] = 0
-                all['pp'] = orf_list[i]['pp']
-                x.append(all)
-    print(x)
-    exit()
+        for feature in entry.get_features('CDS'):
+            all = {}
+            all['fig'] = feature.id
+            all['function'] = feature.function
+            all['contig'] = entry.id
+            all['start'] = feature.start
+            all['stop'] = feature.stop
+            all['rank'] = 0.0
+            all['status'] = 0
+            all['pp'] = calc_pp(feature.function)
+            x.append(all)
     try:
         infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except:
         sys.exit('ERROR: Cannot open classify.tsv')
-    x = input_bactpp(**kwargs)
+    #x = input_bactpp(**kwargs)
     j = 1
     ranks = [[] for n in range(len(x))]
     for line in infile:
         val = float(line.strip())
-        for k in range(j-int(window/2), j+int(window/2)):
+        for k in range(j-int(self.window_size/2), j+int(self.window_size/2)):
             if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                 continue
             ranks[k].append(val)

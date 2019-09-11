@@ -310,20 +310,15 @@ def make_test_set(**kwargs):
     # open host/bact dna file which has a contig
     for entry in self.record:
         dna[entry.id] = str(entry.seq)
-        for feature in entry.features:
-            if feature.type == 'CDS':
-                orf_list = all_orf_list.get(entry.id, [])
-                start = int(feature.location.start) + 1
-                stop = int(feature.location.end)
-                if feature.location.strand == -1:
-                    start, stop = stop, start
-                orf_list.append(
-                       {'start' : start,
-                        'stop'  : stop,
-                        'peg'   : 'peg'
-                       }
-                )
-                all_orf_list[entry.id] = orf_list
+        for feature in entry.get_features('CDS'):
+            orf_list = all_orf_list.get(entry.id, [])
+            orf_list.append(
+                   {'start' : feature.start,
+                    'stop'  : feature.stop,
+                    'peg'   : 'peg'
+                   }
+            )
+            all_orf_list[entry.id] = orf_list
     #for line in infile:
     #    temp = re.split('\t', line.strip())
     #    if ',' in temp[1]:
