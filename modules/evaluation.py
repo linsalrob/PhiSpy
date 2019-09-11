@@ -4,62 +4,31 @@ import math
 import sys
 from argparse import Namespace
 
-def read_contig(organism):
-    try:
-        f_dna = open(organism + '/contigs', 'r')
-    except:
-        print('cant open contig file ' + organism)
-        return ""
-    dna = {}
-    seq = ''
-    name = ''
-    for i in f_dna:
-        if i[0] == '>':
-            if len(seq) > 10:
-                dna[name] = seq
-            name = i.strip()
-            if ' ' in name:  # 12149.1
-                temp = re.split(' ', name)
-                name = temp[0]
-            '''
-            if '_' in name:
-                 temp = re.split('_',name)
-                 name = temp[len(temp)-1]
-            else:
-            '''
-            name = name[1:len(name)]
 
-            seq = ''
-        else:
-            seq = seq + i.strip()
-    dna[name] = seq
-    f_dna.close()
-    return dna
-
-def find_repeat(fn, st, INSTALLATION_DIR, ppno, extraDNA, output_dir):
+def find_repeat(fn, st, ppno, extraDNA, output_dir):
     bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     if len(fn) == 0:
         print("Len sequence is 0 so ignoring\n")
         return {}
     # write dna in file
-    tempOutFile = "tempRepeatDNA." + str(os.getpid()) + ".pp." + str(ppno) + ".fasta"
+    tempOutFile = os.path.join(output_dir, "tempRepeatDNA." + str(os.getpid()) + ".pp." + str(ppno) + ".fasta")
     try:
-        outfile = open(output_dir + "/" + tempOutFile, "w")
+        outfile = open(tempOutFile, 'w')
     except:
-        sys.exit("ERROR: Cannot open " + tempOutFile + " for writing\n")
+        sys.exit("ERROR: Cannot open tempOutFile for writing\n")
 
     outfile.write('>pp' + str(ppno) + '\n' + fn)
     outfile.close()
     # call repeat finder
     try:
-        cmd1 = bin_path + "/repeatFinder -f " + output_dir + tempOutFile
+        cmd1 = bin_path + "/repeatFinder -f " + tempOutFile
         os.system(cmd1)
     except:
         print('repeat finder did not work for ', len(fn))
     # read repeats
     infile = ""
     try:
-        infile = open(output_dir + tempOutFile + ".repeatfinder", "r")
+        infile = open(tempOutFile + ".repeatfinder", "r")
     except:
         sys.stderr.write("can't open " + output_dir + tempOutFile + ".repeatfinder\n")
         return {}
@@ -137,52 +106,52 @@ def find_smallest(a,b):
                 mm = math.fabs(i - j)
     return mm
 
-def find_rna(prophage_start, prophage_stop, repeat_list, organism_path, cont, integrs):
-    try:
-        infile = open(organism_path + '/Features/rna/tbl', 'r')
-    except:
-        sys.exit('Cannot open ' + organism_path + "/Features/rna/tbl")
+def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
+    #try:
+    #    infile = open(organism_path + '/Features/rna/tbl', 'r')
+    #except:
+    #    sys.exit('Cannot open ' + organism_path + "/Features/rna/tbl")
     my_start = 1000000
     start_end = 0
     end_start = 0
     my_end = 1000000
     mydiff = 1000000
-    for line in infile:
-        temp = re.split('\t', line.strip())
-        if len(temp) < 3:
-            continue
-        if 'trna' in temp[2].lower() or 'tmrna' in temp[2].lower():
-            if ',' in temp[1]:
-                ttemp = re.split(',', temp[1])
-                temp[1] = ttemp[len(ttemp) - 1]
-            temp1 = re.split('_', temp[1])
-            # contig = temp1[len(temp1)-3]
-            contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-            start = int(temp1[len(temp1) - 2])
-            stop = int(temp1[len(temp1) - 1])
-            if cont == contig:
-                i = 0
-                while i < len(repeat_list):
-                    a = find_smallest([start, stop], [repeat_list[i]['s1'], repeat_list[i]['s2'], repeat_list[i]['e1'],
-                                                      repeat_list[i]['e2']])
-                    if check_intg(prophage_start, prophage_stop, repeat_list[i], integrs, cont) == 1:
-                        if (math.fabs(repeat_list[i]['s1'] - repeat_list[i]['e2']) > math.fabs(
-                                my_start - my_end)) or mydiff == 1000000:
-                            my_start = repeat_list[i]['s1']
-                            my_end = repeat_list[i]['e2']
-                            start_end = repeat_list[i]['e1']
-                            end_start = repeat_list[i]['s2']
-                            mydiff = a
-
-                    if a <= 500 and a < mydiff:
-                        my_start = repeat_list[i]['s1']
-                        my_end = repeat_list[i]['e2']
-                        start_end = repeat_list[i]['e1']
-                        end_start = repeat_list[i]['s2']
-                        mydiff = a
-
-                    i += 1
-    infile.close()
+    #for line in infile:
+    for feature in record.get_entry(cont).get_features('tRNA'):
+        #temp = re.split('\t', line.strip())
+        #if len(temp) < 3:
+        #    continue
+        #if 'trna' in temp[2].lower() or 'tmrna' in temp[2].lower():
+        #    if ',' in temp[1]:
+        #        ttemp = re.split(',', temp[1])
+        #        temp[1] = ttemp[len(ttemp) - 1]
+        #    temp1 = re.split('_', temp[1])
+        #    #contig = temp1[len(temp1)-3]
+        #    contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
+        #    start = int(temp1[len(temp1) - 2])
+        #    stop = int(temp1[len(temp1) - 1])
+        #    if cont == contig:
+        i = 0
+        while i < len(repeat_list):
+            a = find_smallest([feature.start, feature.stop], 
+                              [repeat_list[i]['s1'], repeat_list[i]['s2'],
+                               repeat_list[i]['e1'], repeat_list[i]['e2']])
+            if check_intg(prophage_start, prophage_stop, repeat_list[i], integrs, cont) == 1:
+                if (math.fabs(repeat_list[i]['s1'] - repeat_list[i]['e2']) > math.fabs(
+                        my_start - my_end)) or mydiff == 1000000:
+                    my_start = repeat_list[i]['s1']
+                    my_end = repeat_list[i]['e2']
+                    start_end = repeat_list[i]['e1']
+                    end_start = repeat_list[i]['s2']
+                    mydiff = a
+            if a <= 500 and a < mydiff:
+                my_start = repeat_list[i]['s1']
+                my_end = repeat_list[i]['e2']
+                start_end = repeat_list[i]['e1']
+                end_start = repeat_list[i]['s2']
+                mydiff = a
+            i += 1
+    #infile.close()
     if mydiff == 1000000:
         return '0_0'  # 'null'
     return str(my_start) + '_' + str(my_end)+'_'+ str(start_end)+'_'+ str(end_start)
@@ -300,7 +269,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             # check the sequences are on the same contig. If not, definitely a new prophage
             if temp[2] != oldtemp[2]:
                 new_prophage = True
-            if flag == 0 and distance_from_last_prophage > non_prophage_gene_gaps:
+            if flag == 0 and distance_from_last_prophage > self.nonprophage_genegaps:
                 # we need at least 10 non phage genes betweeen prophages. This should be a variable.
                 new_prophage = True
             if new_prophage:
@@ -345,7 +314,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     j = 1
     prophagesummary = []
     for i in pp:
-        if pp[i]['num genes'] >= self.phageWindowSize:
+        if pp[i]['num genes'] >= self.window_size:
             temppp[j] = pp[i]
             j += 1
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
@@ -362,7 +331,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     # End filtering
     # find start end for all pp using repeat finder
     #dna = read_contig(organism_path)
-    dna = {record.id : str(record.seq) for record in self.records}
+    dna = {entry.id : str(entry.seq) for entry in self.record}
     extraDNA = 2000
     for i in pp:
         print("PROPHAGE: " + str(i) + " Contig: " + str(pp[i]['contig']) + " Start: " + str(
@@ -381,8 +350,8 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             continue
         sys.stderr.write("PP: " + str(i) + " start: " + str(pp[i]['start']) + " stop: " + str(pp[i]['stop']) + "\n")
         print("Finding repeats in pp " + str(i) + " from " + str(start) + " to " + str(stop))
-        repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, INSTALLATION_DIR, i, extraDNA, output_dir)
-        s_e = find_rna(start, stop, repeat_list, organism_path, pp[i]['contig'], intg)
+        repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extraDNA, self.output_dir)
+        s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
         if s_e != 'null':
             t = re.split('_', s_e)
             if s_e == '0_0':
@@ -438,10 +407,10 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                                                   "Longest Repeat flanking phage and within " + str(extraDNA) + " bp"]))
     # fix start end for all pp
     try:
-        infile = open(output_dir + 'initial_tbl.tsv', 'r')
-        outfile = open(output_dir + 'prophage_tbl.tsv', 'w')
+        infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
+        outfile = open(os.path.join(self.output_dir, 'prophage_tbl.tsv'), 'w')
     except:
-        sys.exit('ERROR: Cannot open ' + output_dir + 'initial_tbl.tsv')
+        sys.exit('ERROR: Cannot open initial_tbl.tsv')
 
     for line in infile:
         temp = re.split('\t', line.strip())
@@ -455,16 +424,16 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             outfile.write(line.strip() + '\t' + str(me) + '\n')
     infile.close()
     outfile.close()
-    os.remove(output_dir + 'initial_tbl.tsv')
+    os.remove(os.path.join(self.output_dir, 'initial_tbl.tsv'))
     # print the prophage coordinates:
-    out = open(output_dir + 'prophage_coordinates.tsv', 'w')
+    out = open(os.path.join(self.output_dir, 'prophage_coordinates.tsv'), 'w')
     for i in pp:
         if 'att' not in pp[i]:
             pp[i]['att']=""
         out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['att']])) + "\n")
     out.close()
     # write the prophage location table
-    out = open(output_dir + "prophage.tbl", "w")
+    out = open(os.path.join(self.output_dir, "prophage.tbl"), "w")
     for i in pp:
         out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
     out.close()
@@ -510,7 +479,7 @@ def make_prophage_tbl(inputf, outputf):
 #def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
     # Make the prophage_tbl_temp.txt file.
     #fixing_start_end(output_dir,organismPath,INSTALLATION_DIR)
-    fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)
+    #fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)
     #make_prophage_tbl(output_dir + 'prophage_tbl.tsv', output_dir + 'prophage.tbl')
     #fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
     # Make the prophage_tbl_temp.txt file.
