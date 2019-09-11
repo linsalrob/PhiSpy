@@ -30,11 +30,11 @@ class SeqioFilter( list ):
             self.attach_methods(item)
             self.get_n[item.id] = n
             self.append(item)
+
     def __iter__(self):
-        #print("iter")
         return self
+
     def __next__(self):
-        #print('next')
         try:
             item = self[self.n]
         except IndexError:
@@ -42,21 +42,28 @@ class SeqioFilter( list ):
             raise StopIteration()
         self.n += 1
         return item
-    def get_entry(self, id):
-        return self[self.get_n[id]]
- 
+
     def __call__( self, keyword='' ):
         pass
 
+    def get_entry(self, id):
+        return self[self.get_n[id]]
+ 
     def attach_methods(self, target):
         """This method allows attaching new methods to the SeqIO entry object
 
            Args:
                target: is the SeqIO object that will be attaching a method to
         """
-        def get_features(target,x):
+        def get_features(target, feature_type):
             for feature in target.features:
-                if feature.type == x:
+                feature.id       = " ".join(feature.qualifiers.get('locus_tag', [str(feature.location)]))
+                feature.function = " ".join(feature.qualifiers.get('product',['unknown']))
+                feature.start    = int(feature.location.start) + 1
+                feature.stop     = int(feature.location.end)
+                if feature.strand < 0:
+                    feature.start, feature.stop = feature.stop, feature.start
+                if not feature_type or feature.type == feature_type:
                     yield feature
         target.get_features = types.MethodType(get_features,target)
 
