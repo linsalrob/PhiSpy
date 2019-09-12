@@ -277,7 +277,7 @@ def make_set_train(**kwargs):
             )
             all_orf_list[entry.id] = orf_list
     try:
-        outfile = open(os.path.join(self.output_dir, 'training_set.txt'),'w')
+        outfile = open(os.path.join(self.output_dir, self.make_training_data),'w')
     except:
         sys.exit('ERROR: Cannot open', os.path.join(self.output_dir, self.make_training_data), 'for writing.')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
