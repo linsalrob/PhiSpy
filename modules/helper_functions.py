@@ -32,8 +32,8 @@ def get_args():
         description="phiSpy is a program for identifying prophages from among microbial genome sequences",
         epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
     parser.add_argument('infile', type=is_valid_file, help='input file in genbank format')
-    parser.add_argument('-m', '--make_training_data', action='store_true',
-                             help='Create training data from a set of annotated genome files')
+    parser.add_argument('-m', '--make_training_data', type=str,
+                             help='Create training data from a set of annotated genome files. Requires is_phage=1 qualifier in prophage\'s CDSs')
     parser.add_argument('-t', '--training_set', action='store', type=is_valid_file, default='',
                              help='The most closely related set to your genome.')
     parser.add_argument('-l', '--list', type=bool, default=False, const=True, nargs='?',

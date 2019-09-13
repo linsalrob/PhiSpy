@@ -149,36 +149,6 @@ def find_atgc_skew(seq):
     seq = seq.upper()
     total_at = 0.0
     total_gc = 0.0
-    # #          A    G     C   T
-    # scores = {
-    #     'A': [1.0, 0.0, 0.0, 0.0],
-    #     'T': [0.0, 0.0, 0.0, 1.0],
-    #     'G': [0.0, 1.0, 0.0, 0.0],
-    #     'C': [0.0, 0.0, 1.0, 0.0],
-    #     'R': [0.5, 0.5, 0.0, 0.0], #ag
-    #     'Y': [0.0, 0.0, 0.5, 0.5], #ct
-    #     'S': [0.0, 0.5, 0.5, 0.0], #gc
-    #     'W': [0.5, 0.0, 0.0, 0.5], #at
-    #     'K': [0.0, 0.5, 0.0, 0.5], #gt
-    #     'M': [0.5, 0.0, 0.5, 0.0], #ac
-    #     'B': [0.0, 0.3, 0.3, 0.3], #cgt
-    #     'D': [0.3, 0.3, 0.0, 0.3], #agt
-    #     'H': [0.3, 0.0, 0.3, 0.3], #act
-    #     'V': [0.3, 0.3, 0.3, 0.0], #acg
-    #     'N': [0.25, 0.25, 0.25, 0.25], #acgt
-    # }
-    # counts = [0, 0, 0, 0]
-    # for base in seq:
-    #     if base not in scores:
-    #         sys.stderr.write("ERROR: found base " + base + " that is not in the iupac code. Skipped\n")
-    #         continue
-    #     for i,j in enumerate(scores[base]):
-    #         counts[i] += j
-    # total_at = counts[0] + counts[3]
-    # total_gc = counts[1] + counts[2]
-    # if (total_at * total_gc) == 0:
-    #     sys.exit("a total of zero")
-    # return float(counts[0]) / total_at, float(counts[3]) / total_at, float(counts[1]) / total_gc, float(counts[2]) / total_gc
     a = 0
     t = 0
     c = 0
@@ -302,12 +272,6 @@ def make_test_set(**kwargs):
     all_orf_list = {}
     dna = {}
     window = 40
-    #try:
-    #    infile = open(organismPath + '/Features/peg/tbl', 'r')
-    #except:
-    #    sys.exit('ERROR: Cannot open file ' + organismPath + '/Features/peg/tbl')
-    #dna = read_contig(organismPath)
-    # open host/bact dna file which has a contig
     for entry in self.record:
         dna[entry.id] = str(entry.seq)
         for feature in entry.get_features('CDS'):
@@ -319,26 +283,6 @@ def make_test_set(**kwargs):
                    }
             )
             all_orf_list[entry.id] = orf_list
-    #for line in infile:
-    #    temp = re.split('\t', line.strip())
-    #    if ',' in temp[1]:
-    #        ttemp = re.split(',', temp[1])
-    #        temp[1] = ttemp[len(ttemp) - 1]
-    #    temp1 = re.split('_', temp[1])
-    #    contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-    #    start = int(temp1[len(temp1) - 2])
-    #    stop = int(temp1[len(temp1) - 1])
-        # save info for sorting orf
-    #    if contig in all_orf_list:
-    #        x = len(all_orf_list[contig])
-    #    else:
-    #        x = 0
-    #        all_orf_list[contig] = {}
-    #    all_orf_list[contig][x] = {}
-    #    all_orf_list[contig][x]['start'] = start
-    #    all_orf_list[contig][x]['stop'] = stop
-    #    all_orf_list[contig][x]['peg'] = temp[0]
-    #infile.close()
     try:
         outfile = open(os.path.join(self.output_dir, 'testSet.txt'), 'w')
     except:
@@ -389,11 +333,6 @@ def make_test_set(**kwargs):
             jat = math.fabs(ja - jt) / avg_at_skew if avg_at_skew else 0
             jgc = math.fabs(jg - jc) / avg_gc_skew if avg_gc_skew else 0
             my_length = find_median(lengths[j_start:j_stop]) - all_median
-            for j in range(j_start, j_stop):
-                start = orf_list[j]['start']
-                stop = orf_list[j]['stop']
-                if start > stop:
-                    start, stop = stop, start
             # orf direction
             orf = []
             x = 0

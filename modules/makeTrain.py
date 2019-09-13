@@ -257,37 +257,33 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
 
 ######################################################################################
 
-def make_set_train(**kwargs): #trainSet, organismPath, output_dir, window, INSTALLATION_DIR):
+def make_set_train(**kwargs):
     self = Namespace(**kwargs)
     my_shannon_scores = ShannonScore()
     all_orf_list = {}
     dna = {}
     window = 40
-    for record in self.records:
-        dna[record.id] = str(record.seq)
-        for feature in record.features:
-            if feature.type == 'CDS':
-                orf_list = all_orf_list.get(record.id, [])
-                start = int(feature.location.start) + 1
-                stop = int(feature.location.end)
-                is_phage = int(feature.qualifiers['is_phage'][0]) if 'is_phage' in feature.qualifiers else 0
-                if feature.location.strand == -1:
-                    start, stop = stop, start
-                orf_list.append(
-                               {'start'   : start,
-                                'stop'    : stop,
-                                'peg'     : 'peg',
-                                'is_phage': is_phage
-                               }
-                )
-                all_orf_list[record.id] = orf_list
+    for entry in self.record:
+        dna[entry.id] = str(entry.seq)
+        for feature in entry.get_features('CDS'):
+            orf_list = all_orf_list.get(entry.id, [])
+            is_phage = int(feature.qualifiers['is_phage'][0]) if 'is_phage' in feature.qualifiers else 0
+            orf_list.append(
+                   {'start' : feature.start,
+                    'stop'  : feature.stop,
+                    'peg'   : 'peg',
+                    'is_phage': is_phage
+                   }
+            )
+            all_orf_list[entry.id] = orf_list
     try:
         outfile = open(os.path.join(self.output_dir, self.make_training_data),'w')
     except:
         sys.exit('ERROR: Cannot open', os.path.join(self.output_dir, self.make_training_data), 'for writing.')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
     for mycontig in all_orf_list:
-        orf_list = my_sort(all_orf_list[mycontig])
+        # orf_list = my_sort(all_orf_list[mycontig]) #shouldn't that be deleted as well?
+        orf_list = all_orf_list[mycontig]
         ######################
 
         if not orf_list:
@@ -334,11 +330,6 @@ def make_set_train(**kwargs): #trainSet, organismPath, output_dir, window, INSTA
             jat = math.fabs(ja - jt) / avg_at_skew if avg_at_skew else 0
             jgc = math.fabs(jg - jc) / avg_gc_skew if avg_gc_skew else 0
             my_length = find_median(lengths[j_start:j_stop]) - all_median
-            for j in range(j_start, j_stop):
-                start = orf_list[j]['start']
-                stop = orf_list[j]['stop']
-                if start > stop: 
-                    start, stop = stop, start
             # orf direction
             orf = []
             x = 0
