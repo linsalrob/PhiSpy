@@ -1,0 +1,3 @@
+[submodule "modules/RepeatFinder"]
+	path = modules/RepeatFinder
+	url = git@github.com:deprekate/RepeatFinder.git
