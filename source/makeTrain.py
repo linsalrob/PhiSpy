@@ -333,6 +333,7 @@ def make_set_train(organismPath,output_dir,window,INSTALLATION_DIR):
           orf_list = my_sort(all_orf_list[mycontig])
           ######################
           #avg_length = find_avg_length(orf_list)
+
           if not orf_list:
               continue
           all_median = find_all_median(orf_list)

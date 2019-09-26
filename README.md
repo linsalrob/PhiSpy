@@ -26,7 +26,7 @@ The program should run on all Unix platforms, although it was not tested in all 
 
 # SOFTWARE REQUIREMENTS
 
-PhiSpy requires following programs to be installed in the system.
+PhiSpy requires following programs to be installed in the system. NOTE: You can ignore this if you're using the singularity container method of installation.
 
 1. Python - version 2.7.2 or later
 2. Biopython - version 1.58 or later 
@@ -37,18 +37,22 @@ PhiSpy requires following programs to be installed in the system.
 
 # INSTALLATION
 
-1. `% tar xvfz PhiSpy-X.X `
-2. `% cd PhiSpy-X.X`
+1. Clone this repository
+2. `% cd PhiSpy`
 3. `% make`
+4. For ease of use, add the location of PhiSpy.py to your $PATH.
 
+# ALTERNATE INSTALLATION
+
+1. Get [singularity](http://singularity.lbl.gov/all-releases)
+2. Build phispy.img using this [repository](https://github.com/hurwitzlab/singularity-phispy)
+3. Run the singularity image `% singularity exec phispy.img PhiSpy.py`
+4. NOTE: if you haven't used singularity before you'll need to know about [binding directories](http://singularity.lbl.gov/quickstart#working-with-files) so that PhiSpy can find your input and output.
 
 TO TEST THE PROGRAM
 
-1. Download the example Organism directory ([Test_Organism.zip](Test_Organism.zip)) 
-2. Uncompress Test_Organism.zip
-3. Move 'Test_Organism' to the current PhiSpy directory
-4. `% cd PhiSpy`
-5. `% ./PhiSpy.py -i Test_Organism/160490.1/ -o output_directory -t 25`
+1. `% cd PhiSpy`
+2. `% ./PhiSpy.py -i Test_Organism/160490.1/ -o output_directory -t 25`
 
 Test_Organism/160490.1/ is a seed annotation directory for genome 'Streptococcus pyogenes M1 GAS'. 
 You will find the output files of this genome at output_directory.

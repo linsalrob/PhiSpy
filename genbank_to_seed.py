@@ -5,7 +5,7 @@ from Bio import SeqIO
 
 def convert_contigs(argv):
     if len(argv) < 3:
-        print 'USAGE: python genbank_to_seed.py GenBank_file.gb organism_directory \n'
+        print('USAGE: python genbank_to_seed.py GenBank_file.gb organism_directory \n')
         return
     if '.' in argv[1]:
         gbk_file = argv[1] 
@@ -18,7 +18,7 @@ def convert_contigs(argv):
         cmd = 'mkdir '+ org_dir
         os.system(cmd)
     except:
-        print 'Organism Directory: ',org_dir
+        print('Organism Directory: ',org_dir)
     
     try:
         f_contig = open(os.path.join(org_dir, 'contigs'),'w')
@@ -31,7 +31,7 @@ def convert_contigs(argv):
         f_peg = open(os.path.join(org_dir, 'Features/peg/tbl'), 'w')
         f_rna = open(os.path.join(org_dir, 'Features/rna/tbl'), 'w')
     except:
-        print 'ERROR: Can\'t write file(s) in',org_dir
+        print('ERROR: Can\'t write file(s) in',org_dir)
         return
 
     name = ''
@@ -46,12 +46,12 @@ def convert_contigs(argv):
             seq = str(seq_record.seq.strip())
             seq = seq.upper()
             if seq.find('A')<0 and seq.find('C')<0 and seq.find('G')<0 and seq.find('T')<0:
-                print 'In the GenBank file, the sequence is missing.'
+                print('In the GenBank file, the sequence is missing.')
                 check_status = 1
                 break
             f_contig.write('>'+name+'\n'+seq+'\n')
         except:
-            print 'In the GenBank file, the sequence or contig_id is missing.'
+            print('In the GenBank file, the sequence or contig_id is missing.')
             check_status = 1
             break
 
@@ -85,7 +85,7 @@ def convert_contigs(argv):
                     id = r.qualifiers['locus_tag'][0]
                     codon = name
                 except:
-                    print 'In the GenBank file, for a gene, locus_tag is missing. locus_tag is required for each gene.\nPlease make sure that each gene has locus_tag and run the program again.'
+                    print('In the GenBank file, for a gene, locus_tag is missing. locus_tag is required for each gene.\nPlease make sure that each gene has locus_tag and run the program again.')
                     check_status = 1
                     break
                 try:
@@ -101,7 +101,7 @@ def convert_contigs(argv):
                         start = str(r.location.nofuzzy_start+1)
                         stop = str(r.location.nofuzzy_end)
                 except:
-                    print 'In the GenBank file, the location of a gene is missing.\nPlease make sure that each gene has its location and run the program again.'
+                    print('In the GenBank file, the location of a gene is missing.\nPlease make sure that each gene has its location and run the program again.')
                     check_status = 1
                     break
                 
@@ -113,7 +113,7 @@ def convert_contigs(argv):
                     id = r.qualifiers['locus_tag'][0]
                     codon = name
                 except:
-                    print 'In the GenBank file, for a gene/RNA, locus_tag is missing. locus_tag is required for each gene/RNA.\nPlease make sure that each gene/RNA has locus_tag and run the program again.'
+                    print('In the GenBank file, for a gene/RNA, locus_tag is missing. locus_tag is required for each gene/RNA.\nPlease make sure that each gene/RNA has locus_tag and run the program again.')
                     check_status = 1
                     break
 
@@ -130,7 +130,7 @@ def convert_contigs(argv):
                         start = str(r.location.nofuzzy_start+1)
                         stop = str(r.location.nofuzzy_end)
                 except:
-                    print 'In the GenBank file, the location of a gene/RNA is missing.\nPlease make sure that each gene/RNA has its location and run the program again.'
+                    print('In the GenBank file, the location of a gene/RNA is missing.\nPlease make sure that each gene/RNA has its location and run the program again.')
                     check_status = 1
                     break
 
@@ -142,9 +142,9 @@ def convert_contigs(argv):
     f_func.close()
     f_peg.close()
     if check_status == 0:
-        print 'Your GenBank file is successfully converted to the SEED format, which is located at',org_dir,'\nPlease use this directory to run PhiSpy.\n' 
+        print('Your GenBank file is successfully converted to the SEED format, which is located at',org_dir,'\nPlease use this directory to run PhiSpy.\n' )
     else:
-        print 'For your GenBank file, the SEED directory cannot be created.\nPlease check your GenBank file and run this program again.\n'
+        print('For your GenBank file, the SEED directory cannot be created.\nPlease check your GenBank file and run this program again.\n')
         try:
             #cmd = 'rm -fr '+ org_dir
 	    os.remove(org_dir+'/contigs')
@@ -156,7 +156,7 @@ def convert_contigs(argv):
             os.rmdir(org_dir + '/Features')
 	    os.rmdir(org_dir)
         except:
-            print 'Cannot remove',org_dir
+            print('Cannot remove',org_dir)
 
 
 convert_contigs(sys.argv)
