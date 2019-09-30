@@ -55,7 +55,7 @@ class ShannonScore:
         for i in window_kmers.values():
             p = i / total
             H = H + p * (math.log(p) / math.log(2))
-        if H > 0:
+        if H >= 0:
             return 0
         freq_found = found_total / float(total)
         myslope = -freq_found / H
