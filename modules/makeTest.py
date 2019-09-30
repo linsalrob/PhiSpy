@@ -357,7 +357,11 @@ def make_test_set(**kwargs):
             orf.sort()
             outfile.write(str(my_length))
             outfile.write('\t')
-            outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
+            if self.expand_slope:
+                s = my_shannon_scores.getSlope(j_start, j_stop)
+                outfile.write(str(s * s))
+            else:
+                outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
             outfile.write('\t')
             outfile.write(str(jat))
             outfile.write('\t')

@@ -50,6 +50,7 @@ def get_args():
                              help='Window size of consecutive genes to look through to find phages')
     parser.add_argument('-g', '--nonprophage_genegaps', default=10, type=int,
                              help='The number of non phage genes betweeen prophages')
+    parser.add_argument('--expand_slope', action='store_true', default=False, help='use the product of the slope of the Shannon scores in making test sets')
     #parser.add_argument('-i', '--input_dir', help='The input directory that holds the genome')
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('-qt', '--quiet', type=bool, default=False, const=True, nargs='?',
