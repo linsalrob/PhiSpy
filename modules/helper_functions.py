@@ -1,23 +1,25 @@
 import os
+import sys
 import argparse
+import re
 from argparse import RawTextHelpFormatter
 from argparse import ArgumentTypeError as err
 from modules.pathtype import PathType
 
 
-#def print_list(INSTALLATION_DIR):
-#    printstr = ''
-#    try:
-#        f = open(INSTALLATION_DIR + "data/trainingGenome_list.txt", "r")
-#    except:
-#        print('cannot find list')
-#    for line in f:
-#        line = line.strip()
-#        temp = re.split('\t', line)
-#        if int(temp[3]) == 1:
-#            printstr = printstr + temp[0] + ' ' + temp[2] + '\n'
-#    print(printstr)
-#    f.close()
+def print_list():
+    f = None
+    try:
+        f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainingGenome_list.txt'), 'r')
+    except:
+        sys.stderr.write('cannot find list')
+        sys.exit(-1)
+    for line in f:
+        line = line.strip()
+        temp = re.split('\t', line)
+        if int(temp[3]) == 1:
+            print("{}\t{}".format(temp[0], temp[2]))
+    f.close()
 
 def is_valid_file(x):
     if not x:
@@ -30,13 +32,13 @@ def get_args():
     usage = 'python3 PhiSpy.py [-opt1, [-opt2, ...]] infile'
     parser = argparse.ArgumentParser(
         description="phiSpy is a program for identifying prophages from among microbial genome sequences",
-        epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Rob Edwards, San Diego State University, San Diego, CA")
-    parser.add_argument('infile', type=is_valid_file, help='input file in genbank format')
+        epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Przemysław Decewicz, Rob Edwards, San Diego State University, San Diego, CA")
+    parser.add_argument('infile', type=is_valid_file, help='input file in genbank format', nargs='?')
     parser.add_argument('-m', '--make_training_data', type=str,
                              help='Create training data from a set of annotated genome files. Requires is_phage=1 qualifier in prophage\'s CDSs')
     parser.add_argument('-t', '--training_set', action='store', type=is_valid_file, default='',
                              help='The most closely related set to your genome.')
-    parser.add_argument('-l', '--list', type=bool, default=False, const=True, nargs='?',
+    parser.add_argument('-l', '--list', action='store_true', default=False,
                              help='List the available training sets and exit')
     #parser.add_argument('-c', '--choose', type=bool, default=False, const=True, nargs='?',
     #                         help='Choose a training set from a list (overrides -t)')
