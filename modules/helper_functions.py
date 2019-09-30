@@ -18,7 +18,7 @@ def print_list():
         line = line.strip()
         temp = re.split('\t', line)
         if int(temp[3]) == 1:
-            print("{}\t{}".format(temp[0], temp[2]))
+            print("{}\t{}".format(temp[2], os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/' + temp[1])))
     f.close()
 
 def is_valid_file(x):
