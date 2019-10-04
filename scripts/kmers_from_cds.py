@@ -21,7 +21,7 @@ def read_genbank(infile):
                 if f.location.strand == 1:
                     dna = str(record.seq[start : end])
                 else:
-                    dna = str(record.seq[end : start])
+                    dna = str(record.seq[start : end].reverse_complement())
                 try:
                     status = f.qualifiers['is_phage'][0]
                     if status == '1':
