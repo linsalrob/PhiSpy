@@ -25,7 +25,6 @@ class ShannonScore:
 
     def addValue(self, seq):
         mer = 12
-        seq = seq.strip().upper()
         pos = 0
         self._kmers_phage.append([])
         self._kmers_all.append(0)
@@ -55,8 +54,7 @@ class ShannonScore:
         for i in window_kmers.values():
             p = i / total
             H = H + p * (math.log(p) / math.log(2))
-        if H > 0:
-            return 0
+        if H >= 0: return 0.0
         freq_found = found_total / float(total)
         myslope = -freq_found / H
         return myslope
@@ -137,7 +135,6 @@ def find_median(all_len):
         return all_len[n]
 
 def find_atgc_skew(seq):
-    seq = seq.upper()
     total_at = 0.0
     total_gc = 0.0
     a = 0
@@ -255,6 +252,23 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
         c_skew.append(xc)
     return a_skew, t_skew, g_skew, c_skew
 
+def reverse_complement(seq):
+
+    rcd = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 
+           'R': 'Y', 'Y': 'R', 'M': 'K', 'K': 'M',
+           'S': 'S', 'W': 'W',
+           'H': 'D', 'D': 'H',
+           'B': 'V', 'V': 'B',
+           'N': 'N'}
+    rcseq = ''
+    for base in seq[::-1]:
+        try:
+            rcseq += rcd[base]
+        except KeyError:
+            rcseq += base
+
+    return rcseq
+
 ######################################################################################
 
 def make_set_train(**kwargs):
@@ -296,9 +310,9 @@ def make_set_train(**kwargs):
             lengths.append(abs(i['start'] - i['stop']) + 1) # find_all_median can be deleted now
             directions.append(1 if i['start'] < i['stop'] else -1)
             if i['start'] < i['stop']:
-                seq = dna[mycontig][i['start'] - 1 : i['stop']]
+                seq = dna[mycontig][i['start'] - 1 : i['stop']].upper()
             else:
-                seq = dna[mycontig][i['stop'] - 1 : i['start']]
+                seq = reverse_complement(dna[mycontig][i['stop'] - 1 : i['start']].upper())
             my_shannon_scores.addValue(seq)
 
         ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list, mycontig, dna)
