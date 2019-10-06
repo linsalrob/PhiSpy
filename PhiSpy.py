@@ -31,9 +31,24 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         parse the options          #
     ######################################
     args_parser = helpers.get_args()
+
+    ######################################
+    #   list the training sets and exit  #
+    ######################################
+    if args_parser.list:
+        helpers.print_list()
+        exit(0)
+    # if we get here we need an input file
+    if not args_parser.infile:
+        sys.stderr.write("ERROR: Please provide an input file. Use -h for more options\n")
+        sys.exit(-1)
+
     # in future support other types
     input_file = seqio_filter.SeqioFilter(SeqIO.parse(args_parser.infile, "genbank"))
     args_parser.record = input_file
+    if not args_parser.output_dir:
+        sys.stderr.write("ERROR: Output directory (-o) is required\n")
+        sys.exit(-1)
     os.makedirs(args_parser.output_dir, exist_ok=True)
 
     ######################################
