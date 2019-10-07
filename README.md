@@ -1,3 +1,7 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub language count](https://img.shields.io/github/languages/count/linsalrob/PhiSpy)
+
+
 # INTRODUCTION
 
 PhiSpy is a computer program written in C++, Python and R to identify prophages in a complete bacterial genome sequences.
