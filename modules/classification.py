@@ -239,7 +239,7 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
         infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except:
-        sys.exit('ERROR: Cannot open classify.tsv')
+        sys.exit('ERROR: Cannot open classify.tsv in make_initial_tbl')
     #x = input_bactpp(**kwargs)
     j = 1
     ranks = [[] for n in range(len(x))]

@@ -243,7 +243,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
     except:
-        sys.exit('ERROR: Cannot open initial_tbl.tsv')
+        sys.exit('ERROR: Cannot open initial_tbl.txt in fixing_start_end')
 
     #make all predicted pp list
     print("Checking prophages in initial_tbl.tsv\n")
