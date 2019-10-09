@@ -3,7 +3,7 @@ import re
 import math
 import sys
 from argparse import Namespace
-
+from modules.writers import write_gff3
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
     bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
@@ -374,10 +374,17 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                 tempe1 = max(t[0], t[2])
                 temps2 = min(t[1], t[3])
                 tempe2 = max(t[1], t[3])
-                pp[i]['att'] = t[0] + '\t' + t[2] + '\t' + t[3] + '\t' + t[1] + '\t' + dna[pp[i]['contig']][
-                                                                                       int(temps1) - 1:int(
-                                                                                           tempe1)] + '\t' + dna[pp[i][
-                    'contig']][int(temps2) - 1:int(tempe2)] + 'Repeat exactly at the end'
+                pp[i]['att'] = [
+                    t[0],
+                    t[2], 
+                    t[3],
+                    t[1], 
+                    dna[pp[i]['contig']][int(temps1) - 1:int(tempe1)],
+                    dna[pp[i]['contig']][int(temps2) - 1:int(tempe2)],
+                    'Repeat exactly at the end'
+                ]
+                # string representation of the above
+                pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
             else:
                 # this approach will just append the longest repeat
                 longestrep = 0
@@ -398,13 +405,16 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                         print("Could not get a sequence from " + str(int(bestrep['s2']) - 1) + " to " + str(
                             int(bestrep['e2']) - 1) + " from " + str(pp[i]['contig']) + " (length: " + str(
                             len(dna[pp[i]['contig']])) + ")\n")
-                    # added by Rob, but this is not right
-                    #pp[i]['start'] = min([bestrep['s1'], bestrep['e1'], bestrep['s2'], bestrep['e2']])
-                    #pp[i]['stop']  = max([bestrep['s1'], bestrep['e1'], bestrep['s2'], bestrep['e2']])
-                    pp[i]['att'] = "\t".join(map(str,
-                                                 [bestrep['s1'], bestrep['e1'], bestrep['s2'], bestrep['e2'], attLseq,
-                                                  attRseq,
-                                                  "Longest Repeat flanking phage and within " + str(extraDNA) + " bp"]))
+                    pp[i]['att'] = [
+                        bestrep['s1'],
+                        bestrep['e1'],
+                        bestrep['s2'],
+                        bestrep['e2'],
+                        attLseq,
+                        attRseq,
+                        "Longest Repeat flanking phage and within " + str(extraDNA) + " bp"
+                    ]
+                    pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
     # fix start end for all pp
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
@@ -428,15 +438,18 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     # print the prophage coordinates:
     out = open(os.path.join(self.output_dir, 'prophage_coordinates.tsv'), 'w')
     for i in pp:
-        if 'att' not in pp[i]:
-            pp[i]['att']=""
-        out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['att']])) + "\n")
+        if 'atts' not in pp[i]:
+            pp[i]['atts']=""
+        out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['atts']])) + "\n")
     out.close()
     # write the prophage location table
     out = open(os.path.join(self.output_dir, "prophage.tbl"), "w")
     for i in pp:
         out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
     out.close()
+
+    # write the prophage in GFF3 format
+    write_gff3(self.output_dir, pp)
 
 def make_prophage_tbl(inputf, outputf):
     try:
