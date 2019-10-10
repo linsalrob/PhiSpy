@@ -49,6 +49,7 @@ def add_unknown_function_initial_tbl(infile,outfile):
         f = open(infile,'r')
         fw = open(outfile,'w')
     except:
+        print('ERROR: Cannot open initial_tbl.tsv add_unknown_function_initial_tbl.')
         return 0
     flag = 0
     for line in f:
@@ -72,9 +73,11 @@ def add_unknown_function_initial_tbl(infile,outfile):
     return 1
 
 def consider_unknown(output_dir):
-    x = add_unknown_function_initial_tbl(output_dir+'initial_tbl.txt',output_dir+'initial_tbl_2.txt')
+    it = os.path.join(output_dir, 'initial_tbl.tsv')
+    it2 = os.path.join(output_dir, 'initial_tbl_2.tsv')
+    x = add_unknown_function_initial_tbl(it, it2)
     if (x == 1):
-        cmd2 = "rm " + output_dir+'initial_tbl.txt'
+        cmd2 = "rm " + it
         os.system(cmd2)
-        cmd2 = "mv "+output_dir+'initial_tbl_2.txt '+output_dir+'initial_tbl.txt'
+        cmd2 = "mv " + it2 + ' ' + it
         os.system(cmd2)

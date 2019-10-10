@@ -28,15 +28,19 @@ def call_randomforest(**kwargs):
     bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     infile = os.path.join(output_dir, "testSet.txt")
     outfile = os.path.join(output_dir, "classify.tsv")
-    #trainingFile = find_training_genome(trainingFlag,INSTALLATION_DIR)
-    #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1)
-    #test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
-    #clf = RandomForestClassifier()
-    #clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
-    #print(clf.predict(test_data))
-    #exit()
-    cmd = "Rscript " + bin_path + "/randomForest.r " + trainingFile + " " + infile + " " + outfile
-    os.system(cmd)
+    train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
+    test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
+    # Przemek's comment
+    # by default 10 until version 0.22 where default is 100
+    # number of estimators also implies the precision of probabilities, generally 1/n_estimators
+    # in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
+    # "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
+    clf = RandomForestClassifier(n_estimators = 500)
+    clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
+    np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
+
+    # cmd = "Rscript " + bin_path + "/randomForest.r " + trainingFile + " " + infile + " " + outfile
+    # os.system(cmd)
 
 def my_sort(orf_list):
      n = len(orf_list)
@@ -235,7 +239,7 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
         infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except:
-        sys.exit('ERROR: Cannot open classify.tsv')
+        sys.exit('ERROR: Cannot open classify.tsv in make_initial_tbl')
     #x = input_bactpp(**kwargs)
     j = 1
     ranks = [[] for n in range(len(x))]

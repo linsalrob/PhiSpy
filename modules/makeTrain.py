@@ -12,9 +12,9 @@ class ShannonScore:
         self._kmers_all = []
         DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
         try:
-            infile = open(DATA_PATH + 'mer_ORF_list.txt', 'r')
+            infile = open(DATA_PATH + 'phage_kmers_all_wohost.txt', 'r')
         except:
-            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'mer_ORF_list.txt')
+            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'phage_kmers_all_wohost.txt')
         for line in infile:
             line = line.strip()
             self._kmers[line] = ''
@@ -28,15 +28,24 @@ class ShannonScore:
         pos = 0
         self._kmers_phage.append([])
         self._kmers_all.append(0)
-        while( pos <= (len(seq) - mer) ):
-            substr = seq[pos:pos + mer]
-            pos = pos + mer
-            self._kmers_all[-1] += 1 
+        kmers = self.kmerize_orf(seq, mer, 'simple')
+        for kmer in kmers:
+            self._kmers_all[-1] += 1
             try:            
-                self._kmers[substr]
-                self._kmers_phage[-1].append(substr)
+                self._kmers[kmer]
+                self._kmers_phage[-1].append(kmer)
             except KeyError:
                 continue
+
+        # while( pos <= (len(seq) - mer) ):
+        #     substr = seq[pos:pos + mer]
+        #     pos = pos + mer
+        #     self._kmers_all[-1] += 1 
+        #     try:            
+        #         self._kmers[substr]
+        #         self._kmers_phage[-1].append(substr)
+        #     except KeyError:
+        #         continue
 
     def getSlope(self, start, stop):
         total = sum(self._kmers_all[start : stop])
@@ -59,6 +68,26 @@ class ShannonScore:
         freq_found = found_total / float(total)
         myslope = -freq_found / H
         return myslope
+
+    def kmerize_orf(self, orf, k, t):
+
+        kmers = []
+        if t == 'simple':
+            stop = len(orf) - (len(orf) % k)
+            for i in range(0, stop, k):
+                kmers.append(orf[i : i + k])
+        elif t == 'all':
+            for j in range(0, k):
+                stop = len(orf) - ((len(orf) - j) % k)
+                for i in range(j, stop, k):
+                    kmers.append(orf[i : i + k])
+        elif t == 'codon':
+            for j in range(0, k, 3):
+                stop = len(orf) - ((len(orf) - j) % k)
+                for i in range(j, stop, k):
+                    kmers.append(orf[i : i + k])
+
+        return set(kmers)
 
 def read_contig(organismPath):
     try:
