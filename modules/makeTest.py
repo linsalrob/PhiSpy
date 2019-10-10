@@ -14,9 +14,9 @@ class ShannonScore:
         self._kmers_all = []
         DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
         try:
-            infile = open(DATA_PATH + 'mer_ORF_list.txt', 'r')
+            infile = open(DATA_PATH + 'phage_kmers_all_wohost.txt', 'r')
         except:
-            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'mer_ORF_list.txt')
+            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'phage_kmers_all_wohost.txt')
         for line in infile:
             line = line.strip()
             self._kmers[line] = ''
