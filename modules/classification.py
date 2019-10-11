@@ -8,11 +8,11 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from argparse import Namespace
 
-def find_training_genome(trainingFlag,INSTALLATION_DIR):
+def find_training_genome(trainingFlag, INSTALLATION_DIR):
     try:
-        f = open(INSTALLATION_DIR+"data/trainingGenome_list.txt","r")
+        f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
     except:
-        print('cannot open '+INSTALLATION_DIR+'data/trainingGenome_list.txt')
+        print('cannot open ' + os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'))
         return ''
 
     for line in f:

@@ -7,16 +7,17 @@ from argparse import Namespace
 
 
 class ShannonScore:
-    def __init__(self):
+    def __init__(self, kmers_type):
         # Create a hash of the kmers that points to the index of an array that holds the value
         self._kmers = {}
         self._kmers_phage = []
         self._kmers_all = []
-        DATA_PATH = pkg_resources.resource_filename(__name__, 'data/')
+        self._kmers_type = kmers_type
+        kmers_file = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))), 'data/phage_kmers_' + self._kmers_type + '_wohost.txt')
         try:
-            infile = open(DATA_PATH + 'phage_kmers_all_wohost.txt', 'r')
+            infile = open(kmers_file, 'r')
         except:
-            sys.exit('ERROR: Cannot open ' + DATA_PATH + 'phage_kmers_all_wohost.txt')
+            sys.exit('ERROR: Cannot open ' + kmers_file)
         for line in infile:
             line = line.strip()
             self._kmers[line] = ''
@@ -30,13 +31,12 @@ class ShannonScore:
         pos = 0
         self._kmers_phage.append([])
         self._kmers_all.append(0)
-        while (pos <= (len(seq) - mer)):
-            substr = seq[pos:pos + mer]
-            pos = pos + mer
-            self._kmers_all[-1] += 1 
+        kmers = self.kmerize_orf(seq, mer, self._kmers_type)
+        for kmer in kmers:
+            self._kmers_all[-1] += 1
             try:            
-                self._kmers[substr]
-                self._kmers_phage[-1].append(substr)
+                self._kmers[kmer]
+                self._kmers_phage[-1].append(kmer)
             except KeyError:
                 continue
 
@@ -62,37 +62,25 @@ class ShannonScore:
         myslope = - freq_found / H
         return myslope
 
-def read_contig(organismPath):
-    try:
-        f_dna = open(organismPath + '/contigs', 'r')
-    except:
-        print('cant open contig file ', organismPath)
-        return ''
-    dna = {}
-    seq = ''
-    name = ''
-    for i in f_dna:
-        if i[0] == '>':
-            if len(seq) > 10:
-                dna[name] = seq
-            name = i.strip()
-            if ' ' in name:
-                temp = re.split(' ', name)
-                name = temp[0]
-            '''
-            if '_' in name:
-                 temp = re.split('_',name)
-                 name = temp[len(temp)-1]
-            else:
-            '''
-            name = name[1:len(name)]
+    def kmerize_orf(self, orf, k, t):
 
-            seq = ''
-        else:
-            seq = seq + i.strip()
-    dna[name] = seq
-    f_dna.close()
-    return dna
+        kmers = []
+        if t == 'simple':
+            stop = len(orf) - (len(orf) % k)
+            for i in range(0, stop, k):
+                kmers.append(orf[i : i + k])
+        elif t == 'all':
+            for j in range(0, k):
+                stop = len(orf) - ((len(orf) - j) % k)
+                for i in range(j, stop, k):
+                    kmers.append(orf[i : i + k])
+        elif t == 'codon':
+            for j in range(0, k, 3):
+                stop = len(orf) - ((len(orf) - j) % k)
+                for i in range(j, stop, k):
+                    kmers.append(orf[i : i + k])
+
+        return kmers
 
 def my_sort(orf_list):
     n = len(orf_list)
@@ -283,7 +271,7 @@ def reverse_complement(seq):
 def make_test_set(**kwargs):
     # line below is so that later we can make this a class
     self = Namespace(**kwargs)
-    my_shannon_scores = ShannonScore()
+    my_shannon_scores = ShannonScore(self.kmers_type)
     all_orf_list = {}
     dna = {}
     window = 40
