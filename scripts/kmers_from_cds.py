@@ -122,16 +122,16 @@ def main():
             for i in target_orf_list:
                 target_kmers.update(kmerize_orf(i, args.kmer_size, t))
 
-            ref_minus_target = ref_kmers - target_kmers
-            target_minus_ref = target_kmers - ref_kmers
+            # ref_minus_target = ref_kmers - target_kmers
+            # target_minus_ref = target_kmers - ref_kmers
             # print('kmer_size\ttarget_kmers\treference_kmers\ttarget_specific\treference_specific\tintersection')
             # print(args.kmer_size, len(target_kmers), len(ref_kmers), len(ref_minus_target), len(target_minus_ref), len(ref_kmers.intersection(target_kmers)), sep = '\t')
 
             outfile_base = path.join(outdir, path.basename(infile).rsplit('.', 1)[0])
             with open(outfile_base + '_' + str(args.kmer_size) + '_HOST.txt', 'w') as outf:
-                outf.write('\n'.join(list(ref_minus_target)))
+                outf.write('\n'.join(list(ref_kmers)))
             with open(outfile_base + '_' + str(args.kmer_size) + '_PHAGE.txt', 'w') as outf:
-                outf.write('\n'.join(list(target_minus_ref)))
+                outf.write('\n'.join(list(target_kmers)))
 
 
 if __name__ == '__main__':
