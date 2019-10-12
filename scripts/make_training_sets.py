@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from Bio import SeqIO
 from glob import glob
 from os import makedirs, path
+from subprocess import call
 from sys import argv
 
 
@@ -120,8 +121,7 @@ def main():
     args.add_argument('--retrain',
                       type = str,
                       choices = ['yes', 'no'],
-                      help = 'Retrain original training sets [yes] or extend them [no]. [Default: no]',
-                      default = 'no')
+                      help = 'Retrain original training sets [yes] or extend them [no].')
 
     if len(argv[1:]) == 0:
         args.print_help()
@@ -140,34 +140,33 @@ def main():
     if not path.isdir(args.outdir): makedirs(args.outdir)
 
     # Create kmers for all input files
-    infiles = glob(path.join(args.indir, '*')) if args.indir else [args.infile]
-    infiles = infiles[:3]
+    infiles = glob(path.join(args.indir, r'*.gb')) if args.indir else [args.infile]
 
     print('Making kmers from input file(s).')
     if not path.isdir(args.outdir): makedirs(args.outdir)
 
-    kmers = {'PHAGE': {}, 'HOST': {}}
-    for infile in infiles:
-        print('  Processing: ', path.basename(infile))
-        ref_orfs_list, target_orf_list = read_genbank(infile)
+    # kmers = {'PHAGE': {}, 'HOST': {}}
+    # for infile in infiles:
+    #     print('  Processing: ', path.basename(infile))
+    #     ref_orfs_list, target_orf_list = read_genbank(infile)
 
-        ref_kmers = set()
-        target_kmers = set()
+    #     ref_kmers = set()
+    #     target_kmers = set()
 
-        for i in ref_orfs_list:
-            ref_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
-        for i in target_orf_list:
-            target_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
+    #     for i in ref_orfs_list:
+    #         ref_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
+    #     for i in target_orf_list:
+    #         target_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
 
-        # ref_minus_target = set()
-        # target_minus_ref = set()
-        # ref_minus_target = ref_kmers - target_kmers
-        # target_minus_ref = target_kmers - ref_kmers
-        # print('kmer_size\ttarget_kmers\treference_kmers\ttarget_specific\treference_specific\tintersection')
-        # print(args.kmer_size, len(target_kmers), len(ref_kmers), len(ref_minus_target), len(target_minus_ref), len(ref_kmers.intersection(target_kmers)), sep = '\t')
+    #     # ref_minus_target = set()
+    #     # target_minus_ref = set()
+    #     # ref_minus_target = ref_kmers - target_kmers
+    #     # target_minus_ref = target_kmers - ref_kmers
+    #     # print('kmer_size\ttarget_kmers\treference_kmers\ttarget_specific\treference_specific\tintersection')
+    #     # print(args.kmer_size, len(target_kmers), len(ref_kmers), len(ref_minus_target), len(target_minus_ref), len(ref_kmers.intersection(target_kmers)), sep = '\t')
 
-        kmers['HOST'][infile] = ref_kmers
-        kmers['PHAGE'][infile] = target_kmers
+    #     kmers['HOST'][infile] = ref_kmers
+    #     kmers['PHAGE'][infile] = target_kmers
 
     # groups of resulting training sets
     if args.groups:
@@ -176,44 +175,68 @@ def main():
         groups = {'group%05d' % (i + 1): [f] for i, f in enumerate(infiles)}
 
 
-    # combine kmers into groups
-    print('Making groups')
-    host_kmers = set()
-    phage_kmers = set()
+    # # combine kmers into groups
+    # print('Combining kmers into HOST and PHAGE groups.')
+    # host_kmers = set()
+    # phage_kmers = set()
+    # for infile in infiles:
+    #     host_kmers.update(kmers['HOST'].pop(infile))
+    #     phage_kmers.update(kmers['PHAGE'].pop(infile))
+
+    # # write unique phage kmers
+    # print('Writing phage_kmers_' + args.type + '_wohost.txt.') 
+    # with open(path.join(args.outdir, 'phage_kmers_' + args.type + '_wohost.txt'), 'w') as outf:
+    #     outf.write('\n'.join(list(phage_kmers - host_kmers)))
+
+    # # make all training groups
+    # print('Making trainSets for each input file.')
+    trainsets_outdir = path.join(args.outdir, 'trainSets')
+    # if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
+    # phispy = path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpy.py')
+    # for infile in infiles:
+    #     print('  Processing %s' % infile)
+    #     cmd = ['python3', phispy, infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet']
+    #     call(cmd)
+
+    # make or extend genericAll.txt
+    ##########
+    # This kind of extension is very simple and if run multiple times on the same dataset, it would unnecessarily grow too much
+    ##########
+    print('Making training sets.')
+    with open(path.join(args.outdir, 'genericAll.txt'), 'w' if args.retrain == 'yes' else 'a') as outf:
+        for infile in infiles:
+            trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
+            with open(trainset) as inf:
+                outf.write(inf.read())
+
     for g, i in groups.items():
-
-        # HOST
-        group_kmers = set()
-        for infile in i:
-            group_kmers.update(kmers['HOST'].pop(infile))
-
-        # with open(path.join(args.outdir, '%s_HOST.txt' % g), 'w') as outf:
-        #     outf.write('\n'.join(list(ref_kmers)))
-
-        # kmers['HOST'][g] = group_kmers
-        host_kmers.update(group_kmers)
-
-        # PHAGE
-        group_kmers = set()
-        for infile in i:
-            group_kmers.update(kmers['PHAGE'].pop(infile))
-
-        # with open(path.join(args.outdir, '%s_PHAGE.txt' % g), 'w') as outf:
-        #     outf.write('\n'.join(list(target_kmers)))
-
-        # kmers['PHAGE'][g] = group_kmers
-        phage_kmers.update(group_kmers)
-
-    # write unique phage kmers
-    print('Writing phage_kmers_' + args.type + '_wohost.txt') 
-    with open(path.join(args.outdir, 'phage_kmers_' + args.type + '_wohost.txt'), 'w') as outf:
-        outf.write('\n'.join(list(phage_kmers - host_kmers)))
-
-    # make all training groups
-
-    # make genericAll.txt
+        with open(path.join(args.outdir, '%s.txt' % g), 'w' if args.retrain == 'yes' else 'a') as outf:
+            for infile in i:
+                trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
+                with open(trainset) as inf:
+                    outf.write(inf.read())
 
     # create trainingGenome_list.txt
+    print('Writing trainingGenome_list.txt.')
+    if args.retrain == 'yes':
+        with open(path.join(args.outdir, 'trainingGenome_list.txt'), 'w') as outf:
+            outf.write('0\tgenericAll.txt\tGeneric Test Seq\t%i\n' % len(infiles))
+            gcnt = 1
+            for g, i in groups.items():
+                outf.write('%i\t%s.txt\t%s\t%i\n' % (gcnt, g, ';'.join([path.basename(x) for x in i]), len(i)))
+                gcnt += 1
+    else:
+        with open(path.join(args.outdir, 'trainingGenome_list.txt')) as inf:
+            tglist = inf.readlines()
+        with open(path.join(args.outdir, 'trainingGenome_list.txt'), 'w') as outf:
+            outf.write('0\tgenericAll.txt\tGeneric Test Seq\t%i\n' % (len(infiles) + len(tglist) - 1))
+            outf.write(''.join(tglist))
+            gcnt = len(tglist) + 1
+            for g, i in groups.items():
+                outf.write('%i\t%s.txt\t%s\t%i\n' % (gcnt, g, ';'.join([path.basename(x) for x in i]), len(i)))
+                gcnt += 1
+
+    print('Done!')
 
 if __name__ == '__main__':
     main()
