@@ -80,7 +80,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         i dont know what           #
     ######################################
     ###### added in this version 2.2 #####
-    if (args_parser.training_set == 'data/genericAll.txt'):
+    if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
         print('As training flag is zero, considering unknown functions')
         unknownFunction.consider_unknown(args_parser.output_dir)
 

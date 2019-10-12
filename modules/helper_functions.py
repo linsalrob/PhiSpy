@@ -23,7 +23,7 @@ def print_list():
 
 def is_valid_file(x):
     if not x:
-        x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/genericAll.txt')
+        x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainSet_genericAll.txt')
     if not os.path.exists(x):
         raise argparse.ArgumentTypeError("{0} does not exist".format(x))
     return x
