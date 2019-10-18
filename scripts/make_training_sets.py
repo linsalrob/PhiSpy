@@ -165,8 +165,6 @@ def main():
         infiles = sorted(list(infiles))
         print('Working on %i input files based on group file.' % len(infiles))
     else:
-        groups = {'group%05d' % (i + 1): [f] for i, f in enumerate(infiles)}
-
         if args.indir:
             infiles = glob(path.join(args.indir, r'*.gb'))
             infiles += glob(path.join(args.indir, r'*.gb[kf]'))
@@ -174,6 +172,7 @@ def main():
             infiles = sorted(infiles)
         else:
             infiles = [args.infile]
+        groups = {'group%05d' % (i + 1): [f] for i, f in enumerate(infiles)}
 
 
     # Create kmers for all input files
