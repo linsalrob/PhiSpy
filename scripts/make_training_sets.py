@@ -175,35 +175,20 @@ def main():
         groups = {'group%05d' % (i + 1): [f] for i, f in enumerate(infiles)}
 
 
-    # Create kmers for all input files
+    # create kmers for all input files and group them into host and phage sets
     print('Making kmers from input file(s).')
     if not path.isdir(args.outdir): makedirs(args.outdir)
 
-    kmers = {'PHAGE': {}, 'HOST': {}}
+    host_kmers = set()
+    phage_kmers = set()
     for i, infile in enumerate(infiles):
         print('  Processing %i/%i: %s' % (i + 1, len(infiles), path.basename(infile)))
         ref_orfs_list, target_orf_list = read_genbank(infile)
 
-        ref_kmers = []
-        target_kmers = []
-
         for i in ref_orfs_list:
-            ref_kmers.extend(kmerize_orf(i, args.kmer_size, args.type))
+            host_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
         for i in target_orf_list:
-            target_kmers.extend(kmerize_orf(i, args.kmer_size, args.type))
-
-        kmers['HOST'][infile] = set(ref_kmers)
-        kmers['PHAGE'][infile] = set(target_kmers)
-
-
-    # combine kmers into groups
-    print('Combining kmers into HOST and PHAGE groups.')
-    host_kmers = set()
-    phage_kmers = set()
-    for infile in infiles:
-        host_kmers.update(kmers['HOST'].pop(infile))
-        phage_kmers.update(kmers['PHAGE'].pop(infile))
-
+            phage_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
 
     # write unique phage kmers
     print('Writing phage_kmers_' + args.type + '_wohost.txt.')
@@ -218,11 +203,15 @@ def main():
         print('  %s is missing - just making a new one.' % kmers_file)
 
     with open(kmers_file, 'w') as outf:
-        outf.write('\n'.join(list(phage_kmers - host_kmers)))
+        outf.write('\n'.join(phage_kmers - host_kmers))
 
 
     # make all training groups
     print('Making trainSets for each input file.')
+    # the following check will be removed after removing the requirement in PhiSpy's helper_functions.py
+    if not path.isfile(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'data/trainSet_genericAll.txt')):
+        with open(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'data/trainSet_genericAll.txt'), 'w') as outf:
+            outf.write('')
     trainsets_outdir = path.join(args.outdir, 'trainSets')
     if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
     phispy = path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpy.py')
