@@ -46,9 +46,10 @@ def read_genbank(infile):
 def read_groups(infile, indir):
 
     """
-    Reads tab-delimited input file with the path to input file to use for training in the first column and the name of the group to put if afterwards while creating trainingGenome_list.txt. If --indir graf provided, then it also adds that path to input file name.
+    Reads tab-delimited input file with the path to input file to use for training in the first column and the name of the group to put it afterwards while creating trainingGenome_list.txt. If --indir flag provided, then it also adds that path to input file name.
     Returns a dict of groups and their input files.
     """
+
     if not indir: indir = ''
     groups = {}
     with open(infile) as inf:
@@ -78,7 +79,7 @@ def read_kmers(infile):
 def kmerize_orf(orf, k, t):
 
     """
-    Creates kmers of size k and all, codon or simple type  from a single input sequence.
+    Creates kmers of size k and all, codon or simple type from a single input sequence.
     Return a set of identified unique kmers.
     """
 
@@ -180,8 +181,8 @@ def main():
     if not path.isdir(args.outdir): makedirs(args.outdir)
 
     kmers = {'PHAGE': {}, 'HOST': {}}
-    for infile in infiles:
-        print('  Processing: ', path.basename(infile))
+    for i, infile in enumerate(infiles):
+        print('  Processing %i/%i: %s' % (i + 1, len(infiles), path.basename(infile)))
         ref_orfs_list, target_orf_list = read_genbank(infile)
 
         ref_kmers = []
@@ -234,15 +235,16 @@ def main():
 
     # create trainingGenome_list.txt
     print('Writing trainingGenome_list.txt.')
-    if args.retrain:
-        with open(path.join(args.outdir, 'trainingGenome_list.txt'), 'w') as outf:
+    tg_file = path.join(args.outdir, 'trainingGenome_list.txt')
+    if args.retrain or not path.isfile(tg_file):
+        with open(tg_file, 'w') as outf:
             outf.write('0\ttestSet_genericAll.txt\tGeneric Test Set\t%i\n' % len(infiles))
             gcnt = 1
             for g, i in groups.items():
                 outf.write('%i\ttrainSet_%s.txt\t%s\t%i\n' % (gcnt, g, ';'.join([path.basename(x) for x in i]), len(i)))
                 gcnt += 1
     else:
-        with open(path.join(args.outdir, 'trainingGenome_list.txt')) as inf:
+        with open(tg_file) as inf:
             train_sets = {}
             inf.readline()
             for line in inf:
@@ -271,7 +273,7 @@ def main():
             if l[3] == 1:
                 gsize += 1
 
-        with open(path.join(args.outdir, 'trainingGenome_list.txt'), 'w') as outf:
+        with open(tg_file, 'w') as outf:
             outf.write('0\ttestSet_genericAll.txt\tGeneric Test Set\t%i\n' % (gsize))
             for t in sorted(train_sets.values()):
                 outf.write('\t'.join([str(x) for x in t]) + '\n')
