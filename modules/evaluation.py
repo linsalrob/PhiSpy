@@ -314,7 +314,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     j = 1
     prophagesummary = []
     for i in pp:
-        if pp[i]['num genes'] >= self.window_size:
+        if pp[i]['num genes'] >= self.number:
             temppp[j] = pp[i]
             j += 1
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
