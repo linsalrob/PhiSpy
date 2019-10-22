@@ -8,11 +8,11 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from argparse import Namespace
 
-def find_training_genome(trainingFlag,INSTALLATION_DIR):
+def find_training_genome(trainingFlag, INSTALLATION_DIR):
     try:
-        f = open(INSTALLATION_DIR+"data/trainingGenome_list.txt","r")
+        f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
     except:
-        print('cannot open '+INSTALLATION_DIR+'data/trainingGenome_list.txt')
+        print('cannot open ' + os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'))
         return ''
 
     for line in f:
@@ -35,7 +35,7 @@ def call_randomforest(**kwargs):
     # number of estimators also implies the precision of probabilities, generally 1/n_estimators
     # in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
     # "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
-    clf = RandomForestClassifier(n_estimators = 500)
+    clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
 

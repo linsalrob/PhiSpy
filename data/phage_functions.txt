@@ -1,0 +1,14 @@
+tape measure protein
+endolysin
+antirepressor protein
+Terminase
+Excisionase
+Cro-like repressor
+CI-like repressor
+baseplate
+base
+virion
+rIIA lysis
+rI lysis
+rIIB lysis
+Holliday junction

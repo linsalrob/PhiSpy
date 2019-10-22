@@ -21,11 +21,11 @@ import modules.helper_functions as helpers
 def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
     ######################################
     #         check R install            #
-    ######################################
-    try:
-        subprocess.call("type Rscript", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
-    except OSError:
-        sys.exit("The R programming language is not installed")
+    # ######################################
+    # try:
+    #     subprocess.call("type Rscript", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
+    # except OSError:
+    #     sys.exit("The R programming language is not installed")
 
     ######################################
     #         parse the options          #
@@ -55,14 +55,14 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
-        print('Making Train Set... (need couple of minutes)')
+        print('Making Train Set...')
         my_make_train_flag = makeTrain.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
     #         make testing set           #
     ######################################
-    print('Making Test Set... (need couple of minutes)')
+    print('Making Test Set...')
     my_make_test_flag = makeTest.make_test_set(**vars(args_parser))
     # check file im,plement later
     #if (my_make_test_flag == 0):
@@ -72,7 +72,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     #         do classification          #
     ######################################
-    print('Start Classification Algorithm')
+    print('Start Classification Algorithm...')
     classification.call_randomforest(**vars(args_parser))
     classification.make_initial_tbl(**vars(args_parser))
 
@@ -80,14 +80,14 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         i dont know what           #
     ######################################
     ###### added in this version 2.2 #####
-    if (args_parser.training_set == 'data/genericAll.txt'):
+    if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
         print('As training flag is zero, considering unknown functions')
         unknownFunction.consider_unknown(args_parser.output_dir)
 
     ######################################
     #         do evaluation              #
     ######################################
-    print('Start evaluation...')
+    print('Evaluating...')
     evaluation.fixing_start_end(**vars(args_parser))
     print('Done!!!')
 
