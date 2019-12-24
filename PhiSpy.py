@@ -38,6 +38,11 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     if args_parser.list:
         helpers.print_list()
         exit(0)
+
+    if args_parser.version:
+        print(helpers.get_version())
+        sys.exit(0)
+
     # if we get here we need an input file
     if not args_parser.infile:
         sys.stderr.write("ERROR: Please provide an input file. Use -h for more options\n")
