@@ -6,7 +6,6 @@ import os
 import sys
 import argparse
 
-from roblib import bcolors
 
 import PhiSpyRepeatFinder
 import pprint
