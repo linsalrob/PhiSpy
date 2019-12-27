@@ -4,84 +4,39 @@ import math
 import sys
 from argparse import Namespace
 from modules.writers import write_gff3
+import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
     bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     if len(fn) == 0:
         print("Len sequence is 0 so ignoring\n")
         return {}
-    # write dna in file
-    tempOutFile = os.path.join(output_dir, "tempRepeatDNA." + str(os.getpid()) + ".pp." + str(ppno) + ".fasta")
-    try:
-        outfile = open(tempOutFile, 'w')
-    except:
-        sys.exit("ERROR: Cannot open tempOutFile for writing\n")
 
-    outfile.write('>pp' + str(ppno) + '\n' + fn)
-    outfile.close()
-    # call repeat finder
-    try:
-        cmd1 = bin_path + "/repeatFinder -f " + tempOutFile
-        os.system(cmd1)
-    except:
-        print('repeat finder did not work for ', len(fn))
-    # read repeats
-    infile = ""
-    try:
-        infile = open(tempOutFile + ".repeatfinder", "r")
-    except:
-        sys.stderr.write("can't open " + output_dir + tempOutFile + ".repeatfinder\n")
-        return {}
     rep = {}
     index = 0
-    for line in infile:
-        '''
-        if 'note' in line:
-            continue
-        temp = re.split('join',line.strip())
-        temp1 = temp[1][1:len(temp[1])-1]
-        temp = re.split(',',temp1)
-        t1 = re.split('\.\.',temp[0])
-        t2 = re.split('\.\.',temp[1])
-        if math.fabs(int(t1[0]) - int(t2[1])) > 10000:
-            rep[index] = {}
-            rep[index]['s1'] = int(t1[0])+st
-            rep[index]['s2'] = int(t2[0])+st
-            rep[index]['e1'] = int(t1[1])+st
-            rep[index]['e2'] = int(t2[1])+st
-            index = index + 1
-       # Sajia's version 2
-        temp = re.split('\t',line.strip())
-        if math.fabs(int(temp[0]) - int(temp[3])) > 10000:
-            rep[index] = {}
-            rep[index]['s1'] = int(temp[0])+st
-            rep[index]['s2'] = int(temp[2])+st
-            rep[index]['e1'] = int(temp[1])+st
-            rep[index]['e2'] = int(temp[3])+st
-            index = index + 1
-        '''
-        # Robs version modified to allow searching slightly inside prophage
-        temp = list(map(int, re.split('\t', line.strip())))
-        # check if the repeats flank the prophage
-        if (temp[0] < (3 * extraDNA)) and (temp[3] > (len(fn) - (3 * extraDNA))):
+
+    try:
+        repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3)
+    except Exception as e:
+        sys.stderr.write("There was an error running repeatfinder for {}:{}\n".format(fn, e))
+        return {}
+
+    for r in repeats:
+        if (r['first_start'] < (3 * extraDNA)) and (r['second_start'] > (len(fn) - (3 * extraDNA))):
             # check that start is always less than end
-            #
             # This always causes an off by one error, so we have to increment our ends
-            if temp[1] < temp[0]:
-                [temp[0], temp[1]] = [temp[1] + 1, temp[0] + 1]
-            if temp[3] < temp[2]:
-                [temp[2], temp[3]] = [temp[3] + 1, temp[2] + 1]
+            if r['first_end'] < r['first_start']:
+                [r['first_start'], r['first_end']] = [r['first_end'] + 1, r['first_start'] + 1]
+            if r['second_end'] < r['second_start']:
+                [r['second_start'], r['second_end']] = [r['second_end'] + 1, r['second_start'] + 1]
+
             rep[index] = {}
-            rep[index]['s1'] = temp[0] + st
-            rep[index]['e1'] = temp[1] + st
-            rep[index]['s2'] = temp[2] + st
-            rep[index]['e2'] = temp[3] + st
+            rep[index]['s1'] = r['first_start'] + st
+            rep[index]['e1'] = r['first_end'] + st
+            rep[index]['s2'] = r['second_start'] + st
+            rep[index]['e2'] = r['second_end'] + st
             index += 1
-    infile.close()
-    if os.path.exists(output_dir + tempOutFile):
-        os.remove(output_dir + tempOutFile)
-    if os.path.exists(output_dir + tempOutFile + ".repeatfinder"):
-        os.remove(output_dir + tempOutFile + ".repeatfinder")
+
     return rep
 
 def check_intg(prophage_sta,prophage_sto,rep,integ,con):
@@ -389,11 +344,15 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                 # this approach will just append the longest repeat
                 longestrep = 0
                 bestrep = None
+                samelenrep = 0
                 for idx in repeat_list:
                     lengthrep = math.fabs(repeat_list[idx]['e1'] - repeat_list[idx]['s1'])
                     if (lengthrep > longestrep) and (lengthrep < 150):
                         longestrep = lengthrep
                         bestrep = repeat_list[idx]
+                        samelenrep = 1
+                    elif (lengthrep == longestrep):
+                        samelenrep += 1
                 if bestrep:
                     attLseq = dna[pp[i]['contig']][int(bestrep['s1']) - 1:int(bestrep['e1']) - 1]
                     attRseq = dna[pp[i]['contig']][int(bestrep['s2']) - 1:int(bestrep['e2']) - 1]
@@ -415,6 +374,8 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                         "Longest Repeat flanking phage and within " + str(extraDNA) + " bp"
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
+                    if samelenrep > 1:
+                        sys.stderr.write("There were {} repeats with the same length as the best. One chosen somewhat randomly!\n".format(samelenrep))
     # fix start end for all pp
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
