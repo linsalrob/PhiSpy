@@ -16,23 +16,10 @@ def read(*filenames, **kwargs):
 long_description = read('README.md', 'CHANGES.md')
 
 
-# write the current version to PhiSpy/__init__.py for automatically updating
-def write_version(ver):
-    if os.path.exists('PhiSpy/__init__.py'):
-        txt = []
-        with open('PhiSpy/__init__.py', 'r') as f:
-            for l in f:
-                if l.startswith("__version__"):
-                    txt.append("__version__='{}'\n".format(ver))
-                else:
-                    txt.append(l)
-        with open('PhiSpy/__init__.py', 'w') as out:
-            out.write("".join(txt))
 
 def get_version():
     with open("VERSION", 'r') as f:
         v = f.readline().strip()
-        write_version(v)
         return v
 
 
