@@ -29,16 +29,6 @@ def is_valid_file(x):
         raise argparse.ArgumentTypeError("{0} does not exist".format(x))
     return x
 
-def get_version():
-    """
-    Read the version from the main VERSION file
-    """
-
-    rpath = os.path.sep.join(os.path.realpath(__file__).split(os.path.sep)[0:-2])
-
-    with open(os.path.join(rpath, 'VERSION')) as version_file:
-            return version_file.read().strip()
-    return "Unknown"
 
 def get_args():
     usage = 'python3 PhiSpy.py [-opt1, [-opt2, ...]] infile'

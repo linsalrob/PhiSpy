@@ -9,6 +9,7 @@ from Bio import SeqIO
 INSTALLATION_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 sys.path.append(INSTALLATION_DIR)
 
+import PhiSpy
 from PhiSpy import seqio_filter
 from PhiSpy import makeTrain
 from PhiSpy import makeTest
@@ -33,7 +34,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         exit(0)
 
     if args_parser.version:
-        print(helpers.get_version())
+        print("PhiSpy version: {}".format(PhiSpy.__version__))
         sys.exit(0)
 
     # if we get here we need an input file
