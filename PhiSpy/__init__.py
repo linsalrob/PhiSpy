@@ -1,4 +1,4 @@
 # read and set the version
-import PhiSpyModules.helper_functions
+import PhiSpy.helper_functions
 
-__version__ = PhiSpyModules.helper_functions.get_version()
+__version__ = PhiSpy.helper_functions.get_version()
