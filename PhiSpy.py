@@ -19,13 +19,6 @@ import modules.helper_functions as helpers
 
 
 def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
-    ######################################
-    #         check R install            #
-    # ######################################
-    # try:
-    #     subprocess.call("type Rscript", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
-    # except OSError:
-    #     sys.exit("The R programming language is not installed")
 
     ######################################
     #         parse the options          #
@@ -96,9 +89,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     evaluation.fixing_start_end(**vars(args_parser))
     print('Done!!!')
 
-    ######################################
-    #                                    #
-    ######################################
+   
 
 if __name__== "__main__":
     main(sys.argv)
