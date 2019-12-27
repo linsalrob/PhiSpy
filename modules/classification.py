@@ -4,7 +4,6 @@ import string
 import os
 from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
-#from numpy import array
 import numpy as np
 from argparse import Namespace
 
