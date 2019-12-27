@@ -16,6 +16,8 @@ r = PhiSpyRepeatFinder.repeatFinder(s, 0)
 pp = pprint.PrettyPrinter(indent=4)
 pp.pprint(r)
 
+sys.exit(0)
+
 with open("test.fna", 'r') as f:
     seqid = f.readline().strip()
     fna = f.readline().strip()
