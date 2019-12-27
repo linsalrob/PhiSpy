@@ -9,13 +9,13 @@ from Bio import SeqIO
 INSTALLATION_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 sys.path.append(INSTALLATION_DIR)
 
-from modules import seqio_filter
-from modules import makeTrain
-from modules import makeTest
-from modules import classification
-from modules import evaluation
-from modules import unknownFunction
-import modules.helper_functions as helpers
+from PhiSpy import seqio_filter
+from PhiSpy import makeTrain
+from PhiSpy import makeTest
+from PhiSpy import classification
+from PhiSpy import evaluation
+from PhiSpy import unknownFunction
+import PhiSpy.helper_functions as helpers
 
 
 def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
@@ -89,7 +89,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     evaluation.fixing_start_end(**vars(args_parser))
     print('Done!!!')
 
-   
+
 
 if __name__== "__main__":
     main(sys.argv)

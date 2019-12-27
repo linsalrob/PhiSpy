@@ -3,7 +3,7 @@ import re
 import math
 import sys
 from argparse import Namespace
-from PhiSpyModules.writers import write_gff3
+from PhiSpy.writers import write_gff3
 import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
