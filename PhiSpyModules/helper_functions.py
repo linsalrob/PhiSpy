@@ -24,8 +24,9 @@ def print_list():
 
 def is_valid_file(x):
     if not x:
-        x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainSet_genericAll.txt')
-    if not os.path.exists(x):
+        # x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainSet_genericAll.txt')
+        x = 'data/trainSet_genericAll.txt'
+    if not pkg_resources.resource_exists(__name__, x):
         raise argparse.ArgumentTypeError("{0} does not exist".format(x))
     return x
 
