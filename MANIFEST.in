@@ -1,3 +1,4 @@
 include *.md LICENSE VERSION tests/Streptococcus_pyogenes_M1_GAS.gb
-recursive-include modules *py
+recursive-include PhiSpyModules *py
 recursive-include src *.h *.cpp
+recursive-include PhiSpyModules/data *txt
