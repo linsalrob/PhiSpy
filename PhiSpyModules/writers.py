@@ -30,7 +30,7 @@ def write_gff3(output_dir, pp, verbose=False):
         ## GFF  
         ## strand is not known...
         out_GFF.write(str(pp[i]['contig']) + 
-                      '\tPhiSpy\tprophage_region\t' +  
+                      '\tPhiSpy\tprophage_region\t' +
                       str(pp[i]['start']) + '\t' + 
                       str(pp[i]['stop']) + '\t.\t.' + 
                       ' \t.\tID=pp' + str(i))
@@ -42,7 +42,7 @@ def write_gff3(output_dir, pp, verbose=False):
         else:
             ## attL 
             out_GFF.write(str(pp[i]['contig']) +
-                          '\tPhiSpy\tattL\t' + 
+                          '\tPhiSpy\tattL\t' +
                           str(pp[i]['att'][0]) + '\t' + 
                           str(pp[i]['att'][1]) + '\t.\t.' + 
                           ' \t.\tID=pp' + str(i))
@@ -50,7 +50,7 @@ def write_gff3(output_dir, pp, verbose=False):
 
             ## attR 
             out_GFF.write(str(pp[i]['contig']) +
-                          '\tPhiSpy\tattR\t' +  
+                          '\tPhiSpy\tattR\t' +
                           str(pp[i]['att'][2]) + '\t' +
                           str(pp[i]['att'][3]) + '\t.\t.' +
                           ' \t.\tID=pp' + str(i))
