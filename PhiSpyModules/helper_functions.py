@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import re
+import pkg_resources
 from argparse import RawTextHelpFormatter
 from argparse import ArgumentTypeError as err
 from .pathtype import PathType
@@ -11,12 +12,14 @@ from .pathtype import PathType
 def print_list():
     f = None
     try:
-        f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainingGenome_list.txt'), 'r')
+        # with pip we use resource streams that may be files or from archives
+        # f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainingGenome_list.txt'), 'r')
+        f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except:
         sys.stderr.write('cannot find list')
         sys.exit(-1)
     for line in f:
-        line = line.strip()
+        line = line.decode().strip()
         temp = re.split('\t', line)
         if int(temp[3]) == 1:
             print("{}\t{}".format(temp[2], os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/' + temp[1])))
@@ -24,9 +27,10 @@ def print_list():
 
 def is_valid_file(x):
     if not x:
+        # convert this to work with a pip installation
         # x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainSet_genericAll.txt')
         x = 'data/trainSet_genericAll.txt'
-    if not pkg_resources.resource_exists(__name__, x):
+    if not pkg_resources.resource_exists('PhiSpyModules', x):
         raise argparse.ArgumentTypeError("{0} does not exist".format(x))
     return x
 
