@@ -15,16 +15,10 @@ def read(*filenames, **kwargs):
 
 long_description = read('README.md', 'CHANGES.md')
 
-
-
 def get_version():
     with open("VERSION", 'r') as f:
         v = f.readline().strip()
         return v
-
-
-
-
 
 def main():
     setuptools.setup(
@@ -41,7 +35,6 @@ def main():
         license='The MIT License (MIT)',
         scripts=['PhiSpy.py'],
         packages=setuptools.find_packages(),
-        zip_safe=True,
         ext_modules=[Extension("PhiSpyRepeatFinder", sources=["src/repeatFinder.cpp"], language='c++')],
         include_package_data=True,
         classifiers=[
