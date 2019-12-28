@@ -9,13 +9,14 @@ from argparse import Namespace
 
 def find_training_genome(trainingFlag, INSTALLATION_DIR):
     try:
-        f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
+        # f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
+        f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except:
-        print('cannot open ' + os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'))
+        print('cannot open resource stream training genomes at data/trainingGenome_list.txt')
         return ''
 
     for line in f:
-        temp = re.split('\t',line.strip())
+        temp = re.split('\t',line.decode().strip())
         if int(temp[0]) == trainingFlag:
             f.close()
             return temp[1].strip()
@@ -27,7 +28,13 @@ def call_randomforest(**kwargs):
     bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     infile = os.path.join(output_dir, "testSet.txt")
     outfile = os.path.join(output_dir, "classify.tsv")
-    train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
+    #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
+    # convert this to run from pip
+    if not pkg_resources.resource_exists('PhiSpyModules', trainingFile):
+        sys.stderr.write("FATAL: Can not find data file {}\n".format(trainingFile))
+        sys.exit(-1)
+    strm = pkg_resources.resource_stream('PhiSpyModules', trainingFile)
+    train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
     test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     # Przemek's comment
     # by default 10 until version 0.22 where default is 100
