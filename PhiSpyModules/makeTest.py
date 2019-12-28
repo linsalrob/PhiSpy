@@ -13,13 +13,13 @@ class ShannonScore:
         self._kmers_phage = []
         self._kmers_all = []
         self._kmers_type = kmers_type
-        kmers_file = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))), 'data/phage_kmers_' + self._kmers_type + '_wohost.txt')
-        try:
-            infile = open(kmers_file, 'r')
-        except:
-            sys.exit('ERROR: Cannot open ' + kmers_file)
-        for line in infile:
-            line = line.strip()
+        # kmers_file = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))), 'data/phage_kmers_' + self._kmers_type + '_wohost.txt')
+        kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
+        if not pkg_resources.resource_exists:
+            sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
+
+        for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
+            line = line.decode().strip()
             self._kmers[line] = ''
 
     def reset(self):

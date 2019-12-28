@@ -26,12 +26,8 @@ def print_list():
     f.close()
 
 def is_valid_file(x):
-    if not x:
-        # convert this to work with a pip installation
-        # x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainSet_genericAll.txt')
-        x = 'data/trainSet_genericAll.txt'
-    if not pkg_resources.resource_exists('PhiSpyModules', x):
-        raise argparse.ArgumentTypeError("{0} does not exist".format(x))
+    if not x or not os.path.exists(x):
+        raise argparse.ArgumentTypeError("Checking for validity: {0} does not exist".format(x))
     return x
 
 
@@ -43,8 +39,8 @@ def get_args():
     parser.add_argument('infile', type=is_valid_file, help='Input file in genbank format', nargs='?')
     parser.add_argument('-m', '--make_training_data', type=str,
                              help='Create training data from a set of annotated genome files. Requires is_phage=1 qualifier in prophage\'s CDSs')
-    parser.add_argument('-t', '--training_set', action='store', type=is_valid_file, default='',
-                             help='Choose the most closely related set to your genome. [Default: 0]')
+    parser.add_argument('-t', '--training_set', action='store', default='data/trainSet_genericAll.txt',
+                             help='Choose the most closely related set to your genome.')
     parser.add_argument('-l', '--list', action='store_true', default=False,
                              help='List the available training sets and exit')
     #parser.add_argument('-c', '--choose', type=bool, default=False, const=True, nargs='?',

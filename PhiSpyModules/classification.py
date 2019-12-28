@@ -2,6 +2,8 @@ import re
 import sys
 import string
 import os
+import pkg_resources
+from io import TextIOWrapper
 from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
