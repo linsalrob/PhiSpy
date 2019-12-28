@@ -5,7 +5,7 @@ import argparse
 import re
 from argparse import RawTextHelpFormatter
 from argparse import ArgumentTypeError as err
-from PhiSpy.pathtype import PathType
+from .pathtype import PathType
 
 
 def print_list():
