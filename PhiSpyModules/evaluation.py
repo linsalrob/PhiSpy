@@ -7,7 +7,6 @@ from .writers import write_gff3
 import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
-    bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     if len(fn) == 0:
         print("Len sequence is 0 so ignoring\n")
         return {}

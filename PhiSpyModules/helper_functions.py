@@ -13,7 +13,6 @@ def print_list():
     f = None
     try:
         # with pip we use resource streams that may be files or from archives
-        # f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainingGenome_list.txt'), 'r')
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except:
         sys.stderr.write('cannot find list')
@@ -22,7 +21,7 @@ def print_list():
         line = line.decode().strip()
         temp = re.split('\t', line)
         if int(temp[3]) == 1:
-            print("{}\t{}".format(temp[2], os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/' + temp[1])))
+            print("{}\t{}".format(temp[2], 'data/' + temp[1]))
     f.close()
 
 def is_valid_file(x):

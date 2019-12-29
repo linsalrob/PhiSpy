@@ -13,7 +13,6 @@ class ShannonScore:
         self._kmers_phage = []
         self._kmers_all = []
         self._kmers_type = kmers_type
-        # kmers_file = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))), 'data/phage_kmers_' + self._kmers_type + '_wohost.txt')
         kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
         if not pkg_resources.resource_exists:
             sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
