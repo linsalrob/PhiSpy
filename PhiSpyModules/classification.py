@@ -27,7 +27,6 @@ def find_training_genome(trainingFlag, INSTALLATION_DIR):
 def call_randomforest(**kwargs):
     output_dir = kwargs['output_dir']
     trainingFile = kwargs['training_set']
-    bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     infile = os.path.join(output_dir, "testSet.txt")
     outfile = os.path.join(output_dir, "classify.tsv")
     #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
@@ -46,9 +45,6 @@ def call_randomforest(**kwargs):
     clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
-
-    # cmd = "Rscript " + bin_path + "/randomForest.r " + trainingFile + " " + infile + " " + outfile
-    # os.system(cmd)
 
 def my_sort(orf_list):
      n = len(orf_list)
