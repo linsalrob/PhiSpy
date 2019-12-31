@@ -3,7 +3,7 @@
 ![GitHub language count](https://img.shields.io/github/languages/count/linsalrob/PhiSpy)
 [![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master)](https://travis-ci.org/linsalrob/PhiSpy)
 [![PyPi](https://img.shields.io/pypi/pyversions/phispy)](https://pypi.org/project/PhiSpy/)
-![Conda](https://img.shields.io/conda/pn/bioconda/phispy)]
+![Conda](https://img.shields.io/conda/pn/bioconda/phispy)
 
 
 # What is PhiSpy?

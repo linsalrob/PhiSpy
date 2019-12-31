@@ -1,5 +1,5 @@
 [DOI] [License: MIT] [GitHub language count] [Build Status] [PyPi]
-[Conda]]
+[Conda]
 
 
 
