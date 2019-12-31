@@ -36,7 +36,7 @@ For a brand new `Ubuntu` installation (e.g. on [Google Cloud Platform](https://c
 
 ```bash
 sudo apt install -y build-essential python3-dev python3-pip
-python3 -m pip install --user biopython PhiSpy
+python3 -m pip install --user PhiSpy
 ```
 This will install `PhiSpy.py` in `~/.local/bin` which should be in your `$PATH` but might not be (see [this](https://bugs.launchpad.net/ubuntu/+source/bash/+bug/1588562) detailed discussion). 
 

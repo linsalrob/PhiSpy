@@ -38,7 +38,7 @@ For a brand new Ubuntu installation (e.g. on Google Cloud Platform you
 can install these dependencies with these commands:
 
     sudo apt install -y build-essential python3-dev python3-pip
-    python3 -m pip install --user biopython PhiSpy
+    python3 -m pip install --user PhiSpy
 
 This will install PhiSpy.py in ~/.local/bin which should be in your
 $PATH but might not be (see this detailed discussion).
