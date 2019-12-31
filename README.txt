@@ -43,6 +43,10 @@ can install these dependencies with these commands:
 This will install PhiSpy.py in ~/.local/bin which should be in your
 $PATH but might not be (see this detailed discussion).
 
+_Note:_ If you are feeling lazy, you actually only need to use
+sudo apt install -y python3-pip; python3 -m pip install --user phispy
+since python3-pip requires build-essential and python3-dev!
+
 If you try PhiSpy.py -v and get an error like this:
 
     $ PhiSpy.py -v
