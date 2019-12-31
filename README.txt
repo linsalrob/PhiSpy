@@ -1,53 +1,68 @@
 [DOI] [License: MIT] [GitHub language count] [Build Status]
 
+#What is PhiSpy?
 
-
-INTRODUCTION
-
-
-PhiSpy is a computer program written in C++ and Python to identify
-prophages in a complete bacterial genome sequences.
+PhiSpy identifies prophages in Bacterial (and probably Archaeal)
+genomes. Given an annotated genome it will use several approaches to
+identify the most likely prophage regions.
 
 Initial versions of PhiSpy were written by
 
-Sajia Akhter (sajia@stanford.edu) PhD Student Edwards Bioinformatics Lab
-(http://edwards.sdsu.edu/labsite/) Computational Science Research Center
-(http://www.csrc.sdsu.edu/csrc/) San Diego State University
-(http://www.sdsu.edu/)
+Sajia Akhter (sajia@stanford.edu) Edwards Bioinformatics Lab
 
 Improvements, bug fixes, and other changes were made by
 
-Katelyn McNair Edwards Bioinformatics Lab San Diego State University
-
-Przemyslaw Decewicz University of Warsaw
-
-
-
-SYSTEM REQUIREMENTS
-
-
-The program should run on Mac and Unix platforms, although it was not
-tested in all platforms.
+Katelyn McNair Edwards Bioinformatics Lab and Przemyslaw Decewicz
+University of Warsaw
 
 
 
 SOFTWARE REQUIREMENTS
 
 
-PhiSpy requires following programs to be installed in the system. NOTE:
-You can ignore this if you’re using the singularity container method of
-installation.
+PhiSpy requires following programs to be installed in the system. Most
+of these are likely already on your system.
 
 1.  Python - version 3.4 or later
 2.  Biopython - version 1.58 or later
 3.  gcc - GNU project C and C++ compiler - version 4.4.1 or later
+4.  The Python.h header file. This is included in python3-dev that is
+    available on most systems.
 
 
 
 INSTALLATION
 
 
-For most users, this will create a local installation for you
+For a brand new Ubuntu installation (e.g. on Google Cloud Platform you
+can install these dependencies with these commands:
+
+    sudo apt install -y build-essential python3-dev python3-pip
+    python3 -m pip install --user biopython PhiSpy
+
+This will install PhiSpy.py in ~/.local/bin which should be in your
+$PATH but might not be (see this detailed discussion).
+
+If you try PhiSpy.py -v and get an error like this:
+
+    $ PhiSpy.py -v
+    -bash: PhiSpy.py: command not found
+
+Then you can either use the full path:
+
+    ~/.local/bin/PhiSpy.py -v
+
+or add that location to your $PATH:
+
+    echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc
+    source ~/.bashrc
+    PhiSpy.py -v
+
+
+Advanced Users
+
+For advanced users, you can clone the git repository and use that
+(though pip is the recommended install method).
 
     git clone https://github.com/linsalrob/PhiSpy.git
     cd PhiSpy`
@@ -63,16 +78,23 @@ setup command.
 For ease of use, you may wish to add the location of PhiSpy.py to your
 $PATH.
 
-TO TEST THE PROGRAM
 
-Change to the install location and run PhiSpy with an example genome:
 
-    % cd PhiSpy`
-    % python3 PhiSpy.py   -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb
+TESTING PHISPY.PY
 
-We use the GenBank format file for _Streptococcus pyogenes_ M1 GAS that
-we hvae provided in the tests/ directory, and we use the training set
-for _S. pyogenes_ M1 GAS that we have pre-calculated. This quickly
+
+Download the Streptococcus pyogenes M1 genome
+
+    curl -Lo Streptococcus_pyogenes_M1_GAS.gb https://bit.ly/37qFArb
+    PhiSpy.py -o Streptococcus.phages Streptococcus_pyogenes_M1_GAS.gb
+
+or to run it with the Streptococcus training set:
+
+    PhiSpy.py -o Streptococcus.phages -t data/trainSet_160490.61.txt Streptococcus_pyogenes_M1_GAS.gb
+
+This uses the GenBank format file for _Streptococcus pyogenes_ M1 GAS
+that we provide in the tests/ directory, and we use the training set for
+_S. pyogenes_ M1 GAS that we have pre-calculated. This quickly
 identifies the four prophages in this genome, runs the repeat finder on
 all of them, and outputs the answers.
 
@@ -80,12 +102,12 @@ You will find the output files from this query in output_directory.
 
 
 
-TO RUN PHISPY
+RUNNING PHISPY.PY
 
 
 The simplest command is:
 
-    % python3 PhiSpy.py -f genbank_file -o output_directory
+    PhiSpy.py -f genbank_file -o output_directory
 
 where: - genbank file: The input DNA sequence file in GenBank format. -
 output directory: The output directory is the directory where the final
@@ -103,7 +125,7 @@ HELP
 
 For the help menu use the -h option:
 
-    % python PhiSpy.py -h
+    python PhiSpy.py -h
 
 
 
@@ -143,14 +165,12 @@ _attR_; (xv) sequence of _attL_; (xvi) sequence of _attR_.
 EXAMPLE DATA
 
 
-We have provided two different example data sets.
-
 -   _Streptococcus pyogenes_ M1 GAS which has a single genome contig.
     The genome contains four prophages.
 
 To analyze this data, you can use:
 
-    python3 PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb
+    PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb
 
 And you should get a prophage table that has this information (for
 example, take a look at output_directory/prophage.tbl).
