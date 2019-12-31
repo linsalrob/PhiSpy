@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master)](https://travis-ci.org/linsalrob/PhiSpy)
 
 
-#What is PhiSpy?
+# What is PhiSpy?
 
 PhiSpy identifies prophages in Bacterial (and probably Archaeal) genomes. Given an annotated genome it will use several approaches to identify the most likely prophage regions.
 

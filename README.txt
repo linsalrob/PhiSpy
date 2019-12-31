@@ -1,6 +1,9 @@
 [DOI] [License: MIT] [GitHub language count] [Build Status]
 
-#What is PhiSpy?
+
+
+WHAT IS PHISPY?
+
 
 PhiSpy identifies prophages in Bacterial (and probably Archaeal)
 genomes. Given an annotated genome it will use several approaches to
