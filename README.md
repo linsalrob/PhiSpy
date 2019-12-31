@@ -23,47 +23,29 @@ and Przemyslaw Decewicz
 [University of Warsaw](http://en.uw.edu.pl/)
 
 
-# Software Requirements
-
-PhiSpy requires following programs to be installed in the system. Most of these are likely already on your system. 
-
-1. `Python` - version 3.4 or later
-2. `Biopython` - version 1.58 or later 
-3. `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
-4. The `Python.h` header file. This is included in `python3-dev` that is available on most systems.
 
 # Installation
 
-For a brand new `Ubuntu` installation (e.g. on [Google Cloud Platform](https://cloud.google.com/) you can install these dependencies with these commands:
+## Conda
+
+The easiest way to install for all users is to use `bioconda`.
+
+```bash
+conda install -c bioconda phispy
+```
+
+
+## PIP
+
+`python-pip` requires a C++ compiler and the Python header files. You should be able to install it like this:
+
 
 ```bash
 sudo apt install -y build-essential python3-dev python3-pip
 python3 -m pip install --user PhiSpy
 ```
-This will install `PhiSpy.py` in `~/.local/bin` which should be in your `$PATH` but might not be (see [this](https://bugs.launchpad.net/ubuntu/+source/bash/+bug/1588562) detailed discussion). 
+This will install `PhiSpy.py` in `~/.local/bin` which should be in your `$PATH` but might not be (see [this](https://bugs.launchpad.net/ubuntu/+source/bash/+bug/1588562) detailed discussion). See the tips and tricks below for a solution to this.
 
-*Note:* If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install --user phispy` since python3-pip requires `build-essential` and `python3-dev`! 
-
-If you try `PhiSpy.py -v` and get an error like this:
-
-```bash
-$ PhiSpy.py -v
--bash: PhiSpy.py: command not found
-```
-
-Then you can either use the full path:
-
-```bash
-~/.local/bin/PhiSpy.py -v
-```
-
-or add that location to your `$PATH`:
-
-```bash
-echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc
-source ~/.bashrc
-PhiSpy.py -v
-```
 
 ## Advanced Users
 
@@ -84,6 +66,14 @@ python3 setup.py install
 
 For ease of use, you may wish to add the location of PhiSpy.py to your $PATH.
 
+## Software Requirements
+
+PhiSpy requires following programs to be installed in the system. Most of these are likely already on your system or will be installed using the mechanisms above.
+
+1. `Python` - version 3.4 or later
+2. `Biopython` - version 1.58 or later 
+3. `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
+4. The `Python.h` header file. This is included in `python3-dev` that is available on most systems.
 
 # Testing PhiSpy.py
 
@@ -161,3 +151,30 @@ pp_1 | NC_002737 | 529631 | 569288
 pp_2 | NC_002737 | 778642 | 820599
 pp_3 | NC_002737 | 1192630 | 1222549
 pp_4 | NC_002737 | 1775862 | 1782822
+
+
+# Tips, Tricks, and Errors
+
+If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install phispy` since python3-pip requires `build-essential` and `python3-dev`! 
+
+If you try `PhiSpy.py -v` and get an error like this:
+
+```bash
+$ PhiSpy.py -v
+-bash: PhiSpy.py: command not found
+```
+
+Then you can either use the full path:
+
+```bash
+~/.local/bin/PhiSpy.py -v
+```
+
+or add that location to your `$PATH`:
+
+```bash
+echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc
+source ~/.bashrc
+PhiSpy.py -v
+```
+
