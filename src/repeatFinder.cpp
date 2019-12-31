@@ -50,7 +50,8 @@ void input()
 		printf("Can not find input file %s\n",inputfile);
 		exit(0);
 	}
-	char *my_new_check [[maybe_unused]] = fgets(dna,INIT_DNA_LEN,f);
+	char *my_new_check = fgets(dna,INIT_DNA_LEN,f);
+	(void) my_new_check; // remove an unused parameter warning
 	
 	strcpy(dna,"");
 	while(fscanf(f, "%s", dna+dna_len)==1) {
@@ -255,22 +256,22 @@ void print_output()
 void run() {
 
 	//initialize
-	converter['A']=0;
-	converter['a']=0;
-	converter['C']=1;
-	converter['c']=1;
-	converter['G']=2;
-	converter['g']=2;
-	converter['T']=3;
-	converter['t']=3;
-	complement['A']='T';
-	complement['a']='t';
-	complement['C']='G';
-	complement['c']='g';
-	complement['G']='C';
-	complement['g']='c';
-	complement['T']='A';
-	complement['t']='a';
+	converter[(int) 'A']=0;
+	converter[(int) 'a']=0;
+	converter[(int) 'C']=1;
+	converter[(int) 'c']=1;
+	converter[(int) 'G']=2;
+	converter[(int) 'g']=2;
+	converter[(int) 'T']=3;
+	converter[(int) 't']=3;
+	complement[(int) 'A']='T';
+	complement[(int) 'a']='t';
+	complement[(int) 'C']='G';
+	complement[(int) 'c']='g';
+	complement[(int) 'G']='C';
+	complement[(int) 'g']='c';
+	complement[(int) 'T']='A';
+	complement[(int) 't']='a';
 
 	find_repeats();
 	extend_repeats();
