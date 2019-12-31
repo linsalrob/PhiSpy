@@ -30,7 +30,7 @@ PhiSpy requires following programs to be installed in the system. Most of these 
 3. `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
 4. The `Python.h` header file. This is included in `python3-dev` that is available on most systems.
 
-# INSTALLATION
+# Installation
 
 For a brand new `Ubuntu` installation (e.g. on [Google Cloud Platform](https://cloud.google.com/) you can install these dependencies with these commands:
 
