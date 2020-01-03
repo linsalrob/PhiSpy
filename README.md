@@ -1,7 +1,7 @@
 [![DOI](https://www.zenodo.org/badge/60999054.svg)](https://www.zenodo.org/badge/latestdoi/60999054)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![GitHub language count](https://img.shields.io/github/languages/count/linsalrob/PhiSpy)
-[![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master&label=Travis%20Build%20Status)](https://travis-ci.org/linsalrob/PhiSpy)
+[![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master&label=Travis%20Build)](https://travis-ci.org/linsalrob/PhiSpy)
 [![PyPi](https://img.shields.io/pypi/pyversions/phispy.svg?style=flat-square&label=PyPi%20Versions)](https://pypi.org/project/PhiSpy/)
 [![BioConda Install](https://img.shields.io/conda/dn/bioconda/phispy.svg?style=flat-square&label=BioConda%20install)](https://anaconda.org/bioconda/phispy)
 [![Downloads](https://img.shields.io/github/downloads/linsalrob/PhiSpy/total?style=flat-square)](https://github.com/linsalrob/PhiSpy/releases)
