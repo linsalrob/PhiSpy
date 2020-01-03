@@ -4,6 +4,8 @@
 [![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master)](https://travis-ci.org/linsalrob/PhiSpy)
 [![PyPi](https://img.shields.io/pypi/pyversions/phispy)](https://pypi.org/project/PhiSpy/)
 ![Conda](https://img.shields.io/conda/pn/bioconda/phispy)
+[![BioConda Install](https://img.shields.io/conda/dn/bioconda/phispy.svg?style=flat-square&label=BioConda%20install)](https://anaconda.org/bioconda/phispy)
+[![Downloads](https://img.shields.io/github/downloads/linsalrob/PhiSpy/total?style=flat-square)](https://github.com/linsalrob/PhiSpy/releases)
 
 
 # What is PhiSpy?
