@@ -1,3 +1,4 @@
+#include <Python.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -5,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "repeatFinder.h"
 
 using namespace std;
 
@@ -13,7 +15,7 @@ using namespace std;
 
 unsigned INIT_DNA_LEN = 120000000; 
 
-char inputfile[256] = "sajia.fasta";
+char inputfile[256] = "test.fasta";
 char *dna;
 int converter[128], complement[128];
 int dna_len;
@@ -49,6 +51,7 @@ void input()
 		exit(0);
 	}
 	char *my_new_check = fgets(dna,INIT_DNA_LEN,f);
+	(void) my_new_check; // remove an unused parameter warning
 	
 	strcpy(dna,"");
 	while(fscanf(f, "%s", dna+dna_len)==1) {
@@ -67,24 +70,24 @@ void find_repeats()
 
 	key = 0;
 	for(start = 0;start < REPEAT_LEN; start++)
-		key = (key<<2) + converter[dna[start]];
+		key = (key<<2) + converter[(int) dna[start]];
 	allrepeats[key].push_back(0);
 
 	for(start = 1;start < dna_len-REPEAT_LEN+1; start++)
 	{
-		key = ((key&((1<<keylen)-1))<< 2) + converter[dna[start+REPEAT_LEN-1]];
+		key = ((key&((1<<keylen)-1))<< 2) + converter[(int) dna[start+REPEAT_LEN-1]];
 		allrepeats[key].push_back(start);
 	}
 
 	//find reverse repeat
 	key = 0;
 	for(start = dna_len-1;start >dna_len-1-REPEAT_LEN; start--)
-		key = (key<<2) + converter[complement[dna[start]]];
+		key = (key<<2) + converter[complement[(int) dna[start]]];
 	allrepeats[key].push_back((dna_len-1)*(-1));
 	
 	for(start = dna_len-2;start >REPEAT_LEN-2; start--)
 	{
-		key= ((key&((1<<keylen)-1))<<2) + converter[complement[dna[start-REPEAT_LEN+1]]];
+		key= ((key&((1<<keylen)-1))<<2) + converter[complement[(int) dna[start-REPEAT_LEN+1]]];
 		allrepeats[key].push_back(start*(-1));
 	}
 }
@@ -127,13 +130,13 @@ void find_maxlen_rev(int fst, int sec)
 		return;
 	
 	if (fst >0 && sec < dna_len-1 )
-		if(dna[fst-1] == complement[dna[sec+1]])
+		if(dna[fst-1] == complement[(int) dna[sec+1]])
 			return;
 ///////////////
 
 	k=0;
 	for(i = REPEAT_LEN+fst, j = sec - REPEAT_LEN ; i<dna_len && j>-1 && i<j; i++, j--)
-		if (dna[i] == complement[dna[j]])
+		if (dna[i] == complement[(int) dna[j]])
 			k++;
 		else 
 			break;
@@ -153,16 +156,16 @@ void extend_repeats()
 
 	key = 0;
 	for(i = 0;i < REPEAT_LEN; i++)
-		key = (key<<2) + converter[dna[i]];
-	for(j=0;j<allrepeats[key].size();j++)
+		key = (key<<2) + converter[(int) dna[i]];
+	for(j=0; j < (int) allrepeats[key].size(); j++)
 		if(allrepeats[key][j]<0)
 			find_maxlen_rev(0,allrepeats[key][j]);
 		else
 			find_maxlen(0,allrepeats[key][j]);
 
 	for(i =1;i<dna_len-REPEAT_LEN+1;i++){
-		key = ((key&((1<<keylen)-1))<< 2) + converter[dna[i+REPEAT_LEN-1]];
-		for(j=0;j<allrepeats[key].size();j++)
+		key = ((key&((1<<keylen)-1))<< 2) + converter[(int) dna[i+REPEAT_LEN-1]];
+		for(j=0; j < (int) allrepeats[key].size(); j++)
 			if(allrepeats[key][j]<0)
 				find_maxlen_rev(i,allrepeats[key][j]);
 			else
@@ -226,54 +229,62 @@ void extend_gapped_repeat()
 
 void print_output()
 {
-	int i,j,k;
+	int i,j;
 	FILE *f;
 	char outputfile[256];
 
-        strcpy (outputfile,inputfile);
-        strcat (outputfile,".repeatfinder");
-        f = fopen(outputfile,"w");
+    strcpy (outputfile,inputfile);
+    strcat (outputfile,".repeatfinder");
+    f = fopen(outputfile,"w");
 
 	j = rep.size();
 
 	int totalRep = 0;
 	for(i=0;i<j;i++)
 		if(rep[i].visited==0 && rep[i].len>= output_rep_len){
-		        
-		  ////print
 			fprintf(f,"%d\t%d\t",rep[i].fst,rep[i].fst+rep[i].len-1);
-			
-			if(rep[i].sec>-1){
+			if(rep[i].sec>-1)
 				fprintf(f,"%d\t%d\n",rep[i].sec,rep[i].sec+rep[i].seclen-1);	
-				/*
-				for(k = rep[i].fst-1; k<rep[i].fst+rep[i].len-1;k++) fprintf(f,"%c",dna[k]);
-				fprintf(f,"\t");
-			
-				for(k = rep[i].sec-1; k<rep[i].sec+rep[i].seclen-1;k++) 
-					fprintf(f,"%c",dna[k]);
-					fprintf(f,"\tsame direction\t");*/
-			}
-			else{
-				fprintf(f,"%d\t%d\n",rep[i].sec*(-1),(rep[i].sec+rep[i].seclen-1)*(-1));
-			        /* 
-				for(k = rep[i].fst-1; k<rep[i].fst+rep[i].len-1;k++) fprintf(f,"%c",dna[k]);
-				fprintf(f,"\t");
-			
-				for(k = rep[i].sec+rep[i].seclen; k>rep[i].sec;k--) 
-					fprintf(f,"%c",dna[k*(-1)]);
-				fprintf(f,"\treverse complement\t");*/
-			}
-			/*if(rep[i].exact==0)
-				fprintf(f,"exact\n");
 			else
-				fprintf(f,"inexact\n");
-			*/			
+				fprintf(f,"%d\t%d\n",rep[i].sec*(-1),(rep[i].sec+rep[i].seclen-1)*(-1));
 			totalRep++;
 		}
-	//printf("total repeat (join <= %d nt) = %d\n",gap_len-1,totalRep);
 	fclose(f);
 }
-			
+
+
+void run() {
+
+	//initialize
+	converter[(int) 'A']=0;
+	converter[(int) 'a']=0;
+	converter[(int) 'C']=1;
+	converter[(int) 'c']=1;
+	converter[(int) 'G']=2;
+	converter[(int) 'g']=2;
+	converter[(int) 'T']=3;
+	converter[(int) 't']=3;
+	complement[(int) 'A']='T';
+	complement[(int) 'a']='t';
+	complement[(int) 'C']='G';
+	complement[(int) 'c']='g';
+	complement[(int) 'G']='C';
+	complement[(int) 'g']='c';
+	complement[(int) 'T']='A';
+	complement[(int) 't']='a';
+
+	find_repeats();
+	extend_repeats();
+
+	gap_len++;
+	//printf("total rep without join = %d\n",rep.size());
+
+	if(gap_len>1)
+		extend_gapped_repeat();
+
+}
+
+
 int main(int argc, char **argv)
 {
 	int i;
@@ -310,34 +321,58 @@ int main(int argc, char **argv)
 		}
 	}
 
-	//initialize
-	converter['A']=0;
-	converter['a']=0;
-	converter['C']=1;
-	converter['c']=1;
-	converter['G']=2;
-	converter['g']=2;
-	converter['T']=3;
-	converter['t']=3;
-	complement['A']='T';
-	complement['a']='t';
-	complement['C']='G';
-	complement['c']='g';
-	complement['G']='C';
-	complement['g']='c';
-	complement['T']='A';
-	complement['t']='a';
-	
 	input();
-	find_repeats();
-	extend_repeats();
-
-	gap_len++;
-	//printf("total rep without join = %d\n",rep.size());
-
-	if(gap_len>1)
-		extend_gapped_repeat();
-		
-	print_output();
+    run();
+    print_output();
 	return 0;
+}
+
+static PyObject *
+python_input(PyObject *self, PyObject *args) {
+    /* Parse arguments */
+    if(!PyArg_ParseTuple(args, "si", &dna, &gap_len)) {
+        PyErr_SetString(PyExc_RuntimeError, "Could not parse the arguments to python_input");
+        return NULL;
+    }
+    dna_len = strlen(dna);
+    run();
+
+    // incase you need to debug, uncomment these two lines
+    //strcpy(inputfile, "ROBTEST");
+    //print_output();
+
+    // convert our vector of arrays to a Python object
+    Py_ssize_t len = rep.size();
+    PyObject *result = PyList_New(0);
+
+
+    int totalRep = 0;
+	for(int i=0;i<len;i++) {
+		if(rep[i].visited==0 && rep[i].len>= output_rep_len){
+            // we just use a temp variable to deal with the
+            // case when second start < 0
+		    int ss = rep[i].sec;
+		    int se = rep[i].sec+rep[i].seclen-1;
+		    if(rep[i].sec<0) {
+		        ss = rep[i].sec*(-1);
+		        se = (rep[i].sec+rep[i].seclen-1)*(-1);
+		    }
+			totalRep++;
+
+		    PyObject *item = Py_BuildValue("{s:i, s:i,s:i,s:i,s:i}",
+		    "repeat_number", totalRep,
+            "first_start", rep[i].fst,
+            "first_end", rep[i].fst+rep[i].len-1,
+            "second_start", ss,
+            "second_end", se
+            );
+           PyList_Append(result, item);
+           }
+    }
+    return result;
+}
+
+
+PyMODINIT_FUNC PyInit_PhiSpyRepeatFinder(void) {
+    return PyModule_Create(&PhiSpyRepeatFinderModule);
 }

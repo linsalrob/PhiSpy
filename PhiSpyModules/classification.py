@@ -2,21 +2,23 @@ import re
 import sys
 import string
 import os
+import pkg_resources
+from io import TextIOWrapper
 from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
-#from numpy import array
 import numpy as np
 from argparse import Namespace
 
 def find_training_genome(trainingFlag, INSTALLATION_DIR):
     try:
-        f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
+        # f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
+        f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except:
-        print('cannot open ' + os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'))
+        print('cannot open resource stream training genomes at data/trainingGenome_list.txt')
         return ''
 
     for line in f:
-        temp = re.split('\t',line.strip())
+        temp = re.split('\t',line.decode().strip())
         if int(temp[0]) == trainingFlag:
             f.close()
             return temp[1].strip()
@@ -25,10 +27,15 @@ def find_training_genome(trainingFlag, INSTALLATION_DIR):
 def call_randomforest(**kwargs):
     output_dir = kwargs['output_dir']
     trainingFile = kwargs['training_set']
-    bin_path = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'bin')
     infile = os.path.join(output_dir, "testSet.txt")
     outfile = os.path.join(output_dir, "classify.tsv")
-    train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
+    #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
+    # convert this to run from pip
+    if not pkg_resources.resource_exists('PhiSpyModules', trainingFile):
+        sys.stderr.write("FATAL: Can not find data file {}\n".format(trainingFile))
+        sys.exit(-1)
+    strm = pkg_resources.resource_stream('PhiSpyModules', trainingFile)
+    train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
     test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     # Przemek's comment
     # by default 10 until version 0.22 where default is 100
@@ -38,9 +45,6 @@ def call_randomforest(**kwargs):
     clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
-
-    # cmd = "Rscript " + bin_path + "/randomForest.r " + trainingFile + " " + infile + " " + outfile
-    # os.system(cmd)
 
 def my_sort(orf_list):
      n = len(orf_list)

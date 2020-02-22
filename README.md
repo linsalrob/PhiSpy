@@ -1,116 +1,126 @@
 [![DOI](https://www.zenodo.org/badge/60999054.svg)](https://www.zenodo.org/badge/latestdoi/60999054)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![GitHub language count](https://img.shields.io/github/languages/count/linsalrob/PhiSpy)
-[![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master)](https://travis-ci.org/linsalrob/PhiSpy)
+[![Build Status](https://travis-ci.org/linsalrob/PhiSpy.svg?branch=master&label=Travis%20Build)](https://travis-ci.org/linsalrob/PhiSpy)
+[![PyPi](https://img.shields.io/pypi/pyversions/phispy.svg?style=flat-square&label=PyPi%20Versions)](https://pypi.org/project/PhiSpy/)
+[![BioConda Install](https://img.shields.io/conda/dn/bioconda/phispy.svg?style=flat-square&label=BioConda%20install)](https://anaconda.org/bioconda/phispy)
+[![Downloads](https://img.shields.io/github/downloads/linsalrob/PhiSpy/total?style=flat-square)](https://github.com/linsalrob/PhiSpy/releases)
 
 
-# INTRODUCTION
+# What is PhiSpy?
 
-PhiSpy is a computer program written in C++, Python and R to identify prophages in a complete bacterial genome sequences.
+PhiSpy identifies prophages in Bacterial (and probably Archaeal) genomes. Given an annotated genome it will use several approaches to identify the most likely prophage regions.
 
 Initial versions of PhiSpy were written by 
 
 Sajia Akhter (sajia@stanford.edu)
-PhD Student
-Edwards Bioinformatics Lab (http://edwards.sdsu.edu/labsite/)
-Computational Science Research Center (http://www.csrc.sdsu.edu/csrc/)
-San Diego State University (http://www.sdsu.edu/)
+[Edwards Bioinformatics Lab](http://edwards.sdsu.edu/research/)
 
 Improvements, bug fixes, and other changes were made by
 
 Katelyn McNair
-Edwards Bioinformatics Lab (http://edwards.sdsu.edu/labsite/)
-San Diego State University (http://www.sdsu.edu/)
+[Edwards Bioinformatics Lab](http://edwards.sdsu.edu/research/)
+and Przemyslaw Decewicz 
+[University of Warsaw](http://en.uw.edu.pl/)
 
 
-# SYSTEM REQUIREMENTS
 
-The program should run on all Unix platforms, although it was not tested in all platforms.
+# Installation
 
+## Conda
 
-# SOFTWARE REQUIREMENTS
+The easiest way to install for all users is to use `bioconda`.
 
-PhiSpy requires following programs to be installed in the system. NOTE: You can ignore this if you're using the singularity container method of installation.
-
-1. Python - version 3.4 or later
-2. Biopython - version 1.58 or later 
-3. gcc - GNU project C and C++ compiler - version 4.4.1 or later
-4. The R Project for Statistical Computing - version 2.9.2 or later
-5. Package randomForest in R - version 4.5-36 or later
- 
-# INSTALLATION
-
-1. git clone https://github.com/linsalrob/PhiSpy.git
-2. `% cd PhiSpy`
-3. `% make`
-4. For ease of use, add the location of PhiSpy.py to your $PATH.
-
-# ALTERNATE INSTALLATION
-
-1. Get [singularity](http://singularity.lbl.gov/all-releases)
-2. Build phispy.img using this [repository](https://github.com/hurwitzlab/singularity-phispy)
-3. Run the singularity image `% singularity exec phispy.img PhiSpy.py`
-4. NOTE: if you haven't used singularity before you'll need to know about [binding directories](http://singularity.lbl.gov/quickstart#working-with-files) so that PhiSpy can find your input and output.
-
-TO TEST THE PROGRAM
-
-1. `% cd PhiSpy`
-2. `% python PhiSpy.py -i tests/160490.1/ -o output_directory -t 25`
-
-tests/160490.1/ is a seed annotation directory for genome 'Streptococcus pyogenes M1 GAS'. 
-You will find the output files of this genome at output_directory.
+```bash
+conda install -c bioconda phispy
+```
 
 
-# TO RUN PHISPY
+## PIP
 
-`% ./PhiSpy.py -i organism_directory -o output_directory -c`
+`python-pip` requires a C++ compiler and the Python header files. You should be able to install it like this:
+
+
+```bash
+sudo apt install -y build-essential python3-dev python3-pip
+python3 -m pip install --user PhiSpy
+```
+This will install `PhiSpy.py` in `~/.local/bin` which should be in your `$PATH` but might not be (see [this](https://bugs.launchpad.net/ubuntu/+source/bash/+bug/1588562) detailed discussion). See the tips and tricks below for a solution to this.
+
+
+## Advanced Users
+
+For advanced users, you can clone the git repository and use that (though `pip` is the recommended install method).
+```bash
+git clone https://github.com/linsalrob/PhiSpy.git
+cd PhiSpy`
+python3 setup.py install --user
+```
+
+If you have root and you want to install globally, you can change the setup command.
+
+```bash
+git clone https://github.com/linsalrob/PhiSpy.git
+cd PhiSpy`
+python3 setup.py install
+```
+
+For ease of use, you may wish to add the location of PhiSpy.py to your $PATH.
+
+## Software Requirements
+
+PhiSpy requires following programs to be installed in the system. Most of these are likely already on your system or will be installed using the mechanisms above.
+
+1. `Python` - version 3.4 or later
+2. `Biopython` - version 1.58 or later 
+3. `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
+4. The `Python.h` header file. This is included in `python3-dev` that is available on most systems.
+
+# Testing PhiSpy.py
+
+Download the [Streptococcus pyogenes M1 genome](https://raw.githubusercontent.com/linsalrob/PhiSpy/master/tests/Streptococcus_pyogenes_M1_GAS.gb) 
+
+```bash
+curl -Lo Streptococcus_pyogenes_M1_GAS.gb https://bit.ly/37qFArb
+PhiSpy.py -o Streptococcus.phages Streptococcus_pyogenes_M1_GAS.gb
+```
+
+or to run it with the `Streptococcus` training set:
+
+```bash
+PhiSpy.py -o Streptococcus.phages -t data/trainSet_160490.61.txt Streptococcus_pyogenes_M1_GAS.gb
+```
+
+This uses the `GenBank` format file for *Streptococcus pyogenes* M1 GAS that we provide in the [tests/](tests/) directory, and we use the training set for *S. pyogenes* M1 GAS that we have pre-calculated. This quickly identifies the four prophages in this genome, runs the repeat finder on all of them, and outputs the answers.
+
+You will find the output files from this query in `output_directory`.
+
+
+# Running PhiSpy.py
+
+The simplest command is:
+
+```bash
+PhiSpy.py -f genbank_file -o output_directory
+```
 
 where:
-'output directory': Output directory is the directory where the final output file will be created.
+- `genbank file`: The input DNA sequence file in GenBank format.
+- `output directory`: The output directory is the directory where the final output file will be created.
 
-'organism directory': The seed annotation directory for the input bacterial organism whose prophage(s) need to be identified. 
-
-You can download the SEED genomes from the [PhAnToMe database](http://www.phantome.org/Downloads/genomes/seed/)
-
-Or, 
-If you have new genome, you can annotate it using the [RAST server](http://rast.nmpdr.org/rast.cgi). 
+If you have new genome, we recommend annotating it using the [RAST server](http://rast.nmpdr.org/rast.cgi) or [PROKKA](https://github.com/tseemann/prokka).
+ 
 After annotation, you can download the genome directory from the server.
 
-Or, 
-If you have the GenBank file (containing sequence) of the genome, you can convert it using the following command:
-`% python scripts/genbank_to_seed.py GenBank_file.gb organism_directory`
 
-Now to run PhiSpy, use organism_directory as 'organism directory'. 
- 
+# Help
 
-The program will access the following files in the organism_directory:
-i.   contig file: organism_directory/contigs
-ii.  tbl file for peg: organism_directory/Features/peg/tbl
-iii. assigned_functions file: organism_directory/assigned_functions or organism_directory/proposed_functions or organism_directory/proposed_non_ff_functions  
-iv.  tbl file for rna: organism_directory/Features/rna/tbl
+For the help menu use the `-h` option:
+```bash
+python PhiSpy.py -h
+```
 
-
-_Note:_
-The assigned functions file may not be in the RAST genome directory. You can create it from proposed_functions and proposed_non_ff_functions or you can use [this perl script](/home/redwards/Dropbox/GitHubs/EdwardsLab/RAST/make_assigned_functions.pl) to create an assigned_functions file for you.
-
-# REQUIRED INPUT OPTIONS
-
-The program will take 1 command line input.
-
-It shows a list (run with -c option) and asks for a number from the list. 
-In the list, there are several organisms and each organism is associated by a number. 
-If you find a closely related genome of your interested organism enter the number. PhiSpy will consider that genome as training genome.
-Otherwise, enter 0 to run with generic training set.
-
-
-# HELP
-
-For the help menu use the -h option:
-`
-% python PhiSpy.py -h
-`
-
-# OUTPUT FILES
+# Output Files
 
 There are 3 output files, located in output directory.
 
@@ -124,41 +134,48 @@ This file has 16 columns:(i) fig_no: the id of each gene; (ii) function: functio
 
 3. prophage_coordinates.tsv: This file has the prophage ID, contig, start, stop, and potential _att_ sites identified for the phages.
 
-# EXAMPLE DATA
-
-We have provided two different example data sets.
+# Example Data
 
 * _Streptococcus pyogenes_ M1 GAS which has a single genome contig. The genome contains four prophages.
 
 To analyze this data, you can use:
 
 ```
-python PhiSpy.py -t 25 -i tests/160490.1/ -o tests/160490.1.output
+PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb
 ```
 
-And you should get a prophage table that has this information:
+And you should get a prophage table that has this information (for example, take a look at `output_directory/prophage.tbl`).
 
 | Prophage number | Contig | Start | Stop |
 | --- | --- | --- | --- | 
-pp_1 | NC_002737 | 529631 | 604720
-pp_2 | NC_002737 | 778642 | 846824
-pp_3 | NC_002737 | 1191309 | 1255536
-pp_4 | NC_002737 | 1607352 | 1637214
+pp_1 | NC_002737 | 529631 | 569288
+pp_2 | NC_002737 | 778642 | 820599
+pp_3 | NC_002737 | 1192630 | 1222549
+pp_4 | NC_002737 | 1775862 | 1782822
 
-* _Salmonella enterica_ serovar Enteritidis LK5
 
-This is an early draft of the genome (the published sequence has a single contig), but this draft has 1,410 contigs and some phage like regions.
+# Tips, Tricks, and Errors
 
-If you run PhiSpy on this draft genome with the default parameters you will not find any prophage because they are all filtered out for not having enough genes. By default, PhiSpy requires 30 genes in a prophage. You can alter that stringency on the command line, and for example reducing the phage gene window size to 10 results in 3 prophage regions being identified.
+If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install phispy` since python3-pip requires `build-essential` and `python3-dev`! 
 
+If you try `PhiSpy.py -v` and get an error like this:
+
+```bash
+$ PhiSpy.py -v
+-bash: PhiSpy.py: command not found
 ```
-python PhiSpy.py -t 21 -w 10 -i tests/272989.13/ -o tests/272989.13.output
+
+Then you can either use the full path:
+
+```bash
+~/.local/bin/PhiSpy.py -v
 ```
 
-You should get a prophage table that has this information:
+or add that location to your `$PATH`:
 
-| Prophage number | Contig | Start | Stop |
-| --- | --- | --- | --- | 
-pp_1 | Contig_2300_10.15 | 1630 | 10400
-pp_2 | Contig_2294_10.15 | 175 | 11290
-pp_3 | Contig_2077_10.15 | 318 | 12625
+```bash
+echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc
+source ~/.bashrc
+PhiSpy.py -v
+```
+

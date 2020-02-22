@@ -1,32 +1,34 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 import argparse
 import re
+import pkg_resources
 from argparse import RawTextHelpFormatter
 from argparse import ArgumentTypeError as err
-from modules.pathtype import PathType
+from .pathtype import PathType
 
 
 def print_list():
     f = None
     try:
-        f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainingGenome_list.txt'), 'r')
+        # with pip we use resource streams that may be files or from archives
+        f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except:
         sys.stderr.write('cannot find list')
         sys.exit(-1)
     for line in f:
-        line = line.strip()
+        line = line.decode().strip()
         temp = re.split('\t', line)
         if int(temp[3]) == 1:
-            print("{}\t{}".format(temp[2], os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/' + temp[1])))
+            print("{}\t{}".format(temp[2], 'data/' + temp[1]))
     f.close()
 
 def is_valid_file(x):
-    if not x:
-        x = os.path.join(os.path.dirname(os.path.dirname(os.path.relpath(__file__))),'data/trainSet_genericAll.txt')
-    if not os.path.exists(x):
-        raise argparse.ArgumentTypeError("{0} does not exist".format(x))
+    if not x or not os.path.exists(x):
+        raise argparse.ArgumentTypeError("Checking for validity: {0} does not exist".format(x))
     return x
+
 
 def get_args():
     usage = 'python3 PhiSpy.py [-opt1, [-opt2, ...]] infile'
@@ -36,8 +38,8 @@ def get_args():
     parser.add_argument('infile', type=is_valid_file, help='Input file in genbank format', nargs='?')
     parser.add_argument('-m', '--make_training_data', type=str,
                              help='Create training data from a set of annotated genome files. Requires is_phage=1 qualifier in prophage\'s CDSs')
-    parser.add_argument('-t', '--training_set', action='store', type=is_valid_file, default='',
-                             help='Choose the most closely related set to your genome. [Default: 0]')
+    parser.add_argument('-t', '--training_set', action='store', default='data/trainSet_genericAll.txt',
+                             help='Choose the most closely related set to your genome.')
     parser.add_argument('-l', '--list', action='store_true', default=False,
                              help='List the available training sets and exit')
     #parser.add_argument('-c', '--choose', type=bool, default=False, const=True, nargs='?',
@@ -62,4 +64,5 @@ def get_args():
                              help='Run in quiet mode')
     parser.add_argument('-k', '--keep', type=bool, default=False, const=True, nargs='?',
                              help='Do not delete temp files')
+    parser.add_argument('-v', '--version', type=bool, default=False, const=True, nargs='?', help="Print the version and exit")
     return parser.parse_args()
