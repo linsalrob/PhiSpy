@@ -48,11 +48,6 @@ def main():
             'Programming Language :: Python :: 3.0',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
         ],
-        entry_points = {
-            'console_scripts': [
-                'phispy = PhiSpy.py:main'
-            ]
-        },
         install_requires = [
             'biopython>=1.74',
             'numpy>=1.17.0',
