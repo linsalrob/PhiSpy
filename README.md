@@ -101,7 +101,7 @@ You will find the output files from this query in `output_directory`.
 The simplest command is:
 
 ```bash
-PhiSpy.py -f genbank_file -o output_directory
+PhiSpy.py genbank_file -o output_directory
 ```
 
 where:
