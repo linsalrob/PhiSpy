@@ -356,11 +356,11 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                     attLseq = dna[pp[i]['contig']][int(bestrep['s1']) - 1:int(bestrep['e1']) - 1]
                     attRseq = dna[pp[i]['contig']][int(bestrep['s2']) - 1:int(bestrep['e2']) - 1]
                     if len(attLseq) == 0:
-                        print("Could not get a sequence from " + str(int(bestrep['s1']) - 1) + " to " + str(
-                            int(bestrep['e1']) - 1) + " from " + str(pp[i]['contig']) + " (length: " + str(
+                        print("The attL sequence had no length from " + str(int(bestrep['s1']) - 1) + " to " + str(
+                            int(bestrep['e1']) - 1) + " on contig " + str(pp[i]['contig']) + " (length: " + str(
                             len(dna[pp[i]['contig']])) + ")\n")
                     if len(attRseq) == 0:
-                        print("Could not get a sequence from " + str(int(bestrep['s2']) - 1) + " to " + str(
+                        print("The attR sequence had no length from " + str(int(bestrep['s2']) - 1) + " to " + str(
                             int(bestrep['e2']) - 1) + " from " + str(pp[i]['contig']) + " (length: " + str(
                             len(dna[pp[i]['contig']])) + ")\n")
                     pp[i]['att'] = [
