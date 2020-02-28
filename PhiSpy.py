@@ -47,7 +47,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     if ncontigs == 0:
         sys.stderr.write(f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n")
         sys.stderr.write("There is no data to process\n")
-        sys.exit(0)
+        sys.exit(20)
 
     sys.stderr.write(f"Processing {ncontigs} contigs \n")
 
