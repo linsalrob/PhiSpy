@@ -190,8 +190,12 @@ int check_extend(int fst,int n)
 			tail = mid-1;
 	}
 
+	if (head <= tail)
+		return -1;
+
 	i = mid-1;
-	while (rep[mid].fst == rep[i].fst && i >-1)
+	// while (rep[mid].fst == rep[i].fst && i >-1)
+	while(rep[mid].fst == rep[i].fst && i > tail-1)
 		i--;
 	i++;
 ////
