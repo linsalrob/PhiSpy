@@ -50,12 +50,20 @@ This will install `PhiSpy.py` in `~/.local/bin` which should be in your `$PATH` 
 
 ## Advanced Users
 
-For advanced users, you can clone the git repository and use that (though `pip` is the recommended install method).
+For advanced users, you can clone the git repository and use that (though `pip` is the recommended install method). 
 ```bash
 git clone https://github.com/linsalrob/PhiSpy.git
 cd PhiSpy`
-python3 setup.py install --user
+python3 setup.py install --user --record installed_files.txt
 ```
+
+Note that we recommend using --record to save a list of all the files that were installed by `PhiSpy`. If you ever want to uninstall it, or to remove everything to reinstall e.g. from `pip`, you can simply use the contents of that file:
+
+```
+cat installed_files.txt | xargs rm -f
+```
+
+
 
 If you have root and you want to install globally, you can change the setup command.
 
