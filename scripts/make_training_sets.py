@@ -105,7 +105,7 @@ def kmerize_orf(orf, k, t):
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py', 
                           description = 'Automates making new or extending current PhiSpy\'s training sets.',
-                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain',
+                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain --phmms --color --threads 4',
                           formatter_class = RawDescriptionHelpFormatter)
 
     args.add_argument('-i', '--infile',
@@ -134,6 +134,19 @@ def main():
                       type = str,
                       help = 'Approach for creating kmers. Options are: simple (just slicing the sequence from the first position), all (all possible kmers), codon (all possible kmers made with step of 3 nts to get kmers corresponding translated aas). [Default: all]',
                       default = 'all')
+
+    args.add_argument('--phmms',
+                      type = str, 
+                      help = 'Phage HMM profile database (like pVOGs) will be mapped against the genome of interest and used as additional feature to identify prophages.')
+
+    args.add_argument('--color',
+                      action = 'store_true',
+                      help = 'If set, within the output GenBank file CDSs with phmms hits will be colored (for viewing in Artemis).')
+
+    args.add_argument('--threads',
+                      type = str,
+                      help = 'Number of threads to use while searching with phmms.',
+                      default = '4')
 
     args.add_argument('--retrain',
                       action = 'store_true',
@@ -218,6 +231,8 @@ def main():
     for infile in infiles:
         print('  Processing %s' % infile)
         cmd = ['python3', phispy, infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet']
+        if args.phmms:
+            cmd.extend(['--phmms', args.phmms, '-t', args.threads,'' if not args.color else '--color'])
         call(cmd)
 
 
@@ -278,10 +293,13 @@ def main():
 
     if args.retrain:
         with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
+            first = True
             for infile in infiles:
                 trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
                 with open(trainset) as inf:
+                    if not first: inf.readline()
                     outf.write(inf.read())
+                    first = False
     else:
         # read all testSets in directory and combine them into generic test set
         print('*WARNING* - for updating generic train set only trainSets from single reference files are considered!')
@@ -289,6 +307,7 @@ def main():
             with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
                 for line in inf:
                     line = line.split()
+                    if line[0] == '0': continue
                     if int(line[-1]) == 1: 
                         trainset = path.join(args.outdir, path.basename(line[1]))
                         with open(trainset) as infts:
