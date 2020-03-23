@@ -36,9 +36,10 @@ def call_randomforest(**kwargs):
         sys.exit(-1)
     strm = pkg_resources.resource_stream('PhiSpyModules', trainingFile)
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
+    test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     if 'phmms' not in kwargs:
         train_data = np.delete(train_data, 5, 1)
-    test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
+        test_data = np.delete(train_data, 5, 1)
     # Przemek's comment
     # by default 10 until version 0.22 where default is 100
     # number of estimators also implies the precision of probabilities, generally 1/n_estimators
