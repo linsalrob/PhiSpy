@@ -281,6 +281,7 @@ def make_test_set(**kwargs):
             orf_list.append(
                    {'start' : feature.start,
                     'stop'  : feature.stop,
+                    'phmm'  : sum([-math.log10(x) if x != 0 else 500 for x in feature.phmm])/100,
                     'peg'   : 'peg'
                    }
             )
@@ -289,7 +290,7 @@ def make_test_set(**kwargs):
         outfile = open(os.path.join(self.output_dir, 'testSet.txt'), 'w')
     except:
         sys.exit('ERROR: Cannot open file for writing: testSet.txt')
-    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\n')
+    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\n')
     for mycontig in all_orf_list:
         #orf_list = my_sort(all_orf_list[mycontig])
         orf_list = all_orf_list[mycontig]
@@ -297,9 +298,11 @@ def make_test_set(**kwargs):
         all_median = find_all_median(orf_list)
         lengths = []
         directions = []
+        phmms = []
         for i in orf_list:
             lengths.append(abs(i['start'] - i['stop']) + 1) # find_all_median can be deleted now
             directions.append(1 if i['start'] < i['stop'] else -1)
+            phmms.append(i['phmm'])
             if i['start'] < i['stop']:
                 seq = dna[mycontig][i['start'] - 1 : i['stop']].upper()
             else:
@@ -370,6 +373,8 @@ def make_test_set(**kwargs):
             outfile.write(str(jgc))
             outfile.write('\t')
             outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
+            outfile.write('\t')
+            outfile.write(str(sum(phmms[j_start:j_stop])))
             outfile.write('\n')
             i += 1
         my_shannon_scores.reset()

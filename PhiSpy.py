@@ -36,6 +36,16 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         sys.stderr.write("ERROR: Please provide an input file. Use -h for more options\n")
         sys.exit(-1)
 
+    # check whether output directory was provided
+    if not args_parser.output_dir:
+        sys.stderr.write("ERROR: Output directory (-o) is required\n")
+        sys.exit(-1)
+    os.makedirs(args_parser.output_dir, exist_ok=True)
+
+    # if phmm search is required
+    if args_parser.phmms:
+        args_parser.infile = PhiSpyModules.search_phmms(args_parser.phmms, args_parser.infile, args_parser.output_dir, args_parser.color, args_parser.threads)
+
     # in future support other types
     # added a filter to remove short contigs. These break everything and we can't predict them to be 
     # phages anyway
@@ -50,11 +60,6 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         sys.exit(20)
 
     sys.stderr.write(f"Processing {ncontigs} contigs \n")
-
-    if not args_parser.output_dir:
-        sys.stderr.write("ERROR: Output directory (-o) is required\n")
-        sys.exit(-1)
-    os.makedirs(args_parser.output_dir, exist_ok=True)
 
     ######################################
     #         make training set          #

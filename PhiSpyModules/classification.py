@@ -36,6 +36,8 @@ def call_randomforest(**kwargs):
         sys.exit(-1)
     strm = pkg_resources.resource_stream('PhiSpyModules', trainingFile)
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
+    if 'phmms' not in kwargs:
+        train_data = np.delete(train_data, 5, 1)
     test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     # Przemek's comment
     # by default 10 until version 0.22 where default is 100
@@ -245,19 +247,19 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
     except:
         sys.exit('ERROR: Cannot open classify.tsv in make_initial_tbl')
     #x = input_bactpp(**kwargs)
-    j = 1
+    j = 0
     ranks = [[] for n in range(len(x))]
     for line in infile:
         val = float(line.strip())
         for k in range(j-int(self.window_size/2), j+int(self.window_size/2)):
-            if k <= 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
+            if k < 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                 continue
             ranks[k].append(val)
         j += 1
     infile.close()
     #calculate threshold
     y = []
-    j = 1
+    j = 0
     while j < len(x):
         x[j]['rank'] = sum(ranks[j]) / len(ranks[j]) 
         x[j]['extra'] =  ranks[j] 
@@ -277,7 +279,7 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
     or just a plain threshold.
     
     """
-    j = 1
+    j = 0
     outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
     while j < len(x):
         if x[j]['rank'] > threshold:
