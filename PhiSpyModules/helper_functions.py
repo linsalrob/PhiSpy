@@ -58,6 +58,12 @@ def get_args():
                              help='Use the product of the slope of the Shannon scores in making test sets')
     parser.add_argument('--kmers_type', default='all', choices=['all', 'codon', 'simple'], type=str,
                              help='Type of kmers used for calculating Shannon scores. [Default: all]')
+    parser.add_argument('--phmms', type=str, 
+                             help='Phage HMM profile database (like pVOGs) will be mapped against the genome of interest and used as additional feature to identify prophages.')
+    parser.add_argument('--color', action='store_true',
+                             help='If set, within the output GenBank file CDSs with phmms hits will be colored (for viewing in Artemis).')
+    parser.add_argument('--threads', type=str, default='4',
+                             help='Number of threads to use while searching with phmms.')
     #parser.add_argument('-i', '--input_dir', help='The input directory that holds the genome')
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('-qt', '--quiet', type=bool, default=False, const=True, nargs='?',

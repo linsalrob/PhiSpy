@@ -281,6 +281,7 @@ def make_set_train(**kwargs):
                    {'start' : feature.start,
                     'stop'  : feature.stop,
                     'peg'   : 'peg',
+                    'phmm'  : sum([-math.log10(x) if x != 0 else 500 for x in feature.phmm])/100,
                     'is_phage': is_phage
                    }
             )
@@ -289,7 +290,7 @@ def make_set_train(**kwargs):
         outfile = open(os.path.join(self.output_dir, self.make_training_data),'w')
     except:
         sys.exit('ERROR: Cannot open', os.path.join(self.output_dir, self.make_training_data), 'for writing.')
-    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
+    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
     for mycontig in all_orf_list:
         # orf_list = my_sort(all_orf_list[mycontig]) #shouldn't that be deleted as well?
         orf_list = all_orf_list[mycontig]
@@ -301,9 +302,11 @@ def make_set_train(**kwargs):
         all_median = find_all_median(orf_list)
         lengths = []
         directions = []
+        phmms = []
         for i in orf_list:
             lengths.append(abs(i['start'] - i['stop']) + 1) # find_all_median can be deleted now
             directions.append(1 if i['start'] < i['stop'] else -1)
+            phmms.append(i['phmm'])
             if i['start'] < i['stop']:
                 seq = dna[mycontig][i['start'] - 1 : i['stop']].upper()
             else:
@@ -370,6 +373,8 @@ def make_set_train(**kwargs):
             outfile.write(str(jgc))
             outfile.write('\t')
             outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
+            outfile.write('\t')
+            outfile.write(str(sum(phmms[j_start:j_stop])))
             outfile.write('\t')
             outfile.write('1' if orf_list[i]['is_phage'] else '0')
             outfile.write('\n')

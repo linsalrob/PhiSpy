@@ -61,6 +61,7 @@ class SeqioFilter( list ):
                 feature.function = " ".join(feature.qualifiers.get('product',['unknown']))
                 feature.start    = int(feature.location.start) + 1
                 feature.stop     = int(feature.location.end)
+                feature.phmm     = [1.0] if 'phmm' not in feature.qualifiers else [float(x.split(':')[1]) for x in feature.qualifiers.get('phmm')]
                 if feature.strand < 0:
                     feature.start, feature.stop = feature.stop, feature.start
                 if not feature_type or feature.type == feature_type:
