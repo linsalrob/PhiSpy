@@ -120,6 +120,16 @@ If you have new genome, we recommend annotating it using the [RAST server](http:
  
 After annotation, you can download the genome directory from the server.
 
+When also considering the signal from HMM profile search:
+```bash
+PhiSpy.py genbank_file -o output_directory --phmms hmm_db --threads 4 --color
+```
+where:
+- `hmm_db`: reference HMM profiles database to search with genome-encoded proteins (at the moment)
+
+Training sets were searched with [pVOG database HMM profile](http://dmk-brain.ecn.uiowa.edu/pVOGs/downloads/All/): [AllvogHMMprofiles.tar.gz](http://dmk-brain.ecn.uiowa.edu/pVOGs/downloads/All/AllvogHMMprofiles.tar.gz).
+Since extra step before the regular processing of PhiSpy is performed, input `genbank file` is updated and saved in `output_directory`.
+When `--color` flag is used, additional qualifier `/color` will be added in the updated GenBank file so that the user could easily distinguished proteins with hits to `hmm_db` while viewing the file in [Artemis](https://www.sanger.ac.uk/science/tools/artemis)
 
 # Help
 
