@@ -177,6 +177,7 @@ int check_extend(int fst,int n)
 {
 	int i,j = rep[fst].fst + rep[fst].len -1 +n, len = rep.size(),k, head , tail, mid;
 
+
 	// binery search
 	head = fst+1;
 	tail = len-1;
@@ -186,16 +187,21 @@ int check_extend(int fst,int n)
 		if(rep[mid].fst<j)
 			head = mid+1;
 		else
-			tail = mid -1;
+			tail = mid-1;
 	}
+
+	if (head <= tail)
+		return -1;
+
 	i = mid-1;
-	while(rep[mid].fst == rep[i].fst && i >-1)
+	// while (rep[mid].fst == rep[i].fst && i >-1)
+	while(rep[mid].fst == rep[i].fst && i > tail-1)
 		i--;
 	i++;
 ////
 	k = rep[fst].sec+rep[fst].seclen -1;
 	
-	for(;rep[i].fst == j;i++)
+	for(; i < (int) rep.size() && rep[i].fst == j;i++)
 		if(rep[i].visited == 0){
 			if ( (rep[i].fst + rep[i].len -1) <rep[fst].sec || (rep[i].fst + rep[i].len -1)<(rep[i].sec)*(-1)-rep[i].seclen+1)
 				//check for 2nd copy

@@ -48,6 +48,8 @@ def get_args():
                              help='Run in evaluation mode -- does not generate new data, but reruns the evaluation')
     parser.add_argument('-n', '--number', default=5, type=int,
                              help='Number of consecutive genes in a region of window size that must be prophage genes to be called. [Default: 5]')
+    parser.add_argument('-u', '--min_contig_size', default=5000, type=int,
+                        help='Minimum contig size (in bp) to be included in the analysis. Smaller contigs will be dropped. [Default: 5000]')
     parser.add_argument('-w', '--window_size', default=30, type=int,
                              help='Window size of consecutive genes to look through to find phages. [Default: 30]')
     parser.add_argument('-g', '--nonprophage_genegaps', default=10, type=int,

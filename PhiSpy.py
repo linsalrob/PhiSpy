@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import types
+from functools import reduce
 
 from Bio import SeqIO
 
@@ -46,8 +47,19 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         args_parser.infile = PhiSpyModules.search_phmms(args_parser.phmms, args_parser.infile, args_parser.output_dir, args_parser.color, args_parser.threads)
 
     # in future support other types
-    input_file = PhiSpyModules.SeqioFilter(SeqIO.parse(args_parser.infile, "genbank"))
-    args_parser.record = input_file
+    # added a filter to remove short contigs. These break everything and we can't predict them to be 
+    # phages anyway
+    args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(args_parser.infile, "genbank")))
+    # args_parser.record = input_file
+    
+    # do we have any records left. Yes, this bug caught me out
+    ncontigs = reduce(lambda sum, element: sum + 1, args_parser.record, 0)
+    if ncontigs == 0:
+        sys.stderr.write(f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n")
+        sys.stderr.write("There is no data to process\n")
+        sys.exit(20)
+
+    sys.stderr.write(f"Processing {ncontigs} contigs \n")
 
     ######################################
     #         make training set          #

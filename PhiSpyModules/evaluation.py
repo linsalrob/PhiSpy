@@ -14,6 +14,9 @@ def find_repeat(fn, st, ppno, extraDNA, output_dir):
     rep = {}
     index = 0
 
+    with open(os.path.join(output_dir, "repeat_finding"), 'a') as rptout:
+        rptout.write(f">pp{ppno} {st}\n{fn}\n")
+
     try:
         repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3)
     except Exception as e:
@@ -303,7 +306,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             print("Not checking repeats for pp " + str(i) + " because it is too big: " + str(stop - start) + "\n")
             continue
         sys.stderr.write("PP: " + str(i) + " start: " + str(pp[i]['start']) + " stop: " + str(pp[i]['stop']) + "\n")
-        print("Finding repeats in pp " + str(i) + " from " + str(start) + " to " + str(stop))
+        print("Finding repeats in pp " + str(i) + " contig " + pp[i]['contig'] + " from " + str(start) + " to " + str(stop))
         repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extraDNA, self.output_dir)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
         if s_e != 'null':
@@ -356,11 +359,11 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                     attLseq = dna[pp[i]['contig']][int(bestrep['s1']) - 1:int(bestrep['e1']) - 1]
                     attRseq = dna[pp[i]['contig']][int(bestrep['s2']) - 1:int(bestrep['e2']) - 1]
                     if len(attLseq) == 0:
-                        print("Could not get a sequence from " + str(int(bestrep['s1']) - 1) + " to " + str(
-                            int(bestrep['e1']) - 1) + " from " + str(pp[i]['contig']) + " (length: " + str(
+                        print("The attL sequence had no length from " + str(int(bestrep['s1']) - 1) + " to " + str(
+                            int(bestrep['e1']) - 1) + " on contig " + str(pp[i]['contig']) + " (length: " + str(
                             len(dna[pp[i]['contig']])) + ")\n")
                     if len(attRseq) == 0:
-                        print("Could not get a sequence from " + str(int(bestrep['s2']) - 1) + " to " + str(
+                        print("The attR sequence had no length from " + str(int(bestrep['s2']) - 1) + " to " + str(
                             int(bestrep['e2']) - 1) + " from " + str(pp[i]['contig']) + " (length: " + str(
                             len(dna[pp[i]['contig']])) + ")\n")
                     pp[i]['att'] = [
