@@ -105,7 +105,7 @@ def kmerize_orf(orf, k, t):
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py', 
                           description = 'Automates making new or extending current PhiSpy\'s training sets.',
-                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain --phmms --color --threads 4',
+                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4',
                           formatter_class = RawDescriptionHelpFormatter)
 
     args.add_argument('-i', '--infile',
