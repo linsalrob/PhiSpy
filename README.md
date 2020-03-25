@@ -21,7 +21,7 @@ Improvements, bug fixes, and other changes were made by
 Katelyn McNair
 [Edwards Bioinformatics Lab](http://edwards.sdsu.edu/research/)
 and Przemyslaw Decewicz 
-[University of Warsaw](http://en.uw.edu.pl/)
+[DEMB at the University of Warsaw](http://ddlemb.com/)
 
 
 
