@@ -292,10 +292,13 @@ def main():
     print('Making training sets.')
     for g, i in groups.items():
         with open(path.join(args.outdir, 'trainSet_%s.txt' % g), 'w') as outf:
+            first = True
             for infile in i:
                 trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
                 with open(trainset) as inf:
+                    if not first: inf.readline()
                     outf.write(inf.read())
+                    first = False
 
     if args.retrain:
         with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
@@ -311,13 +314,16 @@ def main():
         print('*WARNING* - for updating generic train set only trainSets from single reference files are considered!')
         with open(path.join(args.outdir, 'trainingGenome_list.txt')) as inf:
             with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
+                first = True
                 for line in inf:
                     line = line.split()
                     if line[0] == '0': continue
                     if int(line[-1]) == 1: 
                         trainset = path.join(args.outdir, path.basename(line[1]))
                         with open(trainset) as infts:
+                            if not first: infts.readline()
                             outf.write(infts.read())
+                            first = False
 
 
     print('Done!')
