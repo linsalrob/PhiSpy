@@ -222,8 +222,8 @@ def main():
     # make all training groups
     print('Making trainSets for each input file.')
     # the following check will be removed after removing the requirement in PhiSpy's helper_functions.py
-    if not path.isfile(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'data/trainSet_genericAll.txt')):
-        with open(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'data/trainSet_genericAll.txt'), 'w') as outf:
+    if not path.isfile(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpyModules/data/trainSet_genericAll.txt')):
+        with open(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpyModules/data/trainSet_genericAll.txt'), 'w') as outf:
             outf.write('')
     trainsets_outdir = path.join(args.outdir, 'trainSets')
     if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
