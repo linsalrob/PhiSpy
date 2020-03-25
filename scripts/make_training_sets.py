@@ -148,6 +148,10 @@ def main():
                       help = 'Number of threads to use while searching with phmms.',
                       default = '4')
 
+    args.add_argument('--skip_search',
+                      action = 'store_true',
+                      help = 'If set, the search part will be skipped and the program will assume the existance of updated GenBank files.')
+
     args.add_argument('--retrain',
                       action = 'store_true',
                       help = 'If set, retrains original training sets, otherwise it extends what it finds in output directory.')
@@ -231,8 +235,10 @@ def main():
     for infile in infiles:
         print('  Processing %s' % infile)
         cmd = ['python3', phispy, infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet']
-        if args.phmms:
-            cmd.extend(['--phmms', args.phmms, '-t', args.threads,'' if not args.color else '--color'])
+        if args.phmms: cmd.extend(['--phmms', args.phmms, '-t', args.threads])
+        if args.color: cmd.append('--color')
+        if args.skip_search: cmd.append('--skip_search')
+        # print(f'Calling: {" ".join(cmd)}')
         call(cmd)
 
 
@@ -312,7 +318,6 @@ def main():
                         trainset = path.join(args.outdir, path.basename(line[1]))
                         with open(trainset) as infts:
                             outf.write(infts.read())
-
 
 
     print('Done!')

@@ -48,7 +48,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     # if phmm search is required
     if args_parser.phmms:
         print(f'Performing HMM search.')
-        args_parser.infile = PhiSpyModules.search_phmms(args_parser.phmms, args_parser.infile, args_parser.output_dir, args_parser.color, args_parser.threads)
+        args_parser.infile = PhiSpyModules.search_phmms(args_parser.phmms, args_parser.infile, args_parser.output_dir, args_parser.color, args_parser.threads, args_parser.skip_search)
 
     ######################################
     #        process input file          #

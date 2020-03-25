@@ -96,7 +96,7 @@ def write_search_input(genome, target_type, outdir):
     return outfile
 
 
-def search_target(searchfile, target_type, hmm, outdir, threads, skip_search=False):
+def search_target(searchfile, target_type, hmm, outdir, threads):
     """
     Performs the search of reference databases against target sequences (searchfile) using hmmsearch.
     """
@@ -110,7 +110,7 @@ def search_target(searchfile, target_type, hmm, outdir, threads, skip_search=Fal
 
     cmd = ['hmmsearch', '--cpu', threads, '-E', '1e-10', '--domE', '1e-5', '--noali', '--tblout', hstbl, '-o', hsout, hmm, searchfile]
     # print(' '.join(cmd))
-    if not skip_search: call(cmd)
+    call(cmd)
 
     # Read hmmsearch results
     # print('  Reading output file.')
@@ -171,7 +171,7 @@ def parse_hmmersearch_tbl_output(infile):
     return results
 
 
-def search_phmms(hmm_db, infile, outdir, color, threads):
+def search_phmms(hmm_db, infile, outdir, color, threads, skip_search):
 
     """
     Wraps phmms search.
@@ -182,34 +182,34 @@ def search_phmms(hmm_db, infile, outdir, color, threads):
 
     input_type = 'genbank' # alternatively contigs
     target = 'proteins' # alternatively contigs
-
-
-    # 1 - Read GenBank file and extract required information
-    print('  Reading input file: %s' % infile)
-    genome = read_genbank(infile, input_type, target)
-
-
-    # 2 - Prepare DNA sequence for profile searching
-    print('  Writing target data.')
-    searchfile = write_search_input(genome, target, phmms_dir)
-
-
-    # 3 - Perform searches against prepared reference datafiles
-    print('  Performing search against reference datasets.')
-    results = search_target(searchfile, target, hmm_db, phmms_dir, threads)
-
-
-    # 4 - Print the summary
-    print('  Search summary.') 
-    for sid, pids in results['hstbl'].items():
-        print(f'   - {sid}: found HMMs for {len(pids)}/{len(genome["proteins"])} proteins.')
-
-
-    # 5 - Update GenBank file
-    print('  Updating GenBank file.')
-
     outfile = path.join(phmms_dir, path.basename(infile))
-    genome['contigs'] = update_genbank(genome['contigs'], results, outfile, color)
+
+
+    if not skip_search:
+        # 1 - Read GenBank file and extract required information
+        print('  Reading input file: %s' % infile)
+        genome = read_genbank(infile, input_type, target)
+
+
+        # 2 - Prepare DNA sequence for profile searching
+        print('  Writing target data.')
+        searchfile = write_search_input(genome, target, phmms_dir)
+
+
+        # 3 - Perform searches against prepared reference datafiles
+        print('  Performing search against reference datasets.')
+        results = search_target(searchfile, target, hmm_db, phmms_dir, threads)
+
+
+        # 4 - Print the summary
+        print('  Search summary.') 
+        for sid, pids in results['hstbl'].items():
+            print(f'   - {sid}: found HMMs for {len(pids)}/{len(genome["proteins"])} proteins.')
+
+
+        # 5 - Update GenBank file
+        print('  Updating GenBank file.')
+        genome['contigs'] = update_genbank(genome['contigs'], results, outfile, color)
 
     print('  Done!')
 
