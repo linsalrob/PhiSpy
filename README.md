@@ -139,6 +139,8 @@ Then use `pVOGs.hmm` as `hmm_db`.
 Since extra step before the regular processing of PhiSpy is performed, input `genbank file` is updated and saved in `output_directory/phmms_search`.
 When `--color` flag is used, additional qualifier `/color` will be added in the updated GenBank file so that the user could easily distinguished proteins with hits to `hmm_db` while viewing the file in [Artemis](https://www.sanger.ac.uk/science/tools/artemis)
 
+When running PhiSpy again on the same input data and with `--phmms` option you can skip the search step by `--skip_search` flag.
+
 # Help
 
 For the help menu use the `-h` option:
@@ -220,7 +222,7 @@ where:
 - `kmer_size`: is the size of kmers that will be produces. By default it's 12. If changed, remember to also change that parameter while running PhiSpy with produced training sets.
 - `kmers_type`: type of generated kmers. By default 'all' means generating kmers by 1 nt. If changed, remember to also change that parameter while running PhiSpy with produced training sets.
 - `groups_file`: a file mapping GenBank file names with extension and the name of group they will make; each file can be assigned to more than one group - take a look at how the reference data grouping file was constructed: `tests/groups.txt`.
-Beside the flags that allow training with phmm signal, there's also a `--retrain` flag. When used, it overwrites all the training sets in the `output_directory` that will be produced while training. That includes: `phage_kmers_all_wohost.txt`, `trainSets_GenericAll.txt` and `trainingGenome_list.txt`. The same will happen when `trainingGenome_list.txt` is missing in `output_directory`.
+Beside the flags that allow training with phmm signal, there's also a `--retrain` flag. When used, it overwrites all the training sets in the `output_directory` that will be produced while training. That includes: `phage_kmers_all_wohost.txt`, `trainSets_genericAll.txt` and `trainingGenome_list.txt`. The same will happen when `trainingGenome_list.txt` is missing in `output_directory`.
 If `--retrain` is not set, the script extends the `trainingGenome_list.txt`, adds new files to `output_directory` (overwrites the ones with the same group name) and updates `phage_kmers_all_wohost.txt`. 
 
 The default reference data is trained by the following command:
