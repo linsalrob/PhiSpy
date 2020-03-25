@@ -236,4 +236,4 @@ Within the `output_directory` you will find a `trainSets` directory with a singl
 ## Preparing GenBank files
 - it is recommended to mark prophage proteins even from prophage remnants/disrupted regions composed of a few proteins with `is_phage="1"` to minimize the loss of good signal, kmers in particular,
 - don't use too many genomes (e.g. a 100) as you may end up with a small set of phage-specific kmers,
-- try to pich several genomes with different prophages too increase the diversity.
+- try to pick several genomes with different prophages to increase the diversity.
