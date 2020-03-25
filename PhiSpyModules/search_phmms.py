@@ -148,61 +148,6 @@ def update_genbank(records, results, outfile, color):
 
     return records
 
-def update_genbanks(genomes, cds2fm, ugdir, colors):
-    """
-    Updates input GenBank files and assign FMs and colors to all CDSs.
-    """
-
-    for file_name in genomes:
-        outfile = path.join(ugdir, file_name)
-        for r in genomes[file_name]:
-            for f in r.features:
-                if f.type == 'CDS':
-                    short_header = '|'.join([file_name, f.qualifiers['protein_id'][0], str(f.location)])
-                    f.qualifiers['fm'] = cds2fm[short_header]
-                    if colors:
-                        f.qualifiers['color'] = colors[f.qualifiers['fm'][0]]
-        SeqIO.write(genomes[file_name], outfile, 'genbank')
-
-    return
-
-def parse_hmmsearch_output(infile, target):
-    """
-    This function reads hmmsearch output file in tblout format and prepares it for further processing.
-    """
-
-    results = {}
-    g = path.basename(infile).split('_')[0]
-    with open(infile) as inf:
-        line = inf.readline()
-        if target == 'contigs':
-            while line:
-                if line.startswith(' ---   '):
-                    line = inf.readline()
-                    while line != '\n':
-                        line = line.split()
-                        ##    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
-                        coords = sorted([int(x)*3 for x in line[9:11]])
-                        key = tuple(coords + [g])
-                        results[key] = line
-                        line = inf.readline()
-                line = inf.readline()
-
-        elif target == 'proteins':
-            while line:
-                if line.startswith('Domain annotation for each sequence:'):
-                    while not line.startswith('Internal') or not line:
-                        line = inf.readline()
-                        if line.startswith('>> '):
-                            line = line.split()
-                            coords = sorted([int(sub(r'[><]', '', x)) for x in line[-1].split('|')[-1][1:-4].split(':')])
-                            key = tuple(coords + [g])
-                            results[key] = line
-                            line = inf.readline()
-                line = inf.readline()
-
-    return results
-
 
 def parse_hmmersearch_tbl_output(infile):
     """
