@@ -69,7 +69,7 @@ If you have root and you want to install globally, you can change the setup comm
 
 ```bash
 git clone https://github.com/linsalrob/PhiSpy.git
-cd PhiSpy`
+cd PhiSpy
 python3 setup.py install
 ```
 
