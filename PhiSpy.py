@@ -42,10 +42,17 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         sys.exit(-1)
     os.makedirs(args_parser.output_dir, exist_ok=True)
 
+    ######################################
+    #       add HMM search signal        #
+    ######################################
     # if phmm search is required
     if args_parser.phmms:
-        args_parser.infile = PhiSpyModules.search_phmms(args_parser.phmms, args_parser.infile, args_parser.output_dir, args_parser.color, args_parser.threads)
+        print(f'Performing HMM search.')
+        args_parser.infile = PhiSpyModules.search_phmms(**vars(args_parser))
 
+    ######################################
+    #        process input file          #
+    ######################################
     # in future support other types
     # added a filter to remove short contigs. These break everything and we can't predict them to be 
     # phages anyway

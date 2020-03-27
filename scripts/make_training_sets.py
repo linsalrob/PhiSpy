@@ -105,7 +105,7 @@ def kmerize_orf(orf, k, t):
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py', 
                           description = 'Automates making new or extending current PhiSpy\'s training sets.',
-                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain --phmms --color --threads 4',
+                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4',
                           formatter_class = RawDescriptionHelpFormatter)
 
     args.add_argument('-i', '--infile',
@@ -147,6 +147,10 @@ def main():
                       type = str,
                       help = 'Number of threads to use while searching with phmms.',
                       default = '4')
+
+    args.add_argument('--skip_search',
+                      action = 'store_true',
+                      help = 'If set, the search part will be skipped and the program will assume the existance of updated GenBank files.')
 
     args.add_argument('--retrain',
                       action = 'store_true',
@@ -222,8 +226,8 @@ def main():
     # make all training groups
     print('Making trainSets for each input file.')
     # the following check will be removed after removing the requirement in PhiSpy's helper_functions.py
-    if not path.isfile(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'data/trainSet_genericAll.txt')):
-        with open(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'data/trainSet_genericAll.txt'), 'w') as outf:
+    if not path.isfile(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpyModules/data/trainSet_genericAll.txt')):
+        with open(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpyModules/data/trainSet_genericAll.txt'), 'w') as outf:
             outf.write('')
     trainsets_outdir = path.join(args.outdir, 'trainSets')
     if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
@@ -231,8 +235,10 @@ def main():
     for infile in infiles:
         print('  Processing %s' % infile)
         cmd = ['python3', phispy, infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet']
-        if args.phmms:
-            cmd.extend(['--phmms', args.phmms, '-t', args.threads,'' if not args.color else '--color'])
+        if args.phmms: cmd.extend(['--phmms', args.phmms, '-t', args.threads])
+        if args.color: cmd.append('--color')
+        if args.skip_search: cmd.append('--skip_search')
+        # print(f'Calling: {" ".join(cmd)}')
         call(cmd)
 
 
@@ -286,10 +292,13 @@ def main():
     print('Making training sets.')
     for g, i in groups.items():
         with open(path.join(args.outdir, 'trainSet_%s.txt' % g), 'w') as outf:
+            first = True
             for infile in i:
                 trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
                 with open(trainset) as inf:
+                    if not first: inf.readline()
                     outf.write(inf.read())
+                    first = False
 
     if args.retrain:
         with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
@@ -305,14 +314,16 @@ def main():
         print('*WARNING* - for updating generic train set only trainSets from single reference files are considered!')
         with open(path.join(args.outdir, 'trainingGenome_list.txt')) as inf:
             with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
+                first = True
                 for line in inf:
                     line = line.split()
                     if line[0] == '0': continue
                     if int(line[-1]) == 1: 
                         trainset = path.join(args.outdir, path.basename(line[1]))
                         with open(trainset) as infts:
+                            if not first: infts.readline()
                             outf.write(infts.read())
-
+                            first = False
 
 
     print('Done!')

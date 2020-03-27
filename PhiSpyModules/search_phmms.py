@@ -1,17 +1,15 @@
 #!/usr/bin/python3
 __author__ = 'Przemek Decewicz'
 
-from argparse import ArgumentParser
+from argparse import Namespace
 from Bio import SeqIO
 from glob import glob
-from os import makedirs, path
-from re import sub
+from os import path, remove
 from subprocess import call
-from sys import argv
 
 def read_genbank(infile, infile_type, target_type):
     """
-    This function reads the GenBank file and extracts protein and/or nucleotide sequences in a manner that will allow  easier mapping of results against it's genome.
+    This function reads the GenBank file and extracts protein and/or nucleotide sequences in a manner that will allow easier mapping of results against it's genome.
     """
 
     if infile_type == 'genbank':
@@ -96,21 +94,21 @@ def write_search_input(genome, target_type, outdir):
     return outfile
 
 
-def search_target(searchfile, target_type, hmm, outdir, threads, skip_search=False):
+def search_target(searchfile, target_type, phmms, outdir, threads):
     """
     Performs the search of reference databases against target sequences (searchfile) using hmmsearch.
     """
 
-    results = {'hsout': {},
+    results = {'hsout': {}, # unused
                'hstbl': {}}
-    print('  ----> %s' % path.basename(hmm))
+    print('  ----> %s' % path.basename(phmms))
 
-    hstbl = path.join(outdir, path.basename(hmm) + '.tbl')
-    hsout = path.join(outdir, path.basename(hmm) + '.out')
+    hstbl = path.join(outdir, path.basename(phmms) + '.tbl')
+    hsout = path.join(outdir, path.basename(phmms) + '.out')
 
-    cmd = ['hmmsearch', '--cpu', threads, '-E', '1e-10', '--domE', '1e-5', '--noali', '--tblout', hstbl, '-o', hsout, hmm, searchfile]
+    cmd = ['hmmsearch', '--cpu', threads, '-E', '1e-10', '--domE', '1e-5', '--noali', '--tblout', hstbl, '-o', hsout, phmms, searchfile]
     # print(' '.join(cmd))
-    if not skip_search: call(cmd)
+    call(cmd)
 
     # Read hmmsearch results
     # print('  Reading output file.')
@@ -141,67 +139,12 @@ def update_genbank(records, results, outfile, color):
                 except KeyError:
                     f.qualifiers['phmm'] = [phmm]
                 if color:
-                    f.qualifiers['color'] = ['11']
+                    f.qualifiers['color'] = ['6']
 
 
     SeqIO.write(records, outfile, 'genbank')
 
     return records
-
-def update_genbanks(genomes, cds2fm, ugdir, colors):
-    """
-    Updates input GenBank files and assign FMs and colors to all CDSs.
-    """
-
-    for file_name in genomes:
-        outfile = path.join(ugdir, file_name)
-        for r in genomes[file_name]:
-            for f in r.features:
-                if f.type == 'CDS':
-                    short_header = '|'.join([file_name, f.qualifiers['protein_id'][0], str(f.location)])
-                    f.qualifiers['fm'] = cds2fm[short_header]
-                    if colors:
-                        f.qualifiers['color'] = colors[f.qualifiers['fm'][0]]
-        SeqIO.write(genomes[file_name], outfile, 'genbank')
-
-    return
-
-def parse_hmmsearch_output(infile, target):
-    """
-    This function reads hmmsearch output file in tblout format and prepares it for further processing.
-    """
-
-    results = {}
-    g = path.basename(infile).split('_')[0]
-    with open(infile) as inf:
-        line = inf.readline()
-        if target == 'contigs':
-            while line:
-                if line.startswith(' ---   '):
-                    line = inf.readline()
-                    while line != '\n':
-                        line = line.split()
-                        ##    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
-                        coords = sorted([int(x)*3 for x in line[9:11]])
-                        key = tuple(coords + [g])
-                        results[key] = line
-                        line = inf.readline()
-                line = inf.readline()
-
-        elif target == 'proteins':
-            while line:
-                if line.startswith('Domain annotation for each sequence:'):
-                    while not line.startswith('Internal') or not line:
-                        line = inf.readline()
-                        if line.startswith('>> '):
-                            line = line.split()
-                            coords = sorted([int(sub(r'[><]', '', x)) for x in line[-1].split('|')[-1][1:-4].split(':')])
-                            key = tuple(coords + [g])
-                            results[key] = line
-                            line = inf.readline()
-                line = inf.readline()
-
-    return results
 
 
 def parse_hmmersearch_tbl_output(infile):
@@ -226,45 +169,48 @@ def parse_hmmersearch_tbl_output(infile):
     return results
 
 
-def search_phmms(hmm_db, infile, outdir, color, threads):
+def search_phmms(**kwargs):
 
     """
     Wraps phmms search.
     """
 
-    phmms_dir = path.join(outdir, 'phmms_search')
-    if not path.isdir(phmms_dir): makedirs(phmms_dir)
-
+    self = Namespace(**kwargs)
     input_type = 'genbank' # alternatively contigs
     target = 'proteins' # alternatively contigs
+    outfile = path.join(self.output_dir, path.basename(self.infile))
 
 
-    # 1 - Read GenBank file and extract required information
-    print('  Reading input file: %s' % infile)
-    genome = read_genbank(infile, input_type, target)
+    if not self.skip_search:
+        # 1 - Read GenBank file and extract required information
+        print('  Reading input file: %s' % self.infile)
+        genome = read_genbank(self.infile, input_type, target)
 
 
-    # 2 - Prepare DNA sequence for profile searching
-    print('  Writing target data.')
-    searchfile = write_search_input(genome, target, phmms_dir)
+        # 2 - Prepare DNA sequence for profile searching
+        print('  Writing target data.')
+        searchfile = write_search_input(genome, target, self.output_dir)
 
 
-    # 3 - Perform searches against prepared reference datafiles
-    print('  Performing search against reference datasets.')
-    results = search_target(searchfile, target, hmm_db, phmms_dir, threads)
+        # 3 - Perform searches against prepared reference datafiles
+        print('  Performing search against reference datasets.')
+        results = search_target(searchfile, target, self.phmms, self.output_dir, self.threads)
 
 
-    # 4 - Print the summary
-    print('  Search summary.') 
-    for sid, pids in results['hstbl'].items():
-        print(f'   - {sid}: found HMMs for {len(pids)}/{len(genome["proteins"])} proteins.')
+        # 4 - Print the summary
+        print('  Search summary.')
+        for sid, pids in results['hstbl'].items():
+            print(f'   - {sid}: found HMMs for {len(pids)}/{len(genome["proteins"])} proteins.')
 
 
-    # 5 - Update GenBank file
-    print('  Updating GenBank file.')
+        # 5 - Update GenBank file
+        print('  Updating GenBank file.')
+        genome['contigs'] = update_genbank(genome['contigs'], results, outfile, self.color)
 
-    outfile = path.join(phmms_dir, path.basename(infile))
-    genome['contigs'] = update_genbank(genome['contigs'], results, outfile, color)
+    if not self.keep:
+        if path.isfile(path.join(self.output_dir, 'prots.fasta')): remove(path.join(self.output_dir, 'prots.fasta'))
+        for hmm in glob(path.join(self.output_dir, '*.hmm.*')):
+            remove(hmm)
 
     print('  Done!')
 
