@@ -3,7 +3,8 @@ __author__ = 'Przemek Decewicz'
 
 from argparse import Namespace
 from Bio import SeqIO
-from os import path
+from glob import glob
+from os import path, remove
 from subprocess import call
 
 def read_genbank(infile, infile_type, target_type):
@@ -205,6 +206,11 @@ def search_phmms(**kwargs):
         # 5 - Update GenBank file
         print('  Updating GenBank file.')
         genome['contigs'] = update_genbank(genome['contigs'], results, outfile, self.color)
+
+    if not self.keep:
+        if path.isfile(path.join(self.output_dir, 'prots.fasta')): remove(path.join(self.output_dir, 'prots.fasta'))
+        for hmm in glob(path.join(self.output_dir, '*.hmm.*')):
+            remove(hmm)
 
     print('  Done!')
 
