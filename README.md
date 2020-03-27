@@ -136,7 +136,7 @@ cat AllvogHMMprofiles/* > pVOGs.hmm
 ```
 Then use `pVOGs.hmm` as `hmm_db`.
 
-Since extra step before the regular processing of PhiSpy is performed, input `genbank file` is updated and saved in `output_directory/phmms_search`.
+Since extra step before the regular processing of PhiSpy is performed, input `genbank file` is updated and saved in `output_directory`.
 When `--color` flag is used, additional qualifier `/color` will be added in the updated GenBank file so that the user could easily distinguished proteins with hits to `hmm_db` while viewing the file in [Artemis](https://www.sanger.ac.uk/science/tools/artemis)
 
 When running PhiSpy again on the same input data and with `--phmms` option you can skip the search step by `--skip_search` flag.
@@ -231,7 +231,7 @@ python3 scripts/make_training_sets.py -d tests -o PhiSpyModules/data -g tests/gr
 ```
 You can modify/update the `test` directory and `groups.txt` file for your needs.
 
-Within the `output_directory` you will find a `trainSets` directory with a single trainSet file for each genome and (if requested) `phmms_search` directory with updated input GenBank files and temp files from the last hmmsearch.
+Within the `output_directory` you will find a `trainSets` directory with a single trainSet file for each genome and (if requested) with updated input GenBank files and temp files from the last hmmsearch.
 
 ## Preparing GenBank files
 - it is recommended to mark prophage proteins even from prophage remnants/disrupted regions composed of a few proteins with `is_phage="1"` to minimize the loss of good signal, kmers in particular,
