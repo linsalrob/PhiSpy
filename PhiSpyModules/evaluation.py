@@ -3,7 +3,7 @@ import re
 import math
 import sys
 from argparse import Namespace
-from .writers import write_gff3
+from .writers import write_gff3, write_genbank
 import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
@@ -413,6 +413,9 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
 
     # write the prophage in GFF3 format
     write_gff3(self.output_dir, pp)
+
+    # update input GenBank file and incorporate prophage regions
+    write_genbank(self.infile, self.record, self.output_dir, pp)
 
 def make_prophage_tbl(inputf, outputf):
     try:
