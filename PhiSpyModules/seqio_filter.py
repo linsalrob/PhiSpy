@@ -68,6 +68,6 @@ class SeqioFilter( list ):
                     yield feature
         target.get_features = types.MethodType(get_features,target)
 
-        def insert_feature(target, feature):
-            target.features.insert(0, feature)
-        target.insert_feature = types.MethodType(insert_feature, target)
+        def append_feature(target, feature):
+            target.features.append(feature)
+        target.append_feature = types.MethodType(append_feature, target)
