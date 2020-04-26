@@ -66,7 +66,7 @@ def get_args():
                              help='If set, the search part will be skipped and the program will assume the existance of updated GenBank files.')
     parser.add_argument('--color', action='store_true',
                              help='If set, within the output GenBank file CDSs with phmms hits will be colored (for viewing in Artemis).')
-    parser.add_argument('--threads', type=str, default='4',
+    parser.add_argument('--threads', type=int, default=2,
                              help='Number of threads to use while searching with phmms.')
     #parser.add_argument('-i', '--input_dir', help='The input directory that holds the genome')
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')

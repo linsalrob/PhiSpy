@@ -106,7 +106,7 @@ def search_target(searchfile, target_type, phmms, outdir, threads):
     hstbl = path.join(outdir, path.basename(phmms) + '.tbl')
     hsout = path.join(outdir, path.basename(phmms) + '.out')
 
-    cmd = ['hmmsearch', '--cpu', threads, '-E', '1e-10', '--domE', '1e-5', '--noali', '--tblout', hstbl, '-o', hsout, phmms, searchfile]
+    cmd = ['hmmsearch', '--cpu', str(threads), '-E', '1e-10', '--domE', '1e-5', '--noali', '--tblout', hstbl, '-o', hsout, phmms, searchfile]
     # print(' '.join(cmd))
     call(cmd)
 
