@@ -7,11 +7,12 @@ from argparse import Namespace
 
 
 class ShannonScore:
-    def __init__(self, kmers_type):
+    def __init__(self, kmer_size, kmers_type):
         # Create a hash of the kmers that points to the index of an array that holds the value
         self._kmers = {}
         self._kmers_phage = []
         self._kmers_all = []
+        self._kmer_size = kmer_size
         self._kmers_type = kmers_type
         kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
         if not pkg_resources.resource_exists:
@@ -26,11 +27,10 @@ class ShannonScore:
         self._kmers_all = []
 
     def addValue(self, seq):
-        mer = 12
         pos = 0
         self._kmers_phage.append([])
         self._kmers_all.append(0)
-        kmers = self.kmerize_orf(seq, mer, self._kmers_type)
+        kmers = self.kmerize_orf(seq, self._kmer_size, self._kmers_type)
         for kmer in kmers:
             self._kmers_all[-1] += 1
             try:            
@@ -270,7 +270,7 @@ def reverse_complement(seq):
 def make_test_set(**kwargs):
     # line below is so that later we can make this a class
     self = Namespace(**kwargs)
-    my_shannon_scores = ShannonScore(self.kmers_type)
+    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type)
     all_orf_list = {}
     dna = {}
     window = 40
@@ -382,7 +382,7 @@ def make_test_set(**kwargs):
 
 def make_set_train(**kwargs):
     self = Namespace(**kwargs)
-    my_shannon_scores = ShannonScore(self.kmers_type)
+    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type)
     all_orf_list = {}
     dna = {}
     window = 40
