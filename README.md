@@ -53,7 +53,7 @@ This will install `PhiSpy.py` in `~/.local/bin` which should be in your `$PATH` 
 For advanced users, you can clone the git repository and use that (though `pip` is the recommended install method). 
 ```bash
 git clone https://github.com/linsalrob/PhiSpy.git
-cd PhiSpy`
+cd PhiSpy
 python3 setup.py install --user --record installed_files.txt
 ```
 
