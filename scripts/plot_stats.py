@@ -77,6 +77,10 @@ def main():
                       type = str,
                       help = 'Path to input directory with multiple GenBank files.')
 
+    args.add_argument('-s', '--suffix',
+                      type = str,
+                      help = 'Suffix that will be added to input file name.')
+
     args.add_argument('-o', '--outdir',
                       type = str,
                       help = 'Path to output directory.',
@@ -104,7 +108,7 @@ def main():
 
     # Process all input files
     for infile in infiles:
-        plot_file_name = path.basename(infile).rsplit('.', 1)[0] + '_plots.png'
+        plot_file_name = f'{path.basename(infile).rsplit(".", 1)[0]}.{args.suffix}.png'
         plot_file = path.join(args.outdir, plot_file_name)
         plot_stats(infile, plot_file)
 
