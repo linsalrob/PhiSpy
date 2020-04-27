@@ -79,7 +79,7 @@ def main():
 
     args.add_argument('-o', '--outdir',
                       type = str,
-                      help = 'Path to output directory. For each kmer creation approach subdirectory will be created.',
+                      help = 'Path to output directory.',
                       required = True)
 
     if len(argv[1:]) == 0:
