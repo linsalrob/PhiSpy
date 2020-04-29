@@ -7,20 +7,24 @@ from argparse import Namespace
 
 
 class ShannonScore:
-    def __init__(self, kmer_size, kmers_type):
+    def __init__(self, kmer_size, kmers_type, kmers_file):
         # Create a hash of the kmers that points to the index of an array that holds the value
         self._kmers = {}
         self._kmers_phage = []
         self._kmers_all = []
         self._kmer_size = kmer_size
         self._kmers_type = kmers_type
-        kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
-        if not pkg_resources.resource_exists:
-            sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
-
-        for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
-            line = line.decode().strip()
-            self._kmers[line] = ''
+        # kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
+        # if not pkg_resources.resource_exists:
+        #     sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
+        # else:
+        print(f'Using kmer file: {kmers_file}')
+        with open(kmers_file) as inf:
+            for line in inf:
+                self._kmers[line.strip()] = ''
+        # for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
+        #     line = line.decode().strip()
+            # self._kmers[line] = ''
 
     def reset(self):
         self._kmers_phage = []
@@ -270,7 +274,7 @@ def reverse_complement(seq):
 def make_test_set(**kwargs):
     # line below is so that later we can make this a class
     self = Namespace(**kwargs)
-    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type)
+    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type, self.kmers_file)
     all_orf_list = {}
     dna = {}
     window = 40
@@ -382,7 +386,7 @@ def make_test_set(**kwargs):
 
 def make_set_train(**kwargs):
     self = Namespace(**kwargs)
-    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type)
+    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type, self.kmers_file)
     all_orf_list = {}
     dna = {}
     window = 40
