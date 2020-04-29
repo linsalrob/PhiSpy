@@ -5,6 +5,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
 from glob import glob
 from os import makedirs, path
+from numpy import arange
 from subprocess import call
 from sys import argv
 
@@ -16,8 +17,8 @@ def read_genbank(infile):
     Return lists of sequences of both of these groups.
     """
 
-    ref_orfs_list = []
-    target_orf_list = []
+    bact_orfs_list = []
+    phage_orfs_list = []
 
     for record in SeqIO.parse(infile, 'genbank'):
         for f in record.features:
@@ -31,16 +32,16 @@ def read_genbank(infile):
                 try:
                     status = f.qualifiers['is_phage'][0]
                     if status == '1':
-                        target_orf_list.append(dna)
+                        phage_orfs_list.append(dna)
                     else:
-                        ref_orfs_list.append(dna)
+                        bact_orfs_list.append(dna)
                 except KeyError:
-                    ref_orfs_list.append(dna)
+                    bact_orfs_list.append(dna)
 
-    # print('Reference ORFs:', len(ref_orfs_list))
-    # print('Targer ORFs:', len(target_orf_list))
+    print(f'  Bact CDSs: {len(bact_orfs_list)}')
+    print(f'  Phage CDSs: {len(phage_orfs_list)}')
 
-    return ref_orfs_list, target_orf_list
+    return bact_orfs_list, phage_orfs_list
 
 
 def read_groups(infile, indir):
@@ -52,15 +53,20 @@ def read_groups(infile, indir):
 
     if not indir: indir = ''
     groups = {}
+    infiles = set()
     with open(infile) as inf:
         for line in inf:
             line = line.strip().split('\t')
+            infile = path.realpath(path.join(indir, line[0]))
+            infiles.add(infile)
             try:
-                groups[line[1]].append(path.join(indir, line[0]))
+                groups[line[1]].add(infile)
             except KeyError:
-                groups[line[1]] = [path.join(indir, line[0])]
+                groups[line[1]] = set([infile])
 
-    return groups
+    print(f'  Read {len(infiles)} genomes assigned to {len(groups)} groups.')
+
+    return groups, infiles
 
 
 def read_kmers(infile):
@@ -74,6 +80,39 @@ def read_kmers(infile):
         kmers = [x.strip() for x in inf.readlines()]
 
     return set(kmers)
+
+
+def read_kmers_list(infile):
+
+    """
+    Simply reads input file with kmers and returns set of read kmers.
+    """
+
+    kmers = []
+    with open(infile) as inf:
+        kmers = [x.strip() for x in inf.readlines()]
+
+    return kmers
+
+
+def read_training_genomes_list(infile):
+    """
+    Reads trainingGenome_list.txt in PhiSpy's data directory to check currently set groups and already trained genomes.
+    """
+
+    print('  Reading trainingGenome_list.txt file.')
+    training_groups = {}
+    training_genomes = set()
+    with open(infile) as inf:
+        for line in inf:
+            n, group, genomes, genomes_number = line.strip().split('\t')
+            genomes = set(genomes.split(';')) if ';' in genomes else set([genomes])
+            training_groups[group] = genomes
+            training_genomes.update(genomes)
+
+    print(f'  Read {len(training_genomes)} genomes assigned to {len(training_groups)} groups.')
+
+    return training_groups, training_genomes
 
 
 def kmerize_orf(orf, k, t):
@@ -102,6 +141,167 @@ def kmerize_orf(orf, k, t):
     return kmers
 
 
+def prepare_taxa_groups(infiles, training_genomes):
+    """
+    Reads all input files / genomes and creates a groups file based on their taxonomy.
+    """
+
+    print(f'  Reading taxonomy information from {len(infiles)} input files.')
+    taxa_groups = {}
+    for i, infile in enumerate(infiles, 1):
+        file_name = path.basename(infile)
+        if file_name not in training_genomes:
+            print(f'   - Processing {i}/{len(infiles)}: {file_name}')
+            # pp_cnt = 0
+            tax_checked = False
+            records = SeqIO.parse(infile, 'genbank')
+            # pp_records = []
+            for record in records:
+                # check the taxonomy in the first record
+                if not tax_checked:
+                    if len(record.annotations['taxonomy']) == 0:
+                        print('     WARNING! information about taxonomy is missing !!!')
+                        print('              Assigning to Bacteria.')
+                        try:
+                            taxa_groups['Bacteria'].add(infile)
+                        except KeyError:
+                            taxa_groups['Bacteria'] = set([infile])
+                    for tax in record.annotations['taxonomy']:
+                        try:
+                            taxa_groups[tax].add(infile)
+                        except KeyError:
+                            taxa_groups[tax] = set([infile])
+                    tax_checked = True
+                else: 
+                    break
+        else:
+            print(f'   - Skipping {i}/{len(infiles)}: {file_name} (already analyzed)')
+
+    print(f'  Processed {len(infiles)} files.')
+
+    return taxa_groups
+
+
+def update_training_genome_list(training_groups, new_training_groups):
+    """
+    Combines currently available training groups with those provided by user.
+    """
+
+    new_groups_cnt = 0
+    upt_groupt_cnt = 0
+    for group, infiles in new_training_groups.items():
+        try:
+            print(group, infiles)
+            training_groups[group].update(set(map(path.basename,infiles)))
+            upt_groupt_cnt += 1
+        except KeyError:
+            training_groups[group] = set(map(path.basename, infiles))
+            new_groups_cnt += 1
+
+    print(f'  Created {new_groups_cnt} new training groups.')
+    print(f'  Updated {upt_groupt_cnt} training groups.')
+
+    return training_groups
+
+
+def write_kmers_file(infile, trainsets_outdir, kmer_size, kmers_type):
+    """
+    Calculates host/phage kmers from input file and writes phage-specific kmers to file.
+    """
+
+    print('  Preparing kmers file.')
+
+    MIN_RATIO = 1.0
+    # host_kmers = set()
+    # phage_kmers = set()
+    kmers_dict = {} # {kmer: [# in host, # in phage]}
+    kmers_total_count = 0
+    kmers_host_unique_count = 0
+    kmers_phage_unique_count = 0
+    kmers_ratios = {}
+    kmers_ratios_stats = {round(x, 2): 0 for x in arange(0, 1.01, 0.01)}
+    kmers_ratios_file = path.join(trainsets_outdir, f'{path.basename(infile)}.kmers_ratios.txt')
+    kmers_file = path.join(trainsets_outdir, f'{path.basename(infile)}.kmers')
+
+    # read host- and phage-specific CDSs
+    bact_orfs_list, phage_orfs_list = read_genbank(infile)
+
+    # kmrize CDSs
+    for orf in bact_orfs_list:
+        for kmer in kmerize_orf(orf, kmer_size, kmers_type):
+            try:
+                kmers_dict[kmer][0] += 1
+            except KeyError:
+                kmers_dict[kmer] = [1, 0]
+                kmers_host_unique_count += 1
+            kmers_total_count += 1
+        # host_kmers.update(kmerize_orf(i, kmer_size, kmers_type))
+    for orf in phage_orfs_list:
+        for kmer in kmerize_orf(orf, kmer_size, kmers_type):
+            try:
+                kmers_dict[kmer][1] += 1
+            except KeyError:
+                kmers_dict[kmer] = [0, 1]
+                kmers_phage_unique_count += 1
+            kmers_total_count += 1
+        # phage_kmers.update(kmerize_orf(i, kmer_size, kmers_type))
+
+    print(f'  Analyzed {kmers_total_count} kmers.')
+    print(f'  Identified {len(kmers_dict)} unique kmers.')
+    print(f'    - Bact unique {kmers_host_unique_count} ({kmers_host_unique_count / len(kmers_dict) * 100:.2f}%).')
+    print(f'    - Phage unique {kmers_phage_unique_count} ({kmers_phage_unique_count / len(kmers_dict) * 100:.2f}%).')
+
+    ##################
+    # the below part could be simplified if ratios will not be considered
+    # it just slightly extends the calculations 
+    ##################
+
+    # calculate ratios
+    for kmer, freqs in kmers_dict.items():
+        ratio = round(freqs[1] / sum(freqs), 2)
+        kmers_ratios[(ratio, kmer)] = freqs
+        kmers_ratios_stats[ratio] += 1
+    del kmers_dict
+
+    # write ratios_stats
+    with open(kmers_ratios_file, 'w') as outf:
+        outf.write('Ratio\tNumber of kmers\tPerc of such kmers\tCumulative perc\n')
+        tot = 0
+        tot_perc = 0
+        for x in reversed(arange(0, 1.01, 0.01)):
+            x = round(x, 2)
+            tot += kmers_ratios_stats[x]
+            perc = kmers_ratios_stats[x]/len(kmers_ratios) * 100
+            tot_perc = tot / len(kmers_ratios) * 100
+            outf.write(f'{x}\t{kmers_ratios_stats[x]}\t{perc:.3f}%\t{tot_perc:.3f}%\n')
+
+    # write unique phage kmers
+    print(f'  Writing kmers into {kmers_file}.')
+    cnt = 0
+    with open(kmers_file, 'w') as outf:
+        for ratio, kmer in kmers_ratios.keys():
+            if ratio >= MIN_RATIO:
+                cnt += 1
+                outf.write(f'{kmer}\n')
+    print(f'  Wrote {cnt} kmers with ratios >= {MIN_RATIO}.')
+
+    return kmers_file
+
+
+def write_training_genome_list(training_groups, training_genome_list_file):
+    """
+    Writes trainingGenome_list.txt file with currently available training sets.
+    """
+
+    group_cnt = 0
+    with open(training_genome_list_file, 'w') as outf:
+        for group, infiles in sorted(training_groups.items()):
+            group_cnt += 1
+            outf.write(f'{group_cnt}\t{group}\t{";".join(infiles)}\t{len(infiles)}\n')
+
+    return
+
+
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py', 
                           description = 'Automates making new or extending current PhiSpy\'s training sets.',
@@ -110,7 +310,8 @@ def main():
 
     args.add_argument('-i', '--infile',
                       type = str,
-                      help = 'Path to input GenBank file.')
+                      nargs = '*',
+                      help = 'Path to input GenBank file(s). Multiple paths can be provided.')
 
     args.add_argument('-d', '--indir',
                       type = str,
@@ -130,7 +331,7 @@ def main():
                       help = 'The size of required kmers. For codon approach use multiplicity of 3. [Default: 12]',
                       default = 12)
 
-    args.add_argument('-t', '--type',
+    args.add_argument('-t', '--kmers_type',
                       type = str,
                       help = 'Approach for creating kmers. Options are: simple (just slicing the sequence from the first position), all (all possible kmers), codon (all possible kmers made with step of 3 nts to get kmers corresponding translated aas). [Default: all]',
                       default = 'all')
@@ -173,158 +374,73 @@ def main():
     if not path.isdir(args.outdir): makedirs(args.outdir)
 
 
+    # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
+    print('Checking currently available training sets.')
+    training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
+    if path.isfile(training_genome_list_file):
+        training_groups, training_genomes = read_training_genomes_list(training_genome_list_file)
+    else:
+        print('WARNING! trainingGenome_list.txt file is missing.')
+        training_groups, training_genomes = {}, set()
+
+
     # groups of resulting training sets
     if args.groups:
-        groups = read_groups(args.groups, args.indir)
-        infiles = set()
-        for i in groups.values():
-            infiles.update(set(i))
-        infiles = sorted(list(infiles))
-        print('Working on %i input files based on group file.' % len(infiles))
+        print('Checking groups file.')
+        new_training_groups, infiles = read_groups(args.groups, args.indir)
     else:
+        print('Groups file not provided - grouping input files based on taxonomy.')
         if args.indir:
             infiles = glob(path.join(args.indir, r'*.gb'))
             infiles += glob(path.join(args.indir, r'*.gb[kf]'))
             infiles += glob(path.join(args.indir, r'*.gbff'))
-            infiles = sorted(infiles)
+            infiles = set((infiles))
         else:
-            infiles = [args.infile]
-        groups = {'group%05d' % (i + 1): [f] for i, f in enumerate(infiles)}
+            infiles = set(args.infile)
+        new_training_groups = prepare_taxa_groups(infiles, training_genomes)
 
 
-    # create kmers for all input files and group them into host and phage sets
-    print('Making kmers from input file(s).')
-    if not path.isdir(args.outdir): makedirs(args.outdir)
-
-    host_kmers = set()
-    phage_kmers = set()
-    for i, infile in enumerate(infiles):
-        print('  Processing %i/%i: %s' % (i + 1, len(infiles), path.basename(infile)))
-        ref_orfs_list, target_orf_list = read_genbank(infile)
-
-        for i in ref_orfs_list:
-            host_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
-        for i in target_orf_list:
-            phage_kmers.update(kmerize_orf(i, args.kmer_size, args.type))
-
-    # write unique phage kmers
-    print('Writing phage_kmers_' + args.type + '_wohost.txt.')
-    kmers_file = path.join(args.outdir, 'phage_kmers_' + args.type + '_wohost.txt')
-
-    if path.isfile(kmers_file):
-        if not args.retrain:
-            print('  Reading %s.' % kmers_file)
-            prev_kmers = read_kmers(kmers_file)
-            phage_kmers.update(prev_kmers)
+    # check which genomes are new and make training sets for them unless retrained
+    if not args.retrain:
+        new_infiles = set()
+        for infile in infiles:
+            if path.basename(infile) in training_genomes:
+                continue
+            else:
+                new_infiles.add(infile)
+        infiles = new_infiles
+        print(f'Making trainSets for {len(infiles)} new input files.')
     else:
-        print('  %s is missing - just making a new one.' % kmers_file)
-
-    with open(kmers_file, 'w') as outf:
-        outf.write('\n'.join(phage_kmers - host_kmers))
+        print(f'Making trainSets for all {len(infiles)} input files.')
 
 
-    # make all training groups
-    print('Making trainSets for each input file.')
-    # the following check will be removed after removing the requirement in PhiSpy's helper_functions.py
-    if not path.isfile(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpyModules/data/trainSet_genericAll.txt')):
-        with open(path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpyModules/data/trainSet_genericAll.txt'), 'w') as outf:
-            outf.write('')
+    # make sure all output directories are present
     trainsets_outdir = path.join(args.outdir, 'trainSets')
     if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
-    phispy = path.join(path.dirname(path.dirname(path.realpath(__file__))), 'PhiSpy.py')
+    print()
     for infile in infiles:
-        print('  Processing %s' % infile)
-        cmd = ['python3', phispy, infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet']
+        print(f'Making trainSet for {path.basename(infile)}.')
+
+        kmers_file = write_kmers_file(infile, trainsets_outdir, args.kmer_size, args.kmers_type)
+
+        cmd = ['PhiSpy.py', infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet', '--kmer_size', str(args.kmer_size), '--kmers_type', args.kmers_type, '--kmers_file', kmers_file]
         if args.phmms: cmd.extend(['--phmms', args.phmms, '-t', args.threads])
         if args.color: cmd.append('--color')
         if args.skip_search: cmd.append('--skip_search')
-        # print(f'Calling: {" ".join(cmd)}')
+        print(f'Calling PhiSpy to make a trainSet.')
+        print(f'Command: {" ".join(cmd)}')
+        print(f'{"PhiSpy start":=^30s}')
         call(cmd)
+        print(f'{"PhiSpy stop":=^30s}\n')
+
+    # update trainingGenome_list file = this is a new groups file for genomes available in PhiSpy's data directory
+    print('Updating trainingGenome_list.')
+    training_groups = update_training_genome_list(training_groups, new_training_groups)
 
 
-    # create trainingGenome_list.txt
-    print('Writing trainingGenome_list.txt.')
-    tg_file = path.join(args.outdir, 'trainingGenome_list.txt')
-    if args.retrain or not path.isfile(tg_file):
-        with open(tg_file, 'w') as outf:
-            outf.write('0\ttestSet_genericAll.txt\tGeneric Test Set\t%i\n' % len(infiles))
-            gcnt = 1
-            for g, i in groups.items():
-                outf.write('%i\ttrainSet_%s.txt\t%s\t%i\n' % (gcnt, g, ';'.join([path.basename(x) for x in i]), len(i)))
-                gcnt += 1
-    else:
-        with open(tg_file) as inf:
-            train_sets = {}
-            inf.readline()
-            for line in inf:
-                line = line.strip().split('\t')
-                line[0] = int(line[0])
-                line[-1] = int(line[-1])
-                train_sets[line[1].rsplit('.', 1)[0]] = line
-
-        for t, l in train_sets.items():
-            t = t.split('_')[1]
-            if t in groups and l[3] == len(groups[t]):
-                groups.pop(t)
-            elif t in groups:
-                infiles = [path.basename(i) for i in groups.pop(t)]
-                train_sets = [l[0], l[1], ';'.join(infiles), len(infiles)]
-
-        gcnt = len(train_sets) + 1
-        if len(groups) > 0:
-            for g, infiles in groups.items():
-                infiles = [path.basename(i) for i in infiles]
-                train_sets[g] = [gcnt, 'trainSet_%s.txt' % g, ';'.join(infiles), len(infiles)]
-                gcnt += 1
-
-        gsize = 0
-        for t, l in train_sets.items():
-            if l[3] == 1:
-                gsize += 1
-
-        with open(tg_file, 'w') as outf:
-            outf.write('0\ttestSet_genericAll.txt\tGeneric Test Set\t%i\n' % (gsize))
-            for t in sorted(train_sets.values()):
-                outf.write('\t'.join([str(x) for x in t]) + '\n')
-
-
-    # make or extend genericAll.txt
-    print('Making training sets.')
-    for g, i in groups.items():
-        with open(path.join(args.outdir, 'trainSet_%s.txt' % g), 'w') as outf:
-            first = True
-            for infile in i:
-                trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
-                with open(trainset) as inf:
-                    if not first: inf.readline()
-                    outf.write(inf.read())
-                    first = False
-
-    if args.retrain:
-        with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
-            first = True
-            for infile in infiles:
-                trainset = path.join(trainsets_outdir, path.basename(infile) + '.trainSet')
-                with open(trainset) as inf:
-                    if not first: inf.readline()
-                    outf.write(inf.read())
-                    first = False
-    else:
-        # read all testSets in directory and combine them into generic test set
-        print('*WARNING* - for updating generic train set only trainSets from single reference files are considered!')
-        with open(path.join(args.outdir, 'trainingGenome_list.txt')) as inf:
-            with open(path.join(args.outdir, 'trainSet_genericAll.txt'), 'w') as outf:
-                first = True
-                for line in inf:
-                    line = line.split()
-                    if line[0] == '0': continue
-                    if int(line[-1]) == 1: 
-                        trainset = path.join(args.outdir, path.basename(line[1]))
-                        with open(trainset) as infts:
-                            if not first: infts.readline()
-                            outf.write(infts.read())
-                            first = False
-
+    # write updated training groups
+    print('Writing updated trainingGenome_list.')
+    write_training_genome_list(training_groups, training_genome_list_file)
 
     print('Done!')
 
