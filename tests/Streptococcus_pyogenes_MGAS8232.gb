@@ -3,9 +3,10 @@ DEFINITION  Streptococcus pyogenes MGAS8232.
 ACCESSION   NC_003485
 VERSION     NC_003485
 KEYWORDS    .
-SOURCE      .
-  ORGANISM  .
-            .
+SOURCE      Streptococcus pyogenes MGAS8232
+  ORGANISM  Streptococcus pyogenes MGAS8232
+            Bacteria; Firmicutes; Bacilli; Lactobacillales; Streptococcaceae;
+            Streptococcus.
 FEATURES             Location/Qualifiers
      source          1..1895017
                      /db_xref="taxon:186103"

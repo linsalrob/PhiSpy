@@ -3,9 +3,10 @@ DEFINITION  Streptococcus pyogenes M1 GAS.
 ACCESSION   NC_002737
 VERSION     NC_002737
 KEYWORDS    .
-SOURCE      .
-  ORGANISM  .
-            .
+SOURCE      Streptococcus pyogenes M1 GAS
+  ORGANISM  Streptococcus pyogenes M1 GAS
+            Bacteria; Firmicutes; Bacilli; Lactobacillales; Streptococcaceae;
+            Streptococcus.
 FEATURES             Location/Qualifiers
      source          1..1852441
                      /db_xref="taxon:160490"

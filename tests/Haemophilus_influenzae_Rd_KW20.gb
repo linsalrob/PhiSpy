@@ -3,9 +3,10 @@ DEFINITION  Haemophilus influenzae Rd KW20.
 ACCESSION   NC_000907
 VERSION     NC_000907
 KEYWORDS    .
-SOURCE      .
-  ORGANISM  .
-            .
+SOURCE      Haemophilus influenzae Rd KW20
+  ORGANISM  Haemophilus influenzae Rd KW20
+            Bacteria; Proteobacteria; Gammaproteobacteria; Pasteurellales;
+            Pasteurellaceae; Haemophilus.
 FEATURES             Location/Qualifiers
      source          1..1830138
                      /note="71421.45"
