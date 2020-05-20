@@ -5,6 +5,11 @@ A module to write the output in different formats
 
 import os
 import sys
+
+from Bio import SeqIO
+from Bio.SeqFeature import SeqFeature, FeatureLocation
+from collections import OrderedDict
+
 import PhiSpyModules.version as version
 __author__ = 'Rob Edwards'
 
