@@ -143,7 +143,7 @@ def check_phage_word_start(sjcontig, a, b, c):
     else:
         return b
 
-def check_phage_word_end(sjcontig, a, b, c):
+def count_phage_word_ends(sjcontig, a, b, c, maxpp):
     j = 0
     tot = 0
     for i in c:
@@ -154,28 +154,20 @@ def check_phage_word_end(sjcontig, a, b, c):
             start = stop
             stop = t
         if a <= start and stop <= b and c[i]['contig'] == sjcontig:
-            if c[i]['pp'] > 0.5:
+            if c[i]['pp'] > maxpp:
                 j = j + 1
             tot = tot + 1
+    return j, tot
+
+def check_phage_word_end(sjcontig, a, b, c):
+    j, tot = count_phage_word_ends(sjcontig, a, b, c, 0.5)
     if tot < 4 * j:
         return b
     else:
         return a
                
 def final_check_phage_word(sjcontig,a,b,c):
-    j = 0
-    tot = 0
-    for i in c:
-        start = c[i]['start']
-        stop = c[i]['stop']
-        if start > stop:
-            t = start
-            start = stop
-            stop = t
-        if a <= start and stop <= b and c[i]['contig'] == sjcontig:
-            if c[i]['pp'] > 0:
-                j = j + 1
-            tot = tot + 1
+    j, tot = count_phage_word_ends(sjcontig, a, b, c, 0)
     if j > 5 and tot < 2 * j:
         return str(a) + '_' + str(b)
     else:
