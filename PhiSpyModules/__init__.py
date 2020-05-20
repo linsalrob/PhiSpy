@@ -7,7 +7,7 @@ from .protein_functions import consider_unknown, is_phage_func, is_unknown_func
 from .evaluation import fixing_start_end
 from .helper_functions import get_args, print_list
 from .pathtype import PathType
-from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prophage_tbl, write_prophage_tsv, \
+from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prophage_tbl, write_prophage_tsv
 from .writers import prophage_measurements_to_tbl
 from .search_phmms import search_phmms
 
