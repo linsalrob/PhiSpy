@@ -99,3 +99,67 @@ def write_phage_and_bact(output_dir, pp, dna):
 
     phage_out.close()
     bacteria_out.close()
+
+def write_prophage_tbl(outputdir, pp):
+    """
+    Create a prophage_tbl file from our pp dictionary
+    :param outputdir: the directory to write to
+    :param pp: array of pp dictionaries
+    :return: None
+    """
+
+    with open(os.path.join(outputdir, "prophage.tbl"), 'w') as out:
+        for i in pp:
+            out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
+
+def write_prophage_tsv(outputdir, pp):
+    """
+    Create a tsv with headers for this data. Issue #28 item 2
+    :param outputdir: the directory to write to
+    :param pp: array of pp dictionaries
+    :return: None
+    """
+    with open(os.path.join(outputdir, "prophage.tsv"), 'w') as out:
+        out.write("Prophage number\tContig\tStart\tStop\n")
+        for i in pp:
+            out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "\t" + str(pp[i]['start']) + "\t" + str(pp[i]['stop']) + "\n")
+
+
+
+
+def prophage_measurements_to_tbl(inputf, outputf):
+    try:
+        f = open(inputf, 'r')
+        fw = open(outputf, 'w')
+    except:
+        print('Cant open', inputf, ' or ', outputf)
+        return
+    pp = {}
+    ppindx = 0
+    prev_contig = None
+    inphage = False
+    header = f.readline()
+    for line in f:
+        temp = line.strip().split("\t")
+        if int(temp[9]) > 0:
+            newphage = False
+            if temp[2] != prev_contig:
+                newphage = True
+            if not inphage:
+                newphage = True
+            if newphage:
+                ppindx += 1
+                pp[ppindx] = {}
+                pp[ppindx]['contig'] = temp[2]
+                pp[ppindx]['start'] = min(int(temp[3]), int(temp[4]))
+                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
+            else:
+                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
+            inphage = True
+            prev_contig = temp[2]
+        else:
+            inphage = False
+    for i in pp:
+        fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
+    f.close()
+    fw.close()

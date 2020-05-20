@@ -3,8 +3,7 @@ import re
 import math
 import sys
 from argparse import Namespace
-from .writers import write_phage_and_bact
-from .writers import write_gff3
+from .writers import write_phage_and_bact, write_gff3, prophage_measurements_to_tbl
 import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
@@ -407,51 +406,12 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
         out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['atts']])) + "\n")
     out.close()
     # write the prophage location table
-    out = open(os.path.join(self.output_dir, "prophage.tbl"), "w")
-    for i in pp:
-        out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
-    out.close()
-
+    write_prophage_tbl(self.output_dir, pp)
+    # write a tsv file of this data
+    write_prophage_tsv(self.output_dir, pp)
     # write the prophage in GFF3 format
     write_gff3(self.output_dir, pp)
     write_phage_and_bact(self.output_dir, pp, dna)
-
-def make_prophage_tbl(inputf, outputf):
-    try:
-        f = open(inputf, 'r')
-        fw = open(outputf, 'w')
-    except:
-        print('Cant open', inputf, ' or ', outputf)
-        return
-    pp = {}
-    ppindx = 0
-    prev_contig = None
-    inphage = False
-    header = f.readline()
-    for line in f:
-        temp = line.strip().split("\t")
-        if int(temp[9]) > 0:
-            newphage = False
-            if temp[2] != prev_contig:
-                newphage = True
-            if not inphage:
-                newphage = True
-            if newphage:
-                ppindx += 1
-                pp[ppindx] = {}
-                pp[ppindx]['contig'] = temp[2]
-                pp[ppindx]['start'] = min(int(temp[3]), int(temp[4]))
-                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
-            else:
-                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
-            inphage = True
-            prev_contig = temp[2]
-        else:
-            inphage = False
-    for i in pp:
-        fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
-    f.close()
-    fw.close()
 
 ################################################################################
 #def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
