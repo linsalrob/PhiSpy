@@ -45,7 +45,7 @@ def call_randomforest(**kwargs):
     # number of estimators also implies the precision of probabilities, generally 1/n_estimators
     # in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
     # "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
-    clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'])
+    clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'], n_jobs = kwargs['threads'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
 
