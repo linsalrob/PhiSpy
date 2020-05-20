@@ -1,3 +1,4 @@
+
 """
 A module to write the output in different formats
 """
@@ -58,3 +59,43 @@ def write_gff3(output_dir, pp, verbose=False):
         
     out_GFF.close()
 
+def write_phage_and_bact(output_dir, pp, dna):
+    print(pp)
+    print('writing bacterial and phage DNA')
+    phage_out = open(os.path.join(output_dir, "phage.fasta"), "w")
+    bacteria_out = open(os.path.join(output_dir, "bacteria.fasta"), "w")
+    
+    contig_to_phage = {}
+    for i in pp:
+        contig = pp[i]['contig']  # contig name
+        print(contig)
+        if contig not in contig_to_phage:
+            contig_to_phage[contig] = set()
+        contig_to_phage[contig].add(i)
+    print('dictionary of contigs with phages')
+    print(contig_to_phage)
+
+    for contig in dna:
+        if contig not in contig_to_phage:
+            bacteria_out.write(f">{contig}\n{dna[contig]}\n")
+            continue
+        pps1 = list(contig_to_phage[contig])
+        pps = sorted(pps1, key=lambda k: pp[k]['start'])
+        bactstart = 0
+        for ppnum in pps:
+            pphagestart = pp[ppnum]['start']
+            pphagestop = pp[ppnum]['stop']
+
+            phageseq = dna[contig][pphagestart:pphagestop]
+            phage_out.write(f">{contig}_{pphagestart}_{pphagestop} [pp {ppnum}]\n{phageseq}\n")
+
+            dnaseq = dna[contig][bactstart:pphagestart - 1]
+            nphageseq = str.replace(phageseq, 'A', 'N').replace('T', 'N').replace('C', 'N').replace('G', 'N')
+            bacteria_out.write(f">{contig}_{i}_{pphagestart}\n{dnaseq}{nphageseq}\n")
+
+            bactstart = pphagestop + 1
+        dnaseq = dna[contig][bactstart:]
+        bacteria_out.write(f">{contig}_{i}_{len(dna[contig])}\n{dnaseq}\n")
+
+    phage_out.close()
+    bacteria_out.close()
