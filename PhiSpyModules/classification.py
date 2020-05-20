@@ -10,6 +10,7 @@ from argparse import Namespace
 
 from .protein_functions import is_phage_func, is_unknown_func
 
+
 def find_training_genome(training_flag):
     try:
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
@@ -121,21 +122,23 @@ def make_initial_tbl(**kwargs):
     x = []
     for entry in self.record:
         for feature in entry.get_features('CDS'):
-            all = {}
-            all['fig'] = feature.id
-            all['function'] = feature.function
-            all['contig'] = entry.id
-            all['start'] = feature.start
-            all['stop'] = feature.stop
-            all['rank'] = 0.0
-            all['status'] = 0
-            all['pp'] = calc_pp(feature.function)
-            x.append(all)
+            ft = {
+                'fig': feature.id,
+                'function': feature.function,
+                'contig': entry.id,
+                'start': feature.start,
+                'stop': feature.stop,
+                'rank': 0.0,
+                'status': 0,
+                'pp': calc_pp(feature.function),
+            }
+            x.append(ft)
     try:
         infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
-    except:
-        sys.exit('ERROR: Cannot open classify.tsv in make_initial_tbl')
+    except IOError as e:
+        sys.stderr.write(f"There was an error reading or writing classify/initial_tbl: {e}\n")
+        sys.exit(-1)
 
     j = 0
     ranks = [[] for n in range(len(x))]
@@ -150,29 +153,30 @@ def make_initial_tbl(**kwargs):
     if not self.keep:
         os.remove(os.path.join(self.output_dir, 'classify.tsv'))
 
-    #calculate threshold
+    # calculate threshold
     y = []
     j = 0
     while j < len(x):
         x[j]['rank'] = sum(ranks[j]) / len(ranks[j])
-        x[j]['extra'] =  ranks[j]
+        x[j]['extra'] = ranks[j]
         y.append(x[j]['rank'])
         j = j+1
 
     y2 = np.array(y).reshape(-1, 1)
-    km = KMeans(n_clusters = 2)
+    km = KMeans(n_clusters=2)
     km.fit(y2)
     centers = km.cluster_centers_
     threshold = max(centers[0][0], centers[1][0])
     """
     Note added by Rob:
-    At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
-    start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
-    or just a plain threshold.
+    At this point we have the classifications for each ORF and we want to take a sliding window and decide where 
+    the phage should start. We have two calculations for a threshold for the rank: either the kmeans centers and 
+    finding things above the larger center or just a plain threshold.
     
     """
     j = 0
-    outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
+    outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\t')
+    outfile.write('end of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
     while j < len(x):
         if x[j]['rank'] > threshold:
             x[j]['status'] = 1
