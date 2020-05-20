@@ -47,7 +47,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     # if phmm search is required
     if args_parser.phmms:
-        print(f'Performing HMM search.')
+        sys.stderr.write('Performing HMM search.\n')
         args_parser.infile = PhiSpyModules.search_phmms(**vars(args_parser))
 
     ######################################
@@ -72,14 +72,14 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
-        print('Making Train Set...')
+        sys.stderr.write('Making Train Set...\n')
         my_make_train_flag = PhiSpyModules.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
     #         make testing set           #
     ######################################
-    print('Making Test Set...')
+    sys.stderr.write('Making Test Set...\n')
     my_make_test_flag = PhiSpyModules.make_test_set(**vars(args_parser))
     # check file im,plement later
     #if (my_make_test_flag == 0):
@@ -89,7 +89,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     #         do classification          #
     ######################################
-    print('Start Classification Algorithm...')
+    sys.stderr.write('Start Classification Algorithm...\n')
     PhiSpyModules.call_randomforest(**vars(args_parser))
     PhiSpyModules.make_initial_tbl(**vars(args_parser))
 
@@ -98,15 +98,15 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     ###### added in this version 2.2 #####
     if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
-        print('As training flag is zero, considering unknown functions')
+        sys.stderr.write('As the training flag is zero, considering unknown functions\n')
         PhiSpyModules.consider_unknown(args_parser.output_dir)
 
     ######################################
     #         do evaluation              #
     ######################################
-    print('Evaluating...')
+    sys.stderr.write('Evaluating...')
     PhiSpyModules.fixing_start_end(**vars(args_parser))
-    print('Done!!!')
+    sys.stderr.write('Done!!!')
 
 
 
