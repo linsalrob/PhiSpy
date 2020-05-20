@@ -8,7 +8,7 @@ import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
     if len(fn) == 0:
-        print("Len sequence is 0 so ignoring\n")
+        sys.stderr.write("Len sequence is 0 so ignoring\n")
         return {}
 
     rep = {}
@@ -203,7 +203,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
         sys.exit('ERROR: Cannot open initial_tbl.txt in fixing_start_end')
 
     #make all predicted pp list
-    print("Checking prophages in initial_tbl.tsv\n")
+    sys.stderr.write("Checking prophages in initial_tbl.tsv\n")
     pp = {}
     i = 0
     flag = 0
