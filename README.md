@@ -156,7 +156,10 @@ There are 3 output files, located in output directory.
 The id is in the format: pp_number, where number is a sequential number of the prophage (starting at 1). 
 Location is be in the format: contig_start_stop that encompasses the prophage.
  
-2. prophage_tbl.tsv: This is a tab seperated file. The file contains all the genes of the genome. The tenth colum represents the status of a gene. If this column is 1 or greater then the gene is a phage like gene and corresponds to the prophage ID from prophage.tbl; otherwise it is a bacterial gene. 
+2. prophage_tbl.tsv: This is a tab seperated file. The file contains all the genes of the genome.
+ The tenth colum represents the status of a gene. If this column is 0 then we consider this a bacterial gene.
+  If it is non-zero it is probably a phage gene, and the higher the score the more likely we believe it is a phage
+  gene. 
 
 This file has 16 columns:
   - 1. fig_no: the id of each gene; 
@@ -169,7 +172,7 @@ This file has 16 columns:
   - 8. my_status: status of each gene based on random forest;
   - 9. pp: classification of each gene based on their function;
   - 10. Final_status: the status of each gene. For prophages, this column has the number of the prophage as listed in prophage.tbl above; 
-   If the column contains a 0 we believe that it is a bacterial gene. 
+   If the column contains a 0 we believe that it is a bacterial gene. Otherwise we believe that it is possibly a phage gene.
    
 If we can detect the _att_ sites, the additional columns will be:
   - 11. start of _attL_;
