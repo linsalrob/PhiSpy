@@ -3,9 +3,10 @@ DEFINITION  Streptococcus pyogenes MGAS315.
 ACCESSION   NC_004070
 VERSION     NC_004070
 KEYWORDS    .
-SOURCE      .
-  ORGANISM  .
-            .
+SOURCE      Streptococcus pyogenes MGAS315
+  ORGANISM  Streptococcus pyogenes MGAS315
+            Bacteria; Firmicutes; Bacilli; Lactobacillales; Streptococcaceae;
+            Streptococcus.
 FEATURES             Location/Qualifiers
      source          1..1900521
                      /note="198466.10"
