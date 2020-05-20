@@ -60,7 +60,7 @@ def write_gff3(output_dir, pp, verbose=False):
     out_GFF.close()
 
 def write_phage_and_bact(output_dir, pp, dna):
-    print(pp)
+    # print(pp)
     print('writing bacterial and phage DNA')
     phage_out = open(os.path.join(output_dir, "phage.fasta"), "w")
     bacteria_out = open(os.path.join(output_dir, "bacteria.fasta"), "w")
@@ -68,12 +68,12 @@ def write_phage_and_bact(output_dir, pp, dna):
     contig_to_phage = {}
     for i in pp:
         contig = pp[i]['contig']  # contig name
-        print(contig)
+        # print(contig)
         if contig not in contig_to_phage:
             contig_to_phage[contig] = set()
         contig_to_phage[contig].add(i)
-    print('dictionary of contigs with phages')
-    print(contig_to_phage)
+    # print('dictionary of contigs with phages')
+    # print(contig_to_phage)
 
     for contig in dna:
         if contig not in contig_to_phage:
