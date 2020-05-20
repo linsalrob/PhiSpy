@@ -3,7 +3,8 @@ import re
 import math
 import sys
 from argparse import Namespace
-from .writers import write_phage_and_bact, write_gff3, prophage_measurements_to_tbl
+from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
+from .writers import write_prophage_tsv, write_genbank
 import PhiSpyRepeatFinder
 
 def find_repeat(fn, st, ppno, extraDNA, output_dir):
@@ -108,7 +109,7 @@ def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
                 end_start = repeat_list[i]['s2']
                 mydiff = a
             i += 1
-    #infile.close()
+    # infile.close()
     if mydiff == 1000000:
         return '0_0'  # 'null'
     return str(my_start) + '_' + str(my_end)+'_'+ str(start_end)+'_'+ str(end_start)
@@ -300,7 +301,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             stop = pp[i]['stop'] + extraDNA
         else:
             stop = genome[len(genome) - 1]['stop']
-        if (stop > len(dna[pp[i]['contig']])):
+        if stop > len(dna[pp[i]['contig']]):
             stop = len(dna[pp[i]['contig']])
         if stop - start > 200000:
             print("Not checking repeats for pp " + str(i) + " because it is too big: " + str(stop - start) + "\n")
@@ -349,11 +350,11 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                 samelenrep = 0
                 for idx in repeat_list:
                     lengthrep = math.fabs(repeat_list[idx]['e1'] - repeat_list[idx]['s1'])
-                    if (lengthrep > longestrep) and (lengthrep < 150):
+                    if lengthrep > longestrep and lengthrep < 150:
                         longestrep = lengthrep
                         bestrep = repeat_list[idx]
                         samelenrep = 1
-                    elif (lengthrep == longestrep):
+                    elif lengthrep == longestrep:
                         samelenrep += 1
                 if bestrep:
                     attLseq = dna[pp[i]['contig']][int(bestrep['s1']) - 1:int(bestrep['e1']) - 1]
@@ -382,8 +383,9 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'prophage_tbl.tsv'), 'w')
-    except:
-        sys.exit('ERROR: Cannot open initial_tbl.tsv')
+    except IOError as e:
+        sys.stderr.write(f"There was an error opening the files: {e}\n")
+        sys.exit(-1)
 
     for line in infile:
         temp = re.split('\t', line.strip())
@@ -397,7 +399,8 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             outfile.write(line.strip() + '\t' + str(me) + '\n')
     infile.close()
     outfile.close()
-    os.remove(os.path.join(self.output_dir, 'initial_tbl.tsv'))
+    if not self.keep:
+        os.remove(os.path.join(self.output_dir, 'initial_tbl.tsv'))
     # print the prophage coordinates:
     out = open(os.path.join(self.output_dir, 'prophage_coordinates.tsv'), 'w')
     for i in pp:
