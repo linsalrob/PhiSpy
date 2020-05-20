@@ -1,6 +1,5 @@
 import re
 import sys
-import string
 import os
 import pkg_resources
 from io import TextIOWrapper
@@ -9,130 +8,110 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from argparse import Namespace
 
-def find_training_genome(trainingFlag, INSTALLATION_DIR):
+from .protein_functions import is_phage_func, is_unknown_func
+
+def find_training_genome(training_flag):
     try:
-        # f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
-    except:
-        print('cannot open resource stream training genomes at data/trainingGenome_list.txt')
+    except IOError as e:
+        sys.stderr.write(f"There was an error opening data/trainingGenome_list.txt: {e}\n")
         return ''
 
     for line in f:
-        temp = re.split('\t',line.decode().strip())
-        if int(temp[0]) == trainingFlag:
+        temp = re.split('\t', line.decode().strip())
+        if int(temp[0]) == training_flag:
             f.close()
             return temp[1].strip()
     return ''
 
+
 def call_randomforest(**kwargs):
     output_dir = kwargs['output_dir']
-    trainingFile = kwargs['training_set']
+    training_file = kwargs['training_set']
     infile = os.path.join(output_dir, "testSet.txt")
     outfile = os.path.join(output_dir, "classify.tsv")
-    #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
-    # convert this to run from pip
-    if not pkg_resources.resource_exists('PhiSpyModules', trainingFile):
-        sys.stderr.write("FATAL: Can not find data file {}\n".format(trainingFile))
+
+    if not pkg_resources.resource_exists('PhiSpyModules', training_file):
+        sys.stderr.write("FATAL: Can not find data file {}\n".format(training_file))
         sys.exit(-1)
-    strm = pkg_resources.resource_stream('PhiSpyModules', trainingFile)
+    strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
     test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     if 'phmms' not in kwargs:
         train_data = np.delete(train_data, 5, 1)
         test_data = np.delete(train_data, 5, 1)
-    # Przemek's comment
-    # by default 10 until version 0.22 where default is 100
-    # number of estimators also implies the precision of probabilities, generally 1/n_estimators
-    # in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
-    # "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
-    clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'], n_jobs = kwargs['threads'])
+    """
+    Przemek's comment
+    by default 10 until version 0.22 where default is 100
+    number of estimators also implies the precision of probabilities, generally 1/n_estimators
+    in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
+    "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
+    """
+    clf = RandomForestClassifier(n_estimators=kwargs['randomforest_trees'], n_jobs=kwargs['threads'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
 
 def my_sort(orf_list):
-     n = len(orf_list)
-     i = 1
-     while( i <= n ):
-          j = i + 1
-          while( j < n ):
-               flag = 0
-               #direction for both
-               if( orf_list[i]['start'] < orf_list[i]['stop'] ):
-                    dir_i = 1
-               else:
-                    dir_i = -1
-               if( orf_list[j]['start'] < orf_list[j]['stop'] ):
-                    dir_j = 1
-               else:
-                    dir_j = -1
+    n = len(orf_list)
+    i = 1
+    while( i <= n ):
+        j = i + 1
+        while( j < n ):
+            flag = 0
+            #direction for both
+            if( orf_list[i]['start'] < orf_list[i]['stop'] ):
+                dir_i = 1
+            else:
+                dir_i = -1
+            if( orf_list[j]['start'] < orf_list[j]['stop'] ):
+                dir_j = 1
+            else:
+                dir_j = -1
 
-               #check whether swap need or not
-               if dir_i == dir_j:
-                    if orf_list[i]['start']>orf_list[j]['start']:
-                         flag = 1
-               else:
-                    if dir_i == 1:
-                         if orf_list[i]['start']>orf_list[j]['stop']:
-                              flag = 1
-                    else:
-                         if orf_list[i]['stop']>orf_list[j]['start']:
-                              flag = 1
-               #swap
-               if flag == 1:
-                    temp = orf_list[i]
-                    orf_list[i] = orf_list[j]
-                    orf_list[j] = temp
-               j = j+1
-          i = i+1
-     return orf_list
+            #check whether swap need or not
+            if dir_i == dir_j:
+                if orf_list[i]['start']>orf_list[j]['start']:
+                    flag = 1
+            else:
+                if dir_i == 1:
+                    if orf_list[i]['start']>orf_list[j]['stop']:
+                        flag = 1
+                else:
+                    if orf_list[i]['stop']>orf_list[j]['start']:
+                        flag = 1
+            #swap
+            if flag == 1:
+                temp = orf_list[i]
+                orf_list[i] = orf_list[j]
+                orf_list[j] = temp
+            j = j+1
+        i = i+1
+    return orf_list
 
 def find_mean(all_len):
-     sum = 0.0
-     for i in all_len:
-          sum = sum + i
-     return float(sum)/len(all_len)
+    sum = 0.0
+    for i in all_len:
+        sum = sum + i
+    return float(sum)/len(all_len)
 
 def calc_pp(func):
     x = 0
     func = func.replace('-',' ')
     func = func.replace(',',' ')
     a = re.split(' ',func)
-    if (
-       'phage'         in a or
-       'lysin'         in a or
-       'endolysin'     in a or
-       'holin'         in a or
-       'capsid'        in a or
-       'tail'          in a or
-       'bacteriophage' in a or
-       'prophage'      in a or
-       'portal'        in a or
-       'terminase'     in a or
-       'tapemeasure'   in a or
-       'baseplate'     in a or 
-       'virion'        in a or
-       'antirepressor' in a or
-       'excisionase'   in a or
-       'mobile element protein' == func or
-       re.search(r"\b%s\b" % "tape measure", func) or
-       re.search(r"\b%s\b" % "Cro-like repressor", func) or
-       re.search(r"\b%s\b" % "CI-like repressor", func) or
-       re.search(r"\b%s\b" % "rIIA lysis", func) or
-       re.search(r"\b%s\b" % "rI lysis", func) or
-       re.search(r"\b%s\b" % "rIIB lysis", func) or
-       re.search(r"\b%s\b" % "base plate", func)
-       ):
-           x = 1
-    elif ('unknown' in func) or ('hypothetical' in func):
-           x = 0.5
+    if is_phage_func(func):
+        x = 1
+    elif is_unknown_func(func):
+        x = 0.5
     else:
-           x = 0
+        x = 0
+    # a few special cases
     if 'recombinase' in func or 'integrase' in func:
-           x = 1.5
+        x = 1.5
     if ('phage' in func) and ('shock' in func):
-           x = 0
+        x = 0
     if "dna binding domain" in func:
-           x = 0
+        x = 0
     return x
 
 def calc_function_3files(organism):
@@ -171,7 +150,7 @@ def calc_function_3files(organism):
 def input_bactpp(**kwargs):
     print(kwargs)
     exit()
-   
+
     #bact_file = organism+'/Features/peg/tbl'
     #try:
     #    fh = open(bact_file,'r')
@@ -264,8 +243,8 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
     y = []
     j = 0
     while j < len(x):
-        x[j]['rank'] = sum(ranks[j]) / len(ranks[j]) 
-        x[j]['extra'] =  ranks[j] 
+        x[j]['rank'] = sum(ranks[j]) / len(ranks[j])
+        x[j]['extra'] =  ranks[j]
         y.append(x[j]['rank'])
         #y.append([x[j]['rank']])
         j = j+1
