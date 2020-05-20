@@ -72,12 +72,12 @@ def write_genbank(infile, record, output_directory, pp):
     prophage_feature_type = 'misc_feature' # / prophage_region
     outfile = os.path.join(output_directory, os.path.basename(infile))
     for i in pp:
-        record.get_entry(pp[i]['contig']).add_feature(SeqFeature(
+        record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
                     location = FeatureLocation(pp[i]['start'], pp[i]['stop']),
                     type = prophage_feature_type,
                     strand = 1,
                     qualifiers = OrderedDict({'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'})))
-        record.get_entry(pp[i]['contig']).add_feature(SeqFeature(
+        record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
                     location = FeatureLocation(int(pp[i]['att'][0]), int(pp[i]['att'][1])) + FeatureLocation(int(pp[i]['att'][2]), int(pp[i]['att'][3])),
                     type = 'repeat_region',
                     strand = 1,
