@@ -51,35 +51,36 @@ def call_randomforest(**kwargs):
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
 
+
 def my_sort(orf_list):
     n = len(orf_list)
     i = 1
-    while( i <= n ):
+    while i <= n:
         j = i + 1
-        while( j < n ):
+        while j < n:
             flag = 0
-            #direction for both
-            if( orf_list[i]['start'] < orf_list[i]['stop'] ):
+            # direction for both
+            if orf_list[i]['start'] < orf_list[i]['stop']:
                 dir_i = 1
             else:
                 dir_i = -1
-            if( orf_list[j]['start'] < orf_list[j]['stop'] ):
+            if orf_list[j]['start'] < orf_list[j]['stop']:
                 dir_j = 1
             else:
                 dir_j = -1
 
-            #check whether swap need or not
+            # check whether swap need or not
             if dir_i == dir_j:
-                if orf_list[i]['start']>orf_list[j]['start']:
+                if orf_list[i]['start'] > orf_list[j]['start']:
                     flag = 1
             else:
                 if dir_i == 1:
-                    if orf_list[i]['start']>orf_list[j]['stop']:
+                    if orf_list[i]['start'] > orf_list[j]['stop']:
                         flag = 1
                 else:
-                    if orf_list[i]['stop']>orf_list[j]['start']:
+                    if orf_list[i]['stop'] > orf_list[j]['start']:
                         flag = 1
-            #swap
+            # swap
             if flag == 1:
                 temp = orf_list[i]
                 orf_list[i] = orf_list[j]
@@ -88,23 +89,23 @@ def my_sort(orf_list):
         i = i+1
     return orf_list
 
+
 def find_mean(all_len):
-    sum = 0.0
+    s = 0.0
     for i in all_len:
-        sum = sum + i
-    return float(sum)/len(all_len)
+        s = s + i
+    return float(s)/len(all_len)
+
 
 def calc_pp(func):
+    func = func.replace('-', ' ')
+    func = func.replace(',', ' ')
     x = 0
-    func = func.replace('-',' ')
-    func = func.replace(',',' ')
-    a = re.split(' ',func)
     if is_phage_func(func):
         x = 1
     elif is_unknown_func(func):
         x = 0.5
-    else:
-        x = 0
+
     # a few special cases
     if 'recombinase' in func or 'integrase' in func:
         x = 1.5
@@ -114,23 +115,29 @@ def calc_pp(func):
         x = 0
     return x
 
+
 def calc_function_3files(organism):
     my_func = {}
-    x = 0 #no need it for computation.. just a flag in "except"
+    x = 0  # no need it for computation.. just a flag in "except"
+
+    ppnf = os.path.join(organism, 'proposed_non_ff_functions')
+
+
+    if os.path.exists(ppnf):
+        try:
+            f_fun = open(ppnf, 'r')
+            for line in f_fun:
+                temp = re.split('\t', line.strip())
+                if len(temp) >= 2:
+                    my_func[temp[0]] = temp[1]
+            f_fun.close()
+        except:
+            x = x + 1
     try:
-        f_fun = open(organism+'/proposed_non_ff_functions','r')
+        f_fun = open(organism + '/proposed_functions', 'r')
         for line in f_fun:
-            temp = re.split('\t',line.strip())
-            if len(temp)>=2:
-                my_func[temp[0]] = temp[1]
-        f_fun.close()
-    except:
-        x = x + 1
-    try:
-        f_fun = open(organism+'/proposed_functions','r')
-        for line in f_fun:
-            temp = re.split('\t',line.strip())
-            if len(temp)>=2:
+            temp = re.split('\t', line.strip())
+            if len(temp) >= 2:
                 my_func[temp[0]] = temp[1]
         f_fun.close()
     except:
@@ -146,6 +153,7 @@ def calc_function_3files(organism):
         x = x + 1
 
     return my_func
+
 
 def input_bactpp(**kwargs):
     print(kwargs)
@@ -205,6 +213,7 @@ def input_bactpp(**kwargs):
             i = i+1
             index = index+1
     return all
+
 
 def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_DIR):
     self = Namespace(**kwargs)
