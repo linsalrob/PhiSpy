@@ -258,6 +258,8 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
             ranks[k].append(val)
         j += 1
     infile.close()
+    if not self.keep:
+        os.remove(os.path.join(self.output_dir, 'classify.tsv'))
     #calculate threshold
     y = []
     j = 0
