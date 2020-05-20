@@ -116,106 +116,7 @@ def calc_pp(func):
     return x
 
 
-def calc_function_3files(organism):
-    my_func = {}
-    x = 0  # no need it for computation.. just a flag in "except"
-
-    ppnf = os.path.join(organism, 'proposed_non_ff_functions')
-
-
-    if os.path.exists(ppnf):
-        try:
-            f_fun = open(ppnf, 'r')
-            for line in f_fun:
-                temp = re.split('\t', line.strip())
-                if len(temp) >= 2:
-                    my_func[temp[0]] = temp[1]
-            f_fun.close()
-        except:
-            x = x + 1
-    try:
-        f_fun = open(organism + '/proposed_functions', 'r')
-        for line in f_fun:
-            temp = re.split('\t', line.strip())
-            if len(temp) >= 2:
-                my_func[temp[0]] = temp[1]
-        f_fun.close()
-    except:
-        x = x + 1
-    try:
-        f_fun = open(organism+'/assigned_functions','r')
-        for line in f_fun:
-            temp = re.split('\t',line.strip())
-            if len(temp)>=2:
-                my_func[temp[0]] = temp[1]
-        f_fun.close()
-    except:
-        x = x + 1
-
-    return my_func
-
-
-def input_bactpp(**kwargs):
-    print(kwargs)
-    exit()
-
-    #bact_file = organism+'/Features/peg/tbl'
-    #try:
-    #    fh = open(bact_file,'r')
-    #except:
-    #    print('cant open file- assigned functions/tbl file:',organism)
-    #    return {}
-    #my_func = calc_function_3files(organism)
-    all_orf_list = {}
-    for i in fh:
-        temp = re.split('\t',i.strip())
-        temp1 = re.split('_',temp[1])
-        if ',' in temp[1]:
-            ttemp = re.split(',',temp[1])
-            temp[1] = ttemp[len(ttemp)-1]
-        temp1 = re.split('_',temp[1])
-        contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-        start = int(temp1[len(temp1)-2])
-        stop = int(temp1[len(temp1)-1])
-        #save info for sorting orf
-        if contig in all_orf_list:
-            x = len(all_orf_list[contig]) + 1
-        else:
-            x = 1
-            all_orf_list[contig]={}
-        all_orf_list[contig][x]={}
-        all_orf_list[contig][x]['fig'] = temp[0]
-        all_orf_list[contig][x]['contig'] = str(contig)
-        all_orf_list[contig][x]['start'] = start
-        all_orf_list[contig][x]['stop'] = stop
-        if temp[0] in my_func:
-            all_orf_list[contig][x]['function'] = my_func[temp[0]]
-            all_orf_list[contig][x]['pp'] = calc_pp(my_func[temp[0]].lower(),INSTALLATION_DIR)
-        else:
-            all_orf_list[contig][x]['function'] = "-"
-            all_orf_list[contig][x]['pp'] = 0.5
-    fh.close()
-    all = {}
-    index = 1
-    for mycontig in all_orf_list:
-        orf_list = my_sort(all_orf_list[mycontig])
-        i = 1
-        while i <= len(orf_list):
-            all[index] = {}
-            all[index]['fig'] = orf_list[i]['fig']
-            all[index]['function'] = orf_list[i]['function']
-            all[index]['contig'] = orf_list[i]['contig']
-            all[index]['start'] = orf_list[i]['start']
-            all[index]['stop'] = orf_list[i]['stop']
-            all[index]['rank'] = 0.0
-            all[index]['status'] = 0
-            all[index]['pp'] = orf_list[i]['pp']
-            i = i+1
-            index = index+1
-    return all
-
-
-def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_DIR):
+def make_initial_tbl(**kwargs):
     self = Namespace(**kwargs)
     x = []
     for entry in self.record:
@@ -235,7 +136,7 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except:
         sys.exit('ERROR: Cannot open classify.tsv in make_initial_tbl')
-    #x = input_bactpp(**kwargs)
+
     j = 0
     ranks = [[] for n in range(len(x))]
     for line in infile:
@@ -248,6 +149,7 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
     infile.close()
     if not self.keep:
         os.remove(os.path.join(self.output_dir, 'classify.tsv'))
+
     #calculate threshold
     y = []
     j = 0
@@ -255,9 +157,8 @@ def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_
         x[j]['rank'] = sum(ranks[j]) / len(ranks[j])
         x[j]['extra'] =  ranks[j]
         y.append(x[j]['rank'])
-        #y.append([x[j]['rank']])
         j = j+1
-    #threshold = max(y)/2
+
     y2 = np.array(y).reshape(-1, 1)
     km = KMeans(n_clusters = 2)
     km.fit(y2)
