@@ -65,30 +65,12 @@ def find_smallest(a,b):
     return mm
 
 def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
-    #try:
-    #    infile = open(organism_path + '/Features/rna/tbl', 'r')
-    #except:
-    #    sys.exit('Cannot open ' + organism_path + "/Features/rna/tbl")
     my_start = 1000000
     start_end = 0
     end_start = 0
     my_end = 1000000
     mydiff = 1000000
-    #for line in infile:
     for feature in record.get_entry(cont).get_features('tRNA'):
-        #temp = re.split('\t', line.strip())
-        #if len(temp) < 3:
-        #    continue
-        #if 'trna' in temp[2].lower() or 'tmrna' in temp[2].lower():
-        #    if ',' in temp[1]:
-        #        ttemp = re.split(',', temp[1])
-        #        temp[1] = ttemp[len(ttemp) - 1]
-        #    temp1 = re.split('_', temp[1])
-        #    #contig = temp1[len(temp1)-3]
-        #    contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-        #    start = int(temp1[len(temp1) - 2])
-        #    stop = int(temp1[len(temp1) - 1])
-        #    if cont == contig:
         i = 0
         while i < len(repeat_list):
             a = find_smallest([feature.start, feature.stop], 
@@ -109,7 +91,6 @@ def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
                 end_start = repeat_list[i]['s2']
                 mydiff = a
             i += 1
-    # infile.close()
     if mydiff == 1000000:
         return '0_0'  # 'null'
     return str(my_start) + '_' + str(my_end)+'_'+ str(start_end)+'_'+ str(end_start)
