@@ -3,6 +3,7 @@ import re
 import math
 import sys
 from argparse import Namespace
+from .writers import write_phage_and_bact
 from .writers import write_gff3
 import PhiSpyRepeatFinder
 
@@ -413,6 +414,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
 
     # write the prophage in GFF3 format
     write_gff3(self.output_dir, pp)
+    write_phage_and_bact(self.output_dir, pp, dna)
 
 def make_prophage_tbl(inputf, outputf):
     try:

@@ -1,7 +1,7 @@
 # read and set the version
 
 from .seqio_filter import SeqioFilter
-from .makeTrain import make_set_train
+from .makeTest import make_set_train
 from .makeTest import make_test_set
 from .classification import call_randomforest, make_initial_tbl
 from .unknownFunction import consider_unknown
