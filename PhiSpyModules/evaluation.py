@@ -409,6 +409,8 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     write_prophage_tbl(self.output_dir, pp)
     # write a tsv file of this data
     write_prophage_tsv(self.output_dir, pp)
+    # update input GenBank file and incorporate prophage regions
+    write_genbank(self.infile, self.record, self.output_dir, pp)
     # write the prophage in GFF3 format
     write_gff3(self.output_dir, pp)
     write_phage_and_bact(self.output_dir, pp, dna)
