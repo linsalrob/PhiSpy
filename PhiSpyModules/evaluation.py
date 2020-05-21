@@ -293,8 +293,6 @@ def fixing_start_end(**kwargs):
         if stop - start > 200000:
             message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp", "PINK", 'stderr')
             continue
-
-        message(f"Finding repeats in pp {i} contig {pp[i]['contig']} from {start} to {stop}", "PINK", 'stderr')
         repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extra_dna, self.output_dir)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
         if s_e != 'null':

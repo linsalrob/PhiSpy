@@ -11,6 +11,8 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 from collections import OrderedDict
 
 import PhiSpyModules.version as version
+from .formatting import message
+
 __author__ = 'Rob Edwards'
 
 
@@ -92,7 +94,7 @@ def write_genbank(infile, record, output_directory, pp):
 
 
 def write_phage_and_bact(output_dir, pp, dna):
-    sys.stderr.write('writing bacterial and phage DNA\n')
+    message('writing bacterial and phage DNA', "GREEN", 'stderr')
     phage_out = open(os.path.join(output_dir, "phage.fasta"), "w")
     bacteria_out = open(os.path.join(output_dir, "bacteria.fasta"), "w")
     
@@ -171,7 +173,7 @@ def prophage_measurements_to_tbl(inputf, outputf):
         f = open(inputf, 'r')
         fw = open(outputf, 'w')
     except IOError as e:
-        sys.stderr.write(f"There was an error trying to convert the measurements to a tbl: {e}\n")
+        message(f"There was an error trying to convert the measurements to a tbl: {e}\n", "RED", 'stderr')
         return
     pp = {}
     ppindx = 0
