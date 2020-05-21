@@ -104,9 +104,9 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     #         do evaluation              #
     ######################################
-    sys.stderr.write('Evaluating...')
+    sys.stderr.write('Evaluating...\n')
     PhiSpyModules.fixing_start_end(**vars(args_parser))
-    sys.stderr.write('Done!!!')
+    sys.stderr.write('Done!!!\n')
 
 
 
