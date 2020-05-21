@@ -55,7 +55,8 @@ def message(msg, c, stream):
     """
 
     c = c.upper()
-
+    # we strip any newline off message in case it was added and then we add it here! Ensures always only one newline
+    msg = msg.strip()
     if c not in Colors.color:
         raise ColorNotFoundError(f"Color {c} was not found")
 
