@@ -192,7 +192,7 @@ def fixing_start_end(**kwargs):
         sys.exit(-1)
 
     # make all predicted pp list
-    message("Checking prophages in initial_tbl.tsv\n", "RED", 'stderr')
+    message("Checking prophages in initial_tbl.tsv\n", "GREEN", 'stderr')
     pp = {}
     i = 0
     flag = 0
@@ -345,13 +345,15 @@ def fixing_start_end(**kwargs):
                     attLseq = dna[pp[i]['contig']][int(bestrep['s1']) - 1:int(bestrep['e1']) - 1]
                     attRseq = dna[pp[i]['contig']][int(bestrep['s2']) - 1:int(bestrep['e2']) - 1]
                     if len(attLseq) == 0:
-                        print("The attL sequence had no length from " + str(int(bestrep['s1']) - 1) + " to " + str(
-                            int(bestrep['e1']) - 1) + " on contig " + str(pp[i]['contig']) + " (length: " + str(
-                            len(dna[pp[i]['contig']])) + ")\n")
+                        msg = f"The attL sequence had no length from {int(bestrep['s1']) - 1} to "
+                        msg += f"{int(bestrep['e1']) - 1} on contig {pp[i]['contig']} "
+                        msg += f"(length: {len(dna[pp[i]['contig']])} )"
+                        message(msg, "YELLOW", 'stderr')
                     if len(attRseq) == 0:
-                        print("The attR sequence had no length from " + str(int(bestrep['s2']) - 1) + " to " + str(
-                            int(bestrep['e2']) - 1) + " from " + str(pp[i]['contig']) + " (length: " + str(
-                            len(dna[pp[i]['contig']])) + ")\n")
+                        msg = f"The attL sequence had no length from {int(bestrep['s2']) - 1} to "
+                        msg += f"{int(bestrep['e2']) - 1} on contig {pp[i]['contig']} "
+                        msg += f"(length: {len(dna[pp[i]['contig']])} )"
+                        message(msg, "YELLOW", 'stderr')
                     pp[i]['att'] = [
                         bestrep['s1'],
                         bestrep['e1'],
