@@ -3,14 +3,17 @@ import re
 import math
 import sys
 from argparse import Namespace
+
 from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
 from .writers import write_prophage_tsv, write_genbank
+from .formatting import message
+
 import PhiSpyRepeatFinder
 
 
 def find_repeat(fn, st, ppno, extra_dna, output_dir):
     if len(fn) == 0:
-        sys.stderr.write("Len sequence is 0 so ignoring\n")
+        message("Len sequence is 0 so ignoring\n", "RED", 'stderr')
         return {}
 
     rep = {}
@@ -22,7 +25,7 @@ def find_repeat(fn, st, ppno, extra_dna, output_dir):
     try:
         repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3)
     except Exception as e:
-        sys.stderr.write("There was an error running repeatfinder for {}:{}\n".format(fn, e))
+        message(f"There was an error running repeatfinder for {fn}:{e}\n", "RED", 'stderr')
         return {}
 
     for r in repeats:
@@ -185,11 +188,11 @@ def fixing_start_end(**kwargs):
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
     except IOError as e:
-        sys.stderr.write(f"There was an error reading initial_tbl.tsv: {e}\n")
+        message(f"There was an error reading initial_tbl.tsv: {e}\n", "RED", 'stderr')
         sys.exit(-1)
 
     # make all predicted pp list
-    sys.stderr.write("Checking prophages in initial_tbl.tsv\n")
+    message("Checking prophages in initial_tbl.tsv\n", "RED", 'stderr')
     pp = {}
     i = 0
     flag = 0
@@ -229,7 +232,7 @@ def fixing_start_end(**kwargs):
             distance_from_last_prophage = 0
         else:
             if temp[0] == 'fig|160490.1.peg.707':
-                sys.stderr.write("BUGGGER: Got to here but shouldn't\n")
+                message("BUGGGER: Got to here but shouldn't\n", "RED", 'stderr')
             flag = 0
             # Find location of integrases
         if float(temp[8]) == 1.5:
@@ -277,8 +280,7 @@ def fixing_start_end(**kwargs):
     dna = {entry.id: str(entry.seq) for entry in self.record}
     extra_dna = 2000
     for i in pp:
-        print("PROPHAGE: " + str(i) + " Contig: " + str(pp[i]['contig']) + " Start: " + str(
-            pp[i]['start']) + " Stop: " + str(pp[i]['stop']))
+        message(f"PROPHAGE: {i} Contig: {pp[i]['contig']} Start: {pp[i]['start']} Stop: {pp[i]['stop']}", "PINK", 'stderr')
         start = pp[i]['start'] - extra_dna
         if start < 1:
             start = 1
@@ -289,10 +291,10 @@ def fixing_start_end(**kwargs):
         if stop > len(dna[pp[i]['contig']]):
             stop = len(dna[pp[i]['contig']])
         if stop - start > 200000:
-            print("Not checking repeats for pp " + str(i) + " because it is too big: " + str(stop - start) + "\n")
+            message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp", "PINK", 'stderr')
             continue
-        sys.stderr.write("PP: " + str(i) + " start: " + str(pp[i]['start']) + " stop: " + str(pp[i]['stop']) + "\n")
-        print(f"Finding repeats in pp {i} contig {pp[i]['contig']} from {start} to {stop}")
+
+        message(f"Finding repeats in pp {i} contig {pp[i]['contig']} from {start} to {stop}", "PINK", 'stderr')
         repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extra_dna, self.output_dir)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
         if s_e != 'null':
@@ -308,8 +310,6 @@ def fixing_start_end(**kwargs):
             if float(t1[0]) > 0 and float(t1[0]) < pp[i]['start'] and float(t1[1]) > 0 and float(t1[1]) > pp[i]['stop']:
                 pp[i]['start'] = float(t1[0])
                 pp[i]['stop'] = float(t1[1])
-                sys.stderr.write("\tReset start of prophage " + str(i) + " to " + str(pp[i]['start']) + " and stop to ")
-                sys.stderr.write(str(pp[i]['stop']) + " after checking phage words\n")
 
             if (float(t[0]) != 0) and (pp[i]['start'] == float(t[0])) and (pp[i]['stop'] == float(t[1])):
                 # 1 if (float(t[0])!= 0) and (float(t1[0]) == float(t[0])) and (float(t1[1]) == float(t[1])):
@@ -363,14 +363,14 @@ def fixing_start_end(**kwargs):
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
                     if samelenrep > 1:
-                        sys.stderr.write(f"There were {samelenrep} repeats with the same length as the best. " +
-                                         "One chosen somewhat randomly!\n")
+                        message(f"There were {samelenrep} repeats with the same length as the best. " +
+                                         "One chosen somewhat randomly!\n", "YELLOW", 'stderr')
     # fix start end for all pp
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'prophage_tbl.tsv'), 'w')
     except IOError as e:
-        sys.stderr.write(f"There was an error opening the files: {e}\n")
+        message(f"There was an error opening the files: {e}\n", "RED", 'stderr')
         sys.exit(-1)
 
     for line in infile:

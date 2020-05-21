@@ -9,13 +9,13 @@ import numpy as np
 from argparse import Namespace
 
 from .protein_functions import is_phage_func, is_unknown_func
-
+from .formatting import message
 
 def find_training_genome(training_flag):
     try:
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except IOError as e:
-        sys.stderr.write(f"There was an error opening data/trainingGenome_list.txt: {e}\n")
+        message(f"There was an error opening data/trainingGenome_list.txt: {e}\n", "RED", 'stderr')
         return ''
 
     for line in f:
@@ -34,7 +34,7 @@ def call_randomforest(**kwargs):
     outfile = os.path.join(output_dir, "classify.tsv")
 
     if not pkg_resources.resource_exists('PhiSpyModules', training_file):
-        sys.stderr.write("FATAL: Can not find data file {}\n".format(training_file))
+        message(f"FATAL: Can not find data file {training_file}\n", "RED", 'stderr')
         sys.exit(-1)
     strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
@@ -138,7 +138,7 @@ def make_initial_tbl(**kwargs):
         infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except IOError as e:
-        sys.stderr.write(f"There was an error reading or writing classify/initial_tbl: {e}\n")
+        message(f"There was an error reading or writing classify/initial_tbl: {e}\n", "RED", 'stderr')
         sys.exit(-1)
 
     j = 0
