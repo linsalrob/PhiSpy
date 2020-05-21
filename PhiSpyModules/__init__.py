@@ -10,6 +10,7 @@ from .pathtype import PathType
 from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prophage_tbl, write_prophage_tsv
 from .writers import prophage_measurements_to_tbl
 from .search_phmms import search_phmms
+from .formatting import message
 
 from .version import __version__
 
@@ -22,5 +23,6 @@ __all__ = ['SeqioFilter',
            'PathType',
            'write_gff3', 'write_genbank', 'write_phage_and_bact', 'write_prophage_tbl', 'write_prophage_tsv',
            'prophage_measurements_to_tbl',
-           'search_phmms'
+           'search_phmms',
+           'message'
            ]

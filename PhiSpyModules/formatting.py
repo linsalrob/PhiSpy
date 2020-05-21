@@ -64,7 +64,7 @@ def message(msg, c, stream):
             sys.stderr.write(f"{colors.color[c]}{msg}{colors.color['ENDC']}\n")
         else:
             sys.stderr.write(f"{msg}\n")
-    elif stream == 'stdout':
+    elif stream.lower() == 'stdout':
         if os.fstat(0) == os.fstat(1):
             #  stderr is not redirected
             sys.stdout.write(f"{colors.color[c]}{msg}{colors.color['ENDC']}\n")
