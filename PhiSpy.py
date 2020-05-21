@@ -91,7 +91,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         make testing set           #
     ######################################
     PhiSpyModules.message('Making Test Set...\n', "GREEN", 'stderr')
-    args_parser.test_data = PhiSpyModules.make_test_set(**vars(args_parser))
+    args_parser.test_data = PhiSpyModules.measure_features(**vars(args_parser))
 
     ######################################
     #         do classification          #

@@ -1,7 +1,7 @@
 # read and set the version
 
 from .seqio_filter import SeqioFilter
-from .makeTest import make_set_train, make_test_set
+from .makeTest import make_set_train, measure_features
 from .classification import call_randomforest, make_initial_tbl
 from .protein_functions import consider_unknown, is_phage_func, is_unknown_func
 from .evaluation import fixing_start_end
@@ -15,7 +15,7 @@ from .formatting import message
 from .version import __version__
 
 __all__ = ['SeqioFilter',
-           'make_set_train', 'make_test_set',
+           'make_set_train', 'measure_features',
            'call_randomforest', 'make_initial_tbl',
            'consider_unknown', 'is_phage_func', 'is_unknown_func',
            'fixing_start_end',
