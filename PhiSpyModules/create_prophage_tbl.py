@@ -10,7 +10,7 @@ import argparse
 INSTALLATION_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(INSTALLATION_DIR)
 
-from writers import  prophage_measurements_to_tbl
+from .writers import  prophage_measurements_to_tbl
 
 def main(phispydir):
     """
