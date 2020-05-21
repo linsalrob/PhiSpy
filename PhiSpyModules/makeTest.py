@@ -266,10 +266,12 @@ def reverse_complement(seq):
 
     return rcseq
 
-######################################################################################
+
 def make_test_set(**kwargs):
     # line below is so that later we can make this a class
     self = Namespace(**kwargs)
+    # test data contains: median orf length, shannon slope, at_skew, gc_skew, max_direction, phmms
+    test_data = []
     my_shannon_scores = ShannonScore(self.kmers_type)
     all_orf_list = {}
     dna = {}
@@ -292,9 +294,7 @@ def make_test_set(**kwargs):
         sys.exit('ERROR: Cannot open file for writing: testSet.txt')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\n')
     for mycontig in all_orf_list:
-        #orf_list = my_sort(all_orf_list[mycontig])
         orf_list = all_orf_list[mycontig]
-        ######################
         all_median = find_all_median(orf_list)
         lengths = []
         directions = []
@@ -315,10 +315,11 @@ def make_test_set(**kwargs):
         g = sum(gg_skew) / len(gg_skew)
         c = sum(gc_skew) / len(gc_skew)
         avg_at_skew, avg_gc_skew = math.fabs(a - t), math.fabs(g - c)
-        #####################
+
         i = 0
-        # while i<len(orf_list)-window +1:
         while i < len(orf_list):
+            # orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms
+            this_orf = []  # the data for this particular orf that gets added to test_data
             # initialize
             j_start = i - int(window / 2)
             j_stop = i + int(window / 2)
@@ -361,25 +362,37 @@ def make_test_set(**kwargs):
             orf.append(x)
             orf.sort()
             outfile.write(str(my_length))
+            this_orf.append(my_length)
             outfile.write('\t')
             if self.expand_slope:
                 s = my_shannon_scores.getSlope(j_start, j_stop)
                 outfile.write(str(s * s))
+                this_orf.append(s * s)
             else:
                 outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
+                this_orf.append(my_shannon_scores.getSlope(j_start, j_stop))
             outfile.write('\t')
             outfile.write(str(jat))
+            this_orf.append(jat)
             outfile.write('\t')
             outfile.write(str(jgc))
+            this_orf.append(jgc)
             outfile.write('\t')
             outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
+            this_orf.append(
+                orf[len(orf) - 1] if len(orf) == 1 else orf[len(orf) - 1] + orf[len(orf) - 2]
+            )
             outfile.write('\t')
             outfile.write(str(sum(phmms[j_start:j_stop])))
+            this_orf.append(sum(phmms[j_start:j_stop]))
             outfile.write('\n')
             i += 1
+            assert(len(this_orf) == 6)  # confirm I added everything!
+            test_data.append(this_orf)
         my_shannon_scores.reset()
     outfile.close()
-######################################################################################
+    return test_data
+
 def make_set_train(**kwargs):
     self = Namespace(**kwargs)
     my_shannon_scores = ShannonScore(self.kmers_type)

@@ -29,7 +29,8 @@ def find_training_genome(training_flag):
 def call_randomforest(**kwargs):
     output_dir = kwargs['output_dir']
     training_file = kwargs['training_set']
-    infile = os.path.join(output_dir, "testSet.txt")
+    test_data = kwargs['test_data']
+
     outfile = os.path.join(output_dir, "classify.tsv")
 
     if not pkg_resources.resource_exists('PhiSpyModules', training_file):
@@ -37,7 +38,7 @@ def call_randomforest(**kwargs):
         sys.exit(-1)
     strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
-    test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
+
     if 'phmms' not in kwargs:
         train_data = np.delete(train_data, 5, 1)
         test_data = np.delete(train_data, 5, 1)

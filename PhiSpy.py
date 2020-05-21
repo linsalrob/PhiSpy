@@ -33,12 +33,12 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
 
     # if we get here we need an input file
     if not args_parser.infile:
-        sys.stderr.write("ERROR: Please provide an input file. Use -h for more options\n")
+        PhiSpyModules.message("ERROR: Please provide an input file. Use -h for more options\n", "RED", 'stderr')
         sys.exit(-1)
 
     # check whether output directory was provided
     if not args_parser.output_dir:
-        sys.stderr.write("ERROR: Output directory (-o) is required\n")
+        PhiSpyModules.message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", 'stderr')
         sys.exit(-1)
     os.makedirs(args_parser.output_dir, exist_ok=True)
 
@@ -79,17 +79,13 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     #         make testing set           #
     ######################################
-    sys.stderr.write('Making Test Set...\n')
-    my_make_test_flag = PhiSpyModules.make_test_set(**vars(args_parser))
-    # check file im,plement later
-    #if (my_make_test_flag == 0):
-    #    print('The input organism is too small to predict prophages. Please consider large contig (having at least 40 genes) to use PhiSpy.')
-    #    return
+    PhiSpyModules.message('Making Test Set...\n', "GREEN", 'stderr')
+    args_parser.test_data = PhiSpyModules.make_test_set(**vars(args_parser))
 
     ######################################
     #         do classification          #
     ######################################
-    sys.stderr.write('Start Classification Algorithm...\n')
+    PhiSpyModules.message('Start Classification Algorithm...\n', "GREEN", 'stderr')
     PhiSpyModules.call_randomforest(**vars(args_parser))
     PhiSpyModules.make_initial_tbl(**vars(args_parser))
 
