@@ -2,7 +2,8 @@
 This is a helper module to just make colored text if we are *not* redirected
 
 Colors come from https://stackoverflow.com/questions/287871/print-in-terminal-with-colors
-Testing redirect comes from https://stackoverflow.com/questions/1512457/determining-if-stdout-for-a-python-process-is-redirected
+Testing redirect comes from
+https://stackoverflow.com/questions/1512457/determining-if-stdout-for-a-python-process-is-redirected
 """
 
 import os
@@ -25,7 +26,7 @@ Colors that you can import and make the text look pretty
 __author__ = 'Rob Edwards'
 
 
-class colors(object):
+class Colors(object):
     color = {
         'HEADER': '\033[95m',
         'OKBLUE': '\033[94m',
@@ -55,19 +56,19 @@ def message(msg, c, stream):
 
     c = c.upper()
 
-    if c not in colors.color:
+    if c not in Colors.color:
         raise ColorNotFoundError(f"Color {c} was not found")
 
     if stream.lower() == 'stderr':
         if os.fstat(0) == os.fstat(1):
             #  stderr is not redirected
-            sys.stderr.write(f"{colors.color[c]}{msg}{colors.color['ENDC']}\n")
+            sys.stderr.write(f"{Colors.color[c]}{msg}{Colors.color['ENDC']}\n")
         else:
             sys.stderr.write(f"{msg}\n")
     elif stream.lower() == 'stdout':
         if os.fstat(0) == os.fstat(1):
             #  stderr is not redirected
-            sys.stdout.write(f"{colors.color[c]}{msg}{colors.color['ENDC']}\n")
+            sys.stdout.write(f"{Colors.color[c]}{msg}{Colors.color['ENDC']}\n")
         else:
             sys.stdout.write(f"{msg}\n")
     else:
