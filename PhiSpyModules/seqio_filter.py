@@ -43,7 +43,7 @@ class SeqioFilter( list ):
         self.n += 1
         return item
 
-    def __call__( self, keyword='' ):
+    def __call__(self, keyword=''):
         pass
 
     def get_entry(self, id):
@@ -66,9 +66,9 @@ class SeqioFilter( list ):
                     feature.start, feature.stop = feature.stop, feature.start
                 if not feature_type or feature.type == feature_type:
                     yield feature
-        target.get_features = types.MethodType(get_features,target)
+        target.get_features = types.MethodType(get_features, target)
 
         def append_feature(target, feature):
-            target.features.append(0, feature)
+            target.features.append(feature)
 
         target.append_feature = types.MethodType(append_feature, target)
