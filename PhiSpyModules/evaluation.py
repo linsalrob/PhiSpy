@@ -7,7 +7,8 @@ from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
 from .writers import write_prophage_tsv, write_genbank
 import PhiSpyRepeatFinder
 
-def find_repeat(fn, st, ppno, extraDNA, output_dir):
+
+def find_repeat(fn, st, ppno, extra_dna, output_dir):
     if len(fn) == 0:
         sys.stderr.write("Len sequence is 0 so ignoring\n")
         return {}
@@ -25,7 +26,7 @@ def find_repeat(fn, st, ppno, extraDNA, output_dir):
         return {}
 
     for r in repeats:
-        if (r['first_start'] < (3 * extraDNA)) and (r['second_start'] > (len(fn) - (3 * extraDNA))):
+        if (r['first_start'] < (3 * extra_dna)) and (r['second_start'] > (len(fn) - (3 * extra_dna))):
             # check that start is always less than end
             # This always causes an off by one error, so we have to increment our ends
             if r['first_end'] < r['first_start']:
@@ -42,7 +43,8 @@ def find_repeat(fn, st, ppno, extraDNA, output_dir):
 
     return rep
 
-def check_intg(prophage_sta,prophage_sto,rep,integ,con):
+
+def check_intg(prophage_sta, prophage_sto, rep, integ, con):
     for m in integ:
         if integ[m]['contig'] != con:
             continue
@@ -56,7 +58,8 @@ def check_intg(prophage_sta,prophage_sto,rep,integ,con):
             return 1
     return 0
 
-def find_smallest(a,b):
+
+def find_smallest(a, b):
     mm = 1000000
     for i in a:
         for j in b:
@@ -64,7 +67,8 @@ def find_smallest(a,b):
                 mm = math.fabs(i - j)
     return mm
 
-def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
+
+def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integers):
     my_start = 1000000
     start_end = 0
     end_start = 0
@@ -76,7 +80,7 @@ def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
             a = find_smallest([feature.start, feature.stop], 
                               [repeat_list[i]['s1'], repeat_list[i]['s2'],
                                repeat_list[i]['e1'], repeat_list[i]['e2']])
-            if check_intg(prophage_start, prophage_stop, repeat_list[i], integrs, cont) == 1:
+            if check_intg(prophage_start, prophage_stop, repeat_list[i], integers, cont) == 1:
                 if (math.fabs(repeat_list[i]['s1'] - repeat_list[i]['e2']) > math.fabs(
                         my_start - my_end)) or mydiff == 1000000:
                     my_start = repeat_list[i]['s1']
@@ -93,9 +97,10 @@ def find_rna(prophage_start, prophage_stop, repeat_list, record, cont, integrs):
             i += 1
     if mydiff == 1000000:
         return '0_0'  # 'null'
-    return str(my_start) + '_' + str(my_end)+'_'+ str(start_end)+'_'+ str(end_start)
+    return str(my_start) + '_' + str(my_end)+'_' + str(start_end) + '_' + str(end_start)
 
-def check_pp(contig,start,stop,pp):
+
+def check_pp(contig, start, stop, pp):
     if start > stop:
         (start, stop) = (stop, start)
 
@@ -104,6 +109,7 @@ def check_pp(contig,start,stop,pp):
             if pp[j]['start'] <= start and pp[j]['stop'] >= stop:
                 return j
     return 0
+
 
 def check_phage_word_start(sjcontig, a, b, c):
     j = 0
@@ -124,6 +130,7 @@ def check_phage_word_start(sjcontig, a, b, c):
     else:
         return b
 
+
 def count_phage_word_ends(sjcontig, a, b, c, maxpp):
     j = 0
     tot = 0
@@ -140,19 +147,22 @@ def count_phage_word_ends(sjcontig, a, b, c, maxpp):
             tot = tot + 1
     return j, tot
 
+
 def check_phage_word_end(sjcontig, a, b, c):
     j, tot = count_phage_word_ends(sjcontig, a, b, c, 0.5)
     if tot < 4 * j:
         return b
     else:
         return a
-               
-def final_check_phage_word(sjcontig,a,b,c):
+
+
+def final_check_phage_word(sjcontig, a, b, c):
     j, tot = count_phage_word_ends(sjcontig, a, b, c, 0)
     if j > 5 and tot < 2 * j:
         return str(a) + '_' + str(b)
     else:
         return '0_0'
+
 
 def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_stop, genome):
     if aft_start == 0 and aft_stop == 0:
@@ -169,14 +179,16 @@ def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_st
     se = final_check_phage_word(sjcontig, s, e, genome)
     return se
 
-def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, phageWindowSize, non_prophage_gene_gaps=10):
+
+def fixing_start_end(**kwargs):
     self = Namespace(**kwargs)
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
-    except:
-        sys.exit('ERROR: Cannot open initial_tbl.txt in fixing_start_end')
+    except IOError as e:
+        sys.stderr.write(f"There was an error reading initial_tbl.tsv: {e}\n")
+        sys.exit(-1)
 
-    #make all predicted pp list
+    # make all predicted pp list
     sys.stderr.write("Checking prophages in initial_tbl.tsv\n")
     pp = {}
     i = 0
@@ -250,7 +262,8 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             j += 1
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
         else:
-            prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Dropped. Not enough genes"])
+            prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
+                                    "Dropped. Not enough genes"])
     # print a list of all prophages and the number of genes
     if prophagesummary:
         sys.stderr.write('Potential prophages (sorted highest to lowest)\n')
@@ -261,17 +274,16 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     sys.stderr.write("\n")
     # End filtering
     # find start end for all pp using repeat finder
-    #dna = read_contig(organism_path)
-    dna = {entry.id : str(entry.seq) for entry in self.record}
-    extraDNA = 2000
+    dna = {entry.id: str(entry.seq) for entry in self.record}
+    extra_dna = 2000
     for i in pp:
         print("PROPHAGE: " + str(i) + " Contig: " + str(pp[i]['contig']) + " Start: " + str(
             pp[i]['start']) + " Stop: " + str(pp[i]['stop']))
-        start = pp[i]['start'] - extraDNA
+        start = pp[i]['start'] - extra_dna
         if start < 1:
             start = 1
         if 'stop' in pp[i]:
-            stop = pp[i]['stop'] + extraDNA
+            stop = pp[i]['stop'] + extra_dna
         else:
             stop = genome[len(genome) - 1]['stop']
         if stop > len(dna[pp[i]['contig']]):
@@ -280,8 +292,8 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
             print("Not checking repeats for pp " + str(i) + " because it is too big: " + str(stop - start) + "\n")
             continue
         sys.stderr.write("PP: " + str(i) + " start: " + str(pp[i]['start']) + " stop: " + str(pp[i]['stop']) + "\n")
-        print("Finding repeats in pp " + str(i) + " contig " + pp[i]['contig'] + " from " + str(start) + " to " + str(stop))
-        repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extraDNA, self.output_dir)
+        print(f"Finding repeats in pp {i} contig {pp[i]['contig']} from {start} to {stop}")
+        repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extra_dna, self.output_dir)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
         if s_e != 'null':
             t = re.split('_', s_e)
@@ -300,7 +312,7 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                 sys.stderr.write(str(pp[i]['stop']) + " after checking phage words\n")
 
             if (float(t[0]) != 0) and (pp[i]['start'] == float(t[0])) and (pp[i]['stop'] == float(t[1])):
-                #1 if (float(t[0])!= 0) and (float(t1[0]) == float(t[0])) and (float(t1[1]) == float(t[1])):
+                # 1 if (float(t[0])!= 0) and (float(t1[0]) == float(t[0])) and (float(t1[1]) == float(t[1])):
                 temps1 = min(t[0], t[2])
                 tempe1 = max(t[0], t[2])
                 temps2 = min(t[1], t[3])
@@ -347,11 +359,12 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
                         bestrep['e2'],
                         attLseq,
                         attRseq,
-                        "Longest Repeat flanking phage and within " + str(extraDNA) + " bp"
+                        "Longest Repeat flanking phage and within " + str(extra_dna) + " bp"
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
                     if samelenrep > 1:
-                        sys.stderr.write("There were {} repeats with the same length as the best. One chosen somewhat randomly!\n".format(samelenrep))
+                        sys.stderr.write("There were {samelenrep} repeats with the same length as the best. " +
+                                         "One chosen somewhat randomly!\n")
     # fix start end for all pp
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
@@ -378,8 +391,16 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     out = open(os.path.join(self.output_dir, 'prophage_coordinates.tsv'), 'w')
     for i in pp:
         if 'atts' not in pp[i]:
-            pp[i]['atts']=""
-        out.write("\t".join(map(str, ["pp" + str(i), "", pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['atts']])) + "\n")
+            pp[i]['atts'] = ""
+        locs = [
+            "pp" + str(i),
+            "",
+            pp[i]['contig'],
+            pp[i]['start'],
+            pp[i]['stop'],
+            pp[i]['atts']
+        ]
+        out.write("\t".join(map(str, locs)) + "\n")
     out.close()
     # write the prophage location table
     write_prophage_tbl(self.output_dir, pp)
@@ -390,13 +411,3 @@ def fixing_start_end(**kwargs): #output_dir, organism_path, INSTALLATION_DIR, ph
     # write the prophage in GFF3 format
     write_gff3(self.output_dir, pp)
     write_phage_and_bact(self.output_dir, pp, dna)
-
-################################################################################
-#def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
-    # Make the prophage_tbl_temp.txt file.
-    #fixing_start_end(output_dir,organismPath,INSTALLATION_DIR)
-    #fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)
-    #make_prophage_tbl(output_dir + 'prophage_tbl.tsv', output_dir + 'prophage.tbl')
-    #fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
-    # Make the prophage_tbl_temp.txt file.
-    #make_prophage_tbl(output_dir+'prophage_tbl.txt',output_dir+'prophage.tbl')
