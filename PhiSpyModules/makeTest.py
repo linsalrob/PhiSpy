@@ -275,7 +275,7 @@ def make_test_set(**kwargs):
     my_shannon_scores = ShannonScore(self.kmers_type)
     all_orf_list = {}
     dna = {}
-    window = 40
+    window = self.window_size
     for entry in self.record:
         dna[entry.id] = str(entry.seq)
         for feature in entry.get_features('CDS'):
@@ -380,7 +380,7 @@ def make_set_train(**kwargs):
     my_shannon_scores = ShannonScore(self.kmers_type)
     all_orf_list = {}
     dna = {}
-    window = 40
+    window = self.window_size
     for entry in self.record:
         dna[entry.id] = str(entry.seq)
         for feature in entry.get_features('CDS'):
@@ -400,10 +400,7 @@ def make_set_train(**kwargs):
         sys.exit('ERROR: Cannot open', os.path.join(self.output_dir, self.make_training_data), 'for writing.')
     outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
     for mycontig in all_orf_list:
-        # orf_list = my_sort(all_orf_list[mycontig]) #shouldn't that be deleted as well?
         orf_list = all_orf_list[mycontig]
-        ######################
-
         if not orf_list:
             continue
 
