@@ -1,0 +1,81 @@
+LOCUS       NC_022041            3613807 bp    DNA     circular CON 06-MAY-2020
+DEFINITION  Paracoccus aminophilus JCM 7686, complete sequence.
+ACCESSION   NC_022041
+VERSION     NC_022041.1
+DBLINK      BioProject: PRJNA224116
+            BioSample: SAMN02604253
+            Assembly: GCF_000444995.1
+KEYWORDS    RefSeq.
+SOURCE      Paracoccus aminophilus JCM 7686
+  ORGANISM  Paracoccus aminophilus JCM 7686
+            Bacteria; Proteobacteria; Alphaproteobacteria; Rhodobacterales;
+            Rhodobacteraceae; Paracoccus.
+REFERENCE   1  (bases 1 to 3613807)
+  AUTHORS   Dziewit,L., Czarnecki,J., Wibberg,D., Radlinska,M., Mrozek,P.,
+            Szymczak,M., Schluter,A., Puhler,A. and Bartosik,D.
+  TITLE     Architecture and functions of a multipartite genome of the
+            methylotrophic bacterium Paracoccus aminophilus JCM 7686,
+            containing primary and secondary chromids
+  JOURNAL   BMC Genomics 15, 124 (2014)
+   PUBMED   24517536
+  REMARK    Publication Status: Online-Only
+REFERENCE   2  (bases 1 to 3613807)
+  AUTHORS   Dziewit,L. and Bartosik,D.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (02-AUG-2013) Department of Bacterial Genetics,
+            University of Warsaw, Faculty of Biology, Institute of
+            Microbiology, Miecznikowa 1, Warsaw 02-096, Poland
+COMMENT     REFSEQ INFORMATION: The reference sequence was derived from
+            CP006650.
+            The annotation was added by the NCBI Prokaryotic Genome Annotation
+            Pipeline (PGAP). Information about PGAP can be found here:
+            https://www.ncbi.nlm.nih.gov/genome/annotation_prok/
+            
+            ##Genome-Assembly-Data-START##
+            Assembly Method           :: Newbler de novo assembler software
+                                         (Roche) v. 2.6
+            Reference-guided Assembly :: partially based on Paracoccus
+                                         denitrificans PD1222
+            Genome Coverage           :: 30-50X
+            Sequencing Technology     :: 454
+            ##Genome-Assembly-Data-END##
+            
+            ##Genome-Annotation-Data-START##
+            Annotation Provider               :: NCBI RefSeq
+            Annotation Date                   :: 05/04/2020 17:38:44
+            Annotation Pipeline               :: NCBI Prokaryotic Genome
+                                                 Annotation Pipeline (PGAP)
+            Annotation Method                 :: Best-placed reference protein
+                                                 set; GeneMarkS-2+
+            Annotation Software revision      :: 4.11
+            Features Annotated                :: Gene; CDS; rRNA; tRNA; ncRNA;
+                                                 repeat_region
+            Genes (total)                     :: 4,697
+            CDSs (total)                      :: 4,622
+            Genes (coding)                    :: 4,545
+            CDSs (with protein)               :: 4,545
+            Genes (RNA)                       :: 75
+            rRNAs                             :: 4, 4, 4 (5S, 16S, 23S)
+            complete rRNAs                    :: 4, 4, 4 (5S, 16S, 23S)
+            tRNAs                             :: 60
+            ncRNAs                            :: 3
+            Pseudo Genes (total)              :: 77
+            CDSs (without protein)            :: 77
+            Pseudo Genes (ambiguous residues) :: 0 of 77
+            Pseudo Genes (frameshifted)       :: 23 of 77
+            Pseudo Genes (incomplete)         :: 54 of 77
+            Pseudo Genes (internal stop)      :: 18 of 77
+            Pseudo Genes (multiple problems)  :: 14 of 77
+            ##Genome-Annotation-Data-END##
+            COMPLETENESS: full length.
+FEATURES             Location/Qualifiers
+     source          1..3613807
+                     /organism="Paracoccus aminophilus JCM 7686"
+                     /mol_type="genomic DNA"
+                     /strain="JCM 7686"
+                     /culture_collection="JCM:7686"
+                     /type_material="type strain of Paracoccus aminophilus"
+                     /db_xref="taxon:1367847"
+CONTIG      join(CP006650.1:1..3613807)
+//
+
