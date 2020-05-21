@@ -363,7 +363,7 @@ def fixing_start_end(**kwargs):
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
                     if samelenrep > 1:
-                        sys.stderr.write("There were {samelenrep} repeats with the same length as the best. " +
+                        sys.stderr.write(f"There were {samelenrep} repeats with the same length as the best. " +
                                          "One chosen somewhat randomly!\n")
     # fix start end for all pp
     try:
