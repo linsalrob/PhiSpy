@@ -92,8 +92,7 @@ def write_genbank(infile, record, output_directory, pp):
 
 
 def write_phage_and_bact(output_dir, pp, dna):
-    # sys.stderr.write(pp)
-    sys.stderr.write('writing bacterial and phage DNA')
+    sys.stderr.write('writing bacterial and phage DNA\n')
     phage_out = open(os.path.join(output_dir, "phage.fasta"), "w")
     bacteria_out = open(os.path.join(output_dir, "bacteria.fasta"), "w")
     
@@ -172,7 +171,7 @@ def prophage_measurements_to_tbl(inputf, outputf):
         f = open(inputf, 'r')
         fw = open(outputf, 'w')
     except IOError as e:
-        sys.stderr.write(f"There was an error trying to convert the measurements to a tbl: {e}")
+        sys.stderr.write(f"There was an error trying to convert the measurements to a tbl: {e}\n")
         return
     pp = {}
     ppindx = 0
