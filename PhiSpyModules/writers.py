@@ -128,6 +128,7 @@ def write_phage_and_bact(output_dir, pp, dna):
     phage_out.close()
     bacteria_out.close()
 
+
 def write_prophage_tbl(outputdir, pp):
     """
     Create a prophage_tbl file from our pp dictionary
@@ -138,7 +139,14 @@ def write_prophage_tbl(outputdir, pp):
 
     with open(os.path.join(outputdir, "prophage.tbl"), 'w') as out:
         for i in pp:
-            out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
+            locs = [
+                "pp_" + str(i),
+                pp[i]['contig'],
+                pp[i]['start'],
+                pp[i]['stop']
+            ]
+            out.write(locs[0] + "\t" + "_".join(map(str, locs[1:])) + "\n")
+
 
 def write_prophage_tsv(outputdir, pp):
     """
@@ -150,17 +158,21 @@ def write_prophage_tsv(outputdir, pp):
     with open(os.path.join(outputdir, "prophage.tsv"), 'w') as out:
         out.write("Prophage number\tContig\tStart\tStop\n")
         for i in pp:
-            out.write("pp_" + str(i) + "\t" + str(pp[i]['contig']) + "\t" + str(pp[i]['start']) + "\t" + str(pp[i]['stop']) + "\n")
-
-
+            locs = [
+                "pp_" + str(i),
+                pp[i]['contig'],
+                pp[i]['start'],
+                pp[i]['stop']
+            ]
+            out.write("\t".join(map(str, locs)) + "\n")
 
 
 def prophage_measurements_to_tbl(inputf, outputf):
     try:
         f = open(inputf, 'r')
         fw = open(outputf, 'w')
-    except:
-        print('Cant open', inputf, ' or ', outputf)
+    except IOError as e:
+        sys.stderr.write(f"There was an error trying to convert the measurements to a tbl: {e}")
         return
     pp = {}
     ppindx = 0
