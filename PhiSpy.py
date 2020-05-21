@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
-import subprocess
-import types
+import gzip
 from functools import reduce
 
 from Bio import SeqIO
@@ -56,9 +55,20 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     # in future support other types
     # added a filter to remove short contigs. These break everything and we can't predict them to be 
     # phages anyway
-    args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(args_parser.infile, "genbank")))
-    # args_parser.record = input_file
-    
+
+    # RAE: Add support for gzipped files
+    try:
+        if PhiSpyModules.is_gzip_file(args_parser.infile):
+            handle = gzip.open(args_parser.infile, 'rt')
+        else:
+            handle = open(args_parser.infile, 'r')
+    except IOError as e:
+        PhiSpyModules.message(f"There was an error reading {args_parser.infile}: {e}", "RED",'stderr')
+        sys.exit(20)
+
+    args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(handle, "genbank")))
+    handle.close()
+
     # do we have any records left. Yes, this bug caught me out
     ncontigs = reduce(lambda sum, element: sum + 1, args_parser.record, 0)
     if ncontigs == 0:
