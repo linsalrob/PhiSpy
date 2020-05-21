@@ -1,12 +1,12 @@
 import re
-import string
 import os
+
 
 def is_phage_func(func):
     func = func.lower()
-    func = func.replace('-',' ')
-    func = func.replace(',',' ')
-    a = re.split(' ',func)
+    func = func.replace('-', ' ')
+    func = func.replace(',', ' ')
+    a = re.split(' ', func)
     if (
             'phage'         in a or
             'lysin'         in a or
@@ -36,12 +36,11 @@ def is_phage_func(func):
     return False
 
 
-
 def is_unknown_func(x):
     x_lower = x.lower()
     if (
        (len(x) == 0) or
-       #('hypoth' in x_lower) or
+       # ('hypoth' in x_lower) or
        ('conserved protein' in x_lower) or
        ('gene product' in x_lower) or
        ('interpro' in x_lower) or
@@ -74,14 +73,16 @@ def is_unknown_func(x):
        re.match('predicted', x_lower) or
        re.match('bh\d+', x_lower) or
        re.match('y[a-z]{2,4}\\b', x) or
-       re.match('[a-z]{2,3}\d+[^:\+\-0-9]', x_lower) ):
+       re.match('[a-z]{2,3}\d+[^:\+\-0-9]', x_lower)
+    ):
         return True
     return False
 
-def add_unknown_function_initial_tbl(infile,outfile):
+
+def add_unknown_function_initial_tbl(infile, outfile):
     try:
-        f = open(infile,'r')
-        fw = open(outfile,'w')
+        f = open(infile, 'r')
+        fw = open(outfile, 'w')
     except:
         print('ERROR: Cannot open initial_tbl.tsv add_unknown_function_initial_tbl.')
         return 0
@@ -92,26 +93,25 @@ def add_unknown_function_initial_tbl(infile,outfile):
             flag = 1
             continue
         line = line.strip()
-        temp = re.split('\t',line)
+        temp = re.split('\t', line)
         i = 0
-        while i<8:
-            fw.write(temp[i]+'\t')
+        while i < 8:
+            fw.write(temp[i] + '\t')
             i = i + 1
         if is_unknown_func(temp[1]):
             fw.write('0.5\n')
         else:
-            fw.write(temp[8]+'\n')
+            fw.write(temp[8] + '\n')
 
     f.close()
     fw.close()
     return 1
 
+
 def consider_unknown(output_dir):
     it = os.path.join(output_dir, 'initial_tbl.tsv')
     it2 = os.path.join(output_dir, 'initial_tbl_2.tsv')
     x = add_unknown_function_initial_tbl(it, it2)
-    if (x == 1):
-        cmd2 = "rm " + it
-        os.system(cmd2)
-        cmd2 = "mv " + it2 + ' ' + it
-        os.system(cmd2)
+    if x == 1:
+        os.remove(it)
+        os.rename(it2, it)
