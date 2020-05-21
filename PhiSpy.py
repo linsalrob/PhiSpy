@@ -47,7 +47,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     # if phmm search is required
     if args_parser.phmms:
-        sys.stderr.write('Performing HMM search.\n')
+        PhiSpyModules.message('Performing HMM search.\n', "GREEN", 'stderr')
         args_parser.infile = PhiSpyModules.search_phmms(**vars(args_parser))
 
     ######################################
@@ -62,17 +62,18 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     # do we have any records left. Yes, this bug caught me out
     ncontigs = reduce(lambda sum, element: sum + 1, args_parser.record, 0)
     if ncontigs == 0:
-        sys.stderr.write(f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n")
-        sys.stderr.write("There is no data to process\n")
+        msg = f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n"
+        msg += "There is no data to process\n"
+        PhiSpyModules.message(msg, "RED", "stderr")
         sys.exit(20)
 
-    sys.stderr.write(f"Processing {ncontigs} contigs \n")
+    PhiSpyModules.message(f"Processing {ncontigs} contigs \n", "GREEN", 'stderr')
 
     ######################################
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
-        sys.stderr.write('Making Train Set...\n')
+        PhiSpyModules.message('Making Train Set...\n', "GREEN", 'stderr')
         my_make_train_flag = PhiSpyModules.make_set_train(**vars(args_parser))
         exit()
 
@@ -94,15 +95,15 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     ###### added in this version 2.2 #####
     if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
-        sys.stderr.write('As the training flag is zero, considering unknown functions\n')
+        PhiSpyModules.message('As the training flag is zero, considering unknown functions\n', "RED", 'stderr')
         PhiSpyModules.consider_unknown(args_parser.output_dir)
 
     ######################################
     #         do evaluation              #
     ######################################
-    sys.stderr.write('Evaluating...\n')
+    PhiSpyModules.message('Evaluating...\n', "GREEN", 'stderr')
     PhiSpyModules.fixing_start_end(**vars(args_parser))
-    sys.stderr.write('Done!!!\n')
+    PhiSpyModules.message('Done!!!\n', "GREEN", 'stderr')
 
 
 
