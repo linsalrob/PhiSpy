@@ -324,8 +324,7 @@ def measure_features(**kwargs):
         c = sum(gc_skew) / len(gc_skew)
         avg_at_skew, avg_gc_skew = math.fabs(a - t), math.fabs(g - c)
 
-        i = 0
-        while i < len(orf_list):
+        for i, orf_data in enumerate(orf_list):
             # orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms
             this_orf = []  # the data for this particular orf that gets added to test_data
             # initialize
@@ -381,11 +380,9 @@ def measure_features(**kwargs):
                 orf[len(orf) - 1] if len(orf) == 1 else orf[len(orf) - 1] + orf[len(orf) - 2]
             )
             this_orf.append(sum(phmms[j_start:j_stop]))
-            i += 1
             assert(len(this_orf) == 6)  # confirm I added everything!
             if 'making_training_set' in self:
-                message("MAKING TRAINING SET", "BLUE", "stdout")
-                this_orf.append('1' if orf_list[i]['is_phage'] else '0')
+                this_orf.append('1' if orf_data['is_phage'] else '0')
             data.append(this_orf)
         my_shannon_scores.reset()
     return data
@@ -395,7 +392,6 @@ def make_set_train(**kwargs):
     self = Namespace(**kwargs)
 
     with open(os.path.join(self.output_dir, self.make_training_data),'w') as outfile:
-        outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
-        for d in measure_features(kwargs):
-            outfile.write("\t".join(map(str, d)))
-
+        outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
+        for d in measure_features(**kwargs):
+            outfile.write("\t".join(map(str, d)) + "\n")

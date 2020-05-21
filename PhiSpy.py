@@ -83,14 +83,14 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
-        PhiSpyModules.message('Making Train Set...\n', "GREEN", 'stderr')
+        PhiSpyModules.message('Making Training Set...\n', "GREEN", 'stderr')
         my_make_train_flag = PhiSpyModules.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
     #         make testing set           #
     ######################################
-    PhiSpyModules.message('Making Test Set...\n', "GREEN", 'stderr')
+    PhiSpyModules.message('Making Testing Set...\n', "GREEN", 'stderr')
     args_parser.test_data = PhiSpyModules.measure_features(**vars(args_parser))
 
     ######################################
