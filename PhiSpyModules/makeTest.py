@@ -288,11 +288,7 @@ def make_test_set(**kwargs):
                    }
             )
             all_orf_list[entry.id] = orf_list
-    try:
-        outfile = open(os.path.join(self.output_dir, 'testSet.txt'), 'w')
-    except:
-        sys.exit('ERROR: Cannot open file for writing: testSet.txt')
-    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\n')
+
     for mycontig in all_orf_list:
         orf_list = all_orf_list[mycontig]
         all_median = find_all_median(orf_list)
@@ -361,36 +357,22 @@ def make_test_set(**kwargs):
                         flag = 1
             orf.append(x)
             orf.sort()
-            outfile.write(str(my_length))
             this_orf.append(my_length)
-            outfile.write('\t')
             if self.expand_slope:
                 s = my_shannon_scores.getSlope(j_start, j_stop)
-                outfile.write(str(s * s))
                 this_orf.append(s * s)
             else:
-                outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
                 this_orf.append(my_shannon_scores.getSlope(j_start, j_stop))
-            outfile.write('\t')
-            outfile.write(str(jat))
             this_orf.append(jat)
-            outfile.write('\t')
-            outfile.write(str(jgc))
             this_orf.append(jgc)
-            outfile.write('\t')
-            outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
             this_orf.append(
                 orf[len(orf) - 1] if len(orf) == 1 else orf[len(orf) - 1] + orf[len(orf) - 2]
             )
-            outfile.write('\t')
-            outfile.write(str(sum(phmms[j_start:j_stop])))
             this_orf.append(sum(phmms[j_start:j_stop]))
-            outfile.write('\n')
             i += 1
             assert(len(this_orf) == 6)  # confirm I added everything!
             test_data.append(this_orf)
         my_shannon_scores.reset()
-    outfile.close()
     return test_data
 
 def make_set_train(**kwargs):
