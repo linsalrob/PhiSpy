@@ -32,9 +32,38 @@ def is_phage_func(func):
             re.search(r"\b%s\b" % "rIIA lysis", func) or
             re.search(r"\b%s\b" % "rI lysis", func) or
             re.search(r"\b%s\b" % "rIIB lysis", func) or
-            re.search(r"\b%s\b" % "base plate", func)
+            re.search(r"\b%s\b" % "base plate", func) or
+            ("head" in a and "decoration" in a) or
+            ("helix" in a and "turn" in a) or
+            "HNH endonuclease" in func or
+            "single-stranded DNA-binding protein" in func
     ):
         return True
+    return False
+
+
+def is_not_phage_func(x):
+    """
+    These are some annotations that are definitely not phages, but often look like them.
+
+    :param x: the function to test
+    :return: True if it is NOT a phage function.
+        Note that False suggests it maybe a phage function, but may not be (we are not sure)!
+    """
+
+    x = x.lower()
+    if (
+        "conjugal transfer" in x or
+        "flagella" in x or
+        "flagellar" in x or
+        "flagellin" in x or
+        "flagellum" in x or
+        "hypothetical" in x or
+        "ribosomal protein" in x or
+        "secY" in x or
+        "Summary phrase" in x
+        ):
+            return True
     return False
 
 
