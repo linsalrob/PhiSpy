@@ -17,17 +17,18 @@ from .helper_functions import is_gzip_file
 __author__ = 'Rob Edwards'
 
 
-def write_gff3(output_dir, pp):
+def write_gff3(output_dir, pp, fileprefix=""):
     """
     Write GFF3 code. This was adapted from code contribued by [Jose Francisco Sanchez-Herrero]
     (https://github.com/JFsanchezherrero/)
 
     :param output_dir: the location to write to
     :param pp: the list of prophage objects
+    :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
     # GFF output
-    out_gff = open(os.path.join(output_dir, "prophage.gff3"), "w")
+    out_gff = open(os.path.join(output_dir, fileprefix + "prophage.gff3"), "w")
     out_gff.write("##gff-version 3")
     out_gff.write("\n")
     
@@ -64,17 +65,18 @@ def write_gff3(output_dir, pp):
     out_gff.close()
 
 
-def write_genbank(infile, record, output_directory, pp):
+def write_genbank(infile, record, output_directory, pp, fileprefix=""):
     """
     Write prophages and their potential attachment sites in updated input GenBank file.
     :param infile: path to input file
     :param record: SeqRecord generator of input file
     :param output_directory: the location to write to
     :param pp: the list of prophage objects
+    :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
     prophage_feature_type = 'misc_feature'  # / prophage_region
-    outfile = os.path.join(output_directory, os.path.basename(infile))
+    outfile = os.path.join(output_directory, fileprefix + os.path.basename(infile))
     for i in pp:
         record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
                     location=FeatureLocation(pp[i]['start'], pp[i]['stop']),
@@ -100,10 +102,18 @@ def write_genbank(infile, record, output_directory, pp):
     SeqIO.write(record, handle, 'genbank')
 
 
-def write_phage_and_bact(output_dir, pp, dna):
+def write_phage_and_bact(output_dir, pp, dna, fileprefix=None):
+    """
+    Separate out the phage and bacterial fractions into fasta files
+    :param output_dir: The output directory to write the files to
+    :param pp: the prophage object
+    :param dna: the DNA sequence object
+    :param fileprefix: an optional file prefix prepended to the files
+    :return:
+    """
     message('writing bacterial and phage DNA', "GREEN", 'stderr')
-    phage_out = open(os.path.join(output_dir, "phage.fasta"), "w")
-    bacteria_out = open(os.path.join(output_dir, "bacteria.fasta"), "w")
+    phage_out = open(os.path.join(output_dir, fileprefix + "phage.fasta"), "w")
+    bacteria_out = open(os.path.join(output_dir, fileprefix + "bacteria.fasta"), "w")
     
     contig_to_phage = {}
     for i in pp:
@@ -137,15 +147,38 @@ def write_phage_and_bact(output_dir, pp, dna):
     bacteria_out.close()
 
 
-def write_prophage_tbl(outputdir, pp):
+def write_prophage_coordinates(outputdir, pp, fileprefix=""):
+    """
+    Write the coordinates and other details about the prophages
+    :param outputdir: the output directory to write to
+    :param pp: the prophage object
+    :param fileprefix: An optional prefix that will be prepended to the filename
+    """
+
+    with open(os.path.join(outputdir, fileprefix + 'prophage_coordinates.tsv'), 'w') as out:
+        for i in pp:
+            if 'atts' not in pp[i]:
+                pp[i]['atts'] = ""
+            locs = [
+                "pp" + str(i),
+                pp[i]['contig'],
+                pp[i]['start'],
+                pp[i]['stop'],
+                pp[i]['atts']
+            ]
+            out.write("\t".join(map(str, locs)) + "\n")
+
+
+def write_prophage_tbl(outputdir, pp, fileprefix=""):
     """
     Create a prophage_tbl file from our pp dictionary
     :param outputdir: the directory to write to
     :param pp: array of pp dictionaries
+    :param fileprefix: An optional prefix that will be prepended to the filename
     :return: None
     """
 
-    with open(os.path.join(outputdir, "prophage.tbl"), 'w') as out:
+    with open(os.path.join(outputdir, fileprefix + "prophage.tbl"), 'w') as out:
         for i in pp:
             locs = [
                 "pp_" + str(i),
@@ -156,14 +189,15 @@ def write_prophage_tbl(outputdir, pp):
             out.write(locs[0] + "\t" + "_".join(map(str, locs[1:])) + "\n")
 
 
-def write_prophage_tsv(outputdir, pp):
+def write_prophage_tsv(outputdir, pp, fileprefix=""):
     """
     Create a tsv with headers for this data. Issue #28 item 2
     :param outputdir: the directory to write to
     :param pp: array of pp dictionaries
+    :param fileprefix: An optional prefix that will be prepended to the filename
     :return: None
     """
-    with open(os.path.join(outputdir, "prophage.tsv"), 'w') as out:
+    with open(os.path.join(outputdir, fileprefix + "prophage.tsv"), 'w') as out:
         out.write("Prophage number\tContig\tStart\tStop\n")
         for i in pp:
             locs = [
