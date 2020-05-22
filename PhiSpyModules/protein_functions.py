@@ -6,8 +6,10 @@ def is_phage_func(func):
     func = func.lower()
     func = func.replace('-', ' ')
     func = func.replace(',', ' ')
+    func = func.replace('/', ' ')
     a = re.split(' ', func)
     if (
+            'integrase'     in a or
             'phage'         in a or
             'lysin'         in a or
             'endolysin'     in a or
@@ -39,41 +41,42 @@ def is_phage_func(func):
 def is_unknown_func(x):
     x_lower = x.lower()
     if (
-       (len(x) == 0) or
-       # ('hypoth' in x_lower) or
-       ('conserved protein' in x_lower) or
-       ('gene product' in x_lower) or
-       ('interpro' in x_lower) or
-       ('uncharacterized' in x_lower) or
-       ('pseudogene' in x_lower) or
-       ('similar to' in x_lower) or
-       ('similarity' in x_lower) or
-       ('glimmer' in x_lower) or
-       ('unknown' in x_lower) or
-       ('complete' in x_lower) or
-       ('ensang' in x_lower) or
-       ('unnamed' in x_lower) or
-       ('expressed' in x_lower) or
-       ('similar to' in x_lower) or
-       (' identi' in x_lower) or
-       ('ortholog of' in x_lower) or
-       ('structural feature' in x_lower) or
-       ('cds_' in x_lower) or
-       ('predicted by psort' in x_lower) or
-       ('AGR_' in x) or
-       ('EG:' in x) or
-       ('RIKEN' in x) or
-       re.search('lmo\d+ protein', x_lower) or
-       re.search('lmo\d+protein', x_lower) or
-       re.search('B[sl][lr]\d', x_lower) or
-       re.search('^U\d', x) or
-       re.search('[a-zA-Z]{2,3}\|', x) or
-       re.search('orf\d+', x_lower) or
-       re.match('orf[^_]', x_lower) or
-       re.match('predicted', x_lower) or
-       re.match('bh\d+', x_lower) or
-       re.match('y[a-z]{2,4}\\b', x) or
-       re.match('[a-z]{2,3}\d+[^:\+\-0-9]', x_lower)
+            (len(x) == 0) or
+            # ('hypoth' in x_lower) or
+            ('hypothetical' in x_lower) or
+            ('conserved protein' in x_lower) or
+            ('gene product' in x_lower) or
+            ('interpro' in x_lower) or
+            ('uncharacterized' in x_lower) or
+            ('pseudogene' in x_lower) or
+            ('similar to' in x_lower) or
+            ('similarity' in x_lower) or
+            ('glimmer' in x_lower) or
+            ('unknown' in x_lower) or
+            ('complete' in x_lower) or
+            ('ensang' in x_lower) or
+            ('unnamed' in x_lower) or
+            ('expressed' in x_lower) or
+            ('similar to' in x_lower) or
+            (' identi' in x_lower) or
+            ('ortholog of' in x_lower) or
+            ('structural feature' in x_lower) or
+            ('cds_' in x_lower) or
+            ('predicted by psort' in x_lower) or
+            ('AGR_' in x) or
+            ('EG:' in x) or
+            ('RIKEN' in x) or
+            re.search('lmo\d+ protein', x_lower) or
+            re.search('lmo\d+protein', x_lower) or
+            re.search('B[sl][lr]\d', x_lower) or
+            re.search('^U\d', x) or
+            re.search('[a-zA-Z]{2,3}\|', x) or
+            re.search('orf\d+', x_lower) or
+            re.match('orf[^_]', x_lower) or
+            re.match('predicted', x_lower) or
+            re.match('bh\d+', x_lower) or
+            re.match('y[a-z]{2,4}\\b', x) or
+            re.match('[a-z]{2,3}\d+[^:\+\-0-9]', x_lower)
     ):
         return True
     return False
