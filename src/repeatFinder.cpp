@@ -20,6 +20,7 @@ char *dna;
 int converter[128], complement[128];
 int dna_len;
 int output_rep_len = REPEAT_LEN;
+int debug = 0;
 
 vector<int> allrepeats[HASH_LEN];
 struct repeat{
@@ -32,8 +33,8 @@ struct repeat{
 }R;
 
 vector<repeat> rep;
-int gap_len = 0;//allow gap < gap_len
-
+int gap_len = 0; //allow gap < gap_len
+int ppno = 0; // which prophage are we working on
 
 void input()
 {
@@ -110,6 +111,10 @@ void find_maxlen(int fst, int sec)
 			k++;
 		else 
 			break;
+
+    if (debug && sec > dna_len) {
+        fprintf(stderr, "In find_maxlen we added a repeat with sec %d that is longer than dna_len (%d)\n", sec, dna_len);
+    }
 
 	R.fst=fst+1;
 	R.sec=sec+1;
@@ -233,15 +238,29 @@ void extend_gapped_repeat()
 			}
 }	
 
+
+void write_dna()
+{
+// write the dna sequence we are testing to a file. This is for debugging purposes!
+    FILE *f;
+	char outputfile[300];
+
+    sprintf(outputfile, "%s.prophage.%hu.fasta", inputfile, (unsigned short) ppno);
+    f = fopen(outputfile,"w");
+    fprintf(f, ">pp_%d\n%s\n", ppno, dna);
+    fclose(f);
+}
+
 void print_output()
 {
 	int i,j;
 	FILE *f;
-	char outputfile[256];
+	char outputfile[300];
 
-    strcpy (outputfile,inputfile);
-    strcat (outputfile,".repeatfinder");
+
+    sprintf(outputfile, "%s.prophage.%hu.repeatfinder", inputfile, (unsigned short) ppno);
     f = fopen(outputfile,"w");
+    fprintf(f, "First repeat start\tFirst repeat end\tSecond repeat start\tSecond repeat end\tFirst len\tSecond len\tExact\tVisited\n");
 
 	j = rep.size();
 
@@ -250,9 +269,10 @@ void print_output()
 		if(rep[i].visited==0 && rep[i].len>= output_rep_len){
 			fprintf(f,"%d\t%d\t",rep[i].fst,rep[i].fst+rep[i].len-1);
 			if(rep[i].sec>-1)
-				fprintf(f,"%d\t%d\n",rep[i].sec,rep[i].sec+rep[i].seclen-1);	
+				fprintf(f,"%d\t%d",rep[i].sec,rep[i].sec+rep[i].seclen-1);
 			else
-				fprintf(f,"%d\t%d\n",rep[i].sec*(-1),(rep[i].sec+rep[i].seclen-1)*(-1));
+				fprintf(f,"%d\t%d",rep[i].sec*(-1),(rep[i].sec+rep[i].seclen-1)*(-1));
+			fprintf(f, "\t%d\t%d\t%d\t%d\n", rep[i].len, rep[i].seclen, rep[i].exact, rep[i].visited);
 			totalRep++;
 		}
 	fclose(f);
@@ -330,22 +350,25 @@ int main(int argc, char **argv)
 	input();
     run();
     print_output();
+    write_dna();
 	return 0;
 }
 
-static PyObject *
+PyObject *
 python_input(PyObject *self, PyObject *args) {
     /* Parse arguments */
-    if(!PyArg_ParseTuple(args, "si", &dna, &gap_len)) {
+    if(!PyArg_ParseTuple(args, "siii", &dna, &gap_len, &ppno, &debug)) {
         PyErr_SetString(PyExc_RuntimeError, "Could not parse the arguments to python_input");
         return NULL;
     }
     dna_len = strlen(dna);
     run();
 
-    // incase you need to debug, uncomment these two lines
-    //strcpy(inputfile, "ROBTEST");
-    //print_output();
+    if (debug) {
+        strcpy(inputfile, "DEBUGGING_REPEATFINDER");
+        print_output();
+        write_dna();
+    }
 
     // convert our vector of arrays to a Python object
     Py_ssize_t len = rep.size();
@@ -375,6 +398,13 @@ python_input(PyObject *self, PyObject *args) {
            PyList_Append(result, item);
            }
     }
+
+    // CRITICAL: We need to reset the repeats before we
+    // call this method again from within the same run!
+    for (int i=0; i<HASH_LEN; i++)
+        allrepeats[i].clear();
+
+    rep.clear();
     return result;
 }
 
