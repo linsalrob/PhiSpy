@@ -5,7 +5,7 @@ import sys
 from argparse import Namespace
 
 from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
-from .writers import write_prophage_tsv, write_genbank
+from .writers import write_prophage_tsv, write_genbank, write_prophage_coordinates
 from .formatting import message
 
 import PhiSpyRepeatFinder
@@ -369,7 +369,7 @@ def fixing_start_end(**kwargs):
     # fix start end for all pp
     try:
         infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
-        outfile = open(os.path.join(self.output_dir, 'prophage_tbl.tsv'), 'w')
+        outfile = open(os.path.join(self.output_dir, self.file_prefix + 'prophage_informations.tsv'), 'w')
     except IOError as e:
         message(f"There was an error opening the files: {e}\n", "RED", 'stderr')
         sys.exit(-1)
@@ -389,26 +389,14 @@ def fixing_start_end(**kwargs):
     if not self.keep:
         os.remove(os.path.join(self.output_dir, 'initial_tbl.tsv'))
     # print the prophage coordinates:
-    out = open(os.path.join(self.output_dir, 'prophage_coordinates.tsv'), 'w')
-    for i in pp:
-        if 'atts' not in pp[i]:
-            pp[i]['atts'] = ""
-        locs = [
-            "pp" + str(i),
-            "",
-            pp[i]['contig'],
-            pp[i]['start'],
-            pp[i]['stop'],
-            pp[i]['atts']
-        ]
-        out.write("\t".join(map(str, locs)) + "\n")
-    out.close()
+    write_prophage_coordinates(self.output_dir, pp, self.file_prefix)
     # write the prophage location table
-    write_prophage_tbl(self.output_dir, pp)
+    write_prophage_tbl(self.output_dir, pp, self.file_prefix)
     # write a tsv file of this data
-    write_prophage_tsv(self.output_dir, pp)
+    write_prophage_tsv(self.output_dir, pp, self.file_prefix)
     # update input GenBank file and incorporate prophage regions
-    write_genbank(self.infile, self.record, self.output_dir, pp)
+    write_genbank(self.infile, self.record, self.output_dir, pp, self.file_prefix)
     # write the prophage in GFF3 format
-    write_gff3(self.output_dir, pp)
-    write_phage_and_bact(self.output_dir, pp, dna)
+    write_gff3(self.output_dir, pp, self.file_prefix)
+    # separate out the bacteria and phage as fasta files
+    write_phage_and_bact(self.output_dir, pp, dna, self.file_prefix)
