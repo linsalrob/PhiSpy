@@ -4,7 +4,7 @@ A module to write the output in different formats
 """
 
 import os
-import sys
+import gzip
 
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
@@ -12,6 +12,7 @@ from collections import OrderedDict
 
 import PhiSpyModules.version as version
 from .formatting import message
+from .helper_functions import is_gzip_file
 
 __author__ = 'Rob Edwards'
 
@@ -90,7 +91,13 @@ def write_genbank(infile, record, output_directory, pp):
                         strand=1,
                         qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
 
-    SeqIO.write(record, outfile, 'genbank')
+    # are we writing a gzip file
+    if is_gzip_file(infile):
+        handle = gzip.open(outfile, 'wt')
+    else:
+        handle = open(outfile, 'w')
+
+    SeqIO.write(record, handle, 'genbank')
 
 
 def write_phage_and_bact(output_dir, pp, dna):
