@@ -27,6 +27,7 @@ def write_gff3(output_dir, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
+    message("Writing GFF3 output file", "GREEN", 'stderr')
     # GFF output
     out_gff = open(os.path.join(output_dir, fileprefix + "prophage.gff3"), "w")
     out_gff.write("##gff-version 3")
@@ -75,6 +76,7 @@ def write_genbank(infile, record, output_directory, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
+    message("Writing GenBank output file", "GREEN", 'stderr')
     prophage_feature_type = 'misc_feature'  # / prophage_region
     outfile = os.path.join(output_directory, fileprefix + os.path.basename(infile))
     for i in pp:
@@ -111,7 +113,7 @@ def write_phage_and_bact(output_dir, pp, dna, fileprefix=None):
     :param fileprefix: an optional file prefix prepended to the files
     :return:
     """
-    message('writing bacterial and phage DNA', "GREEN", 'stderr')
+    message('Writing bacterial and phage DNA as fasta', "GREEN", 'stderr')
     phage_out = open(os.path.join(output_dir, fileprefix + "phage.fasta"), "w")
     bacteria_out = open(os.path.join(output_dir, fileprefix + "bacteria.fasta"), "w")
     
@@ -155,6 +157,7 @@ def write_prophage_coordinates(outputdir, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
+    message("Writing prophage_coordinates output file", "GREEN", 'stderr')
     with open(os.path.join(outputdir, fileprefix + 'prophage_coordinates.tsv'), 'w') as out:
         for i in pp:
             if 'atts' not in pp[i]:
@@ -178,6 +181,7 @@ def write_prophage_tbl(outputdir, pp, fileprefix=""):
     :return: None
     """
 
+    message("Writing prophage.tbl output file", "GREEN", 'stderr')
     with open(os.path.join(outputdir, fileprefix + "prophage.tbl"), 'w') as out:
         for i in pp:
             locs = [
@@ -197,6 +201,8 @@ def write_prophage_tsv(outputdir, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     :return: None
     """
+
+    message("Writing prophage.tsv output file", "GREEN", 'stderr')
     with open(os.path.join(outputdir, fileprefix + "prophage.tsv"), 'w') as out:
         out.write("Prophage number\tContig\tStart\tStop\n")
         for i in pp:

@@ -388,15 +388,54 @@ def fixing_start_end(**kwargs):
     outfile.close()
     if not self.keep:
         os.remove(os.path.join(self.output_dir, 'initial_tbl.tsv'))
-    # print the prophage coordinates:
-    write_prophage_coordinates(self.output_dir, pp, self.file_prefix)
-    # write the prophage location table
-    write_prophage_tbl(self.output_dir, pp, self.file_prefix)
-    # write a tsv file of this data
-    write_prophage_tsv(self.output_dir, pp, self.file_prefix)
-    # update input GenBank file and incorporate prophage regions
-    write_genbank(self.infile, self.record, self.output_dir, pp, self.file_prefix)
-    # write the prophage in GFF3 format
-    write_gff3(self.output_dir, pp, self.file_prefix)
-    # separate out the bacteria and phage as fasta files
-    write_phage_and_bact(self.output_dir, pp, dna, self.file_prefix)
+
+    """
+    now we need to decide which files to keep
+    It is based on this code:
+        Code | File
+        --- | ---
+        1 | prophage_coordinates.tsv 
+        2 | GenBank format output 
+        4 | prophage and bacterial sequences  
+        8 | prophage_information.tsv  
+        16 | prophage.tsv  
+        32 | GFF3 format  
+        64 | prophage.tbl
+    As explained in the README. 
+    """
+
+    oc = self.output_choice
+    if oc >= 64:
+        # write the prophage location table
+        write_prophage_tbl(self.output_dir, pp, self.file_prefix)
+        oc -= 64
+    if oc >= 32:
+        # write the prophage in GFF3 format
+        write_gff3(self.output_dir, pp, self.file_prefix)
+        oc -= 32
+    if oc >= 16:
+        # write a tsv file of this data
+        write_prophage_tsv(self.output_dir, pp, self.file_prefix)
+        oc -= 16
+    if oc < 8:
+        # we want to KEEP the prophage_information.tsv that we created earlier
+        # if oc >= 8, or if we get to this point and oc is 7 or less we want to
+        # delete it.
+        os.remove(os.path.join(self.output_dir, self.file_prefix + 'prophage_informations.tsv'))
+    if oc == 8:
+        oc = 0
+    if oc >= 4:
+        # separate out the bacteria and phage as fasta files
+        write_phage_and_bact(self.output_dir, pp, dna, self.file_prefix)
+        oc -= 4
+    if oc >= 2:
+        # update input GenBank file and incorporate prophage regions
+        write_genbank(self.infile, self.record, self.output_dir, pp, self.file_prefix)
+    if oc >= 1:
+        # print the prophage coordinates:
+        write_prophage_coordinates(self.output_dir, pp, self.file_prefix)
+
+
+
+
+
