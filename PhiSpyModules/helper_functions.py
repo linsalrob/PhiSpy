@@ -57,6 +57,8 @@ def get_args():
                         help='Choose the most closely related set to your genome.')
     parser.add_argument('-l', '--list', action='store_true', default=False,
                         help='List the available training sets and exit')
+    parser.add_argument('-p', '--file_prefix', default="",
+                        help='An optional prefix to prepend to all of the output files')
     parser.add_argument('-e', '--evaluate', type=bool, default=False, const=True, nargs='?',
                         help='Run in evaluation mode -- does not generate new data, but reruns the evaluation')
     parser.add_argument('-n', '--number', default=5, type=int,
@@ -87,10 +89,19 @@ def get_args():
     parser.add_argument('--threads', type=int, default=2,
                         help='Number of threads to use while searching with phmms and the random forest.')
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
+    parser.add_argument('--output_choice', type=int, default=3,
+                        help='Sum of codes for files to output. For more details see the README.md file')
     parser.add_argument('-qt', '--quiet', type=bool, default=False, const=True, nargs='?',
                         help='Run in quiet mode')
     parser.add_argument('-k', '--keep', type=bool, default=False, const=True, nargs='?',
                         help='Do not delete temp files')
     parser.add_argument('-v', '--version', type=bool, default=False, const=True, nargs='?',
                         help="Print the version and exit")
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.file_prefix != "":
+        if not args.file_prefix.endswith("_"):
+            args.file_prefix += "_"
+        args.file_prefix = args.file_prefix.replace(' ', '_')
+    return args
+
