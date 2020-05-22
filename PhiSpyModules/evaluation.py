@@ -19,8 +19,8 @@ def find_repeat(fn, st, ppno, extra_dna, output_dir):
     rep = {}
     index = 0
 
-    with open(os.path.join(output_dir, "repeat_finding"), 'a') as rptout:
-        rptout.write(f">pp{ppno} {st}\n{fn}\n")
+    # with open(os.path.join(output_dir, "repeat_finding"), 'a') as rptout:
+    #     rptout.write(f">pp{ppno} {st}\n{fn}\n")
 
     try:
         # set the False parameter to True to enable debugging of repeat finder
