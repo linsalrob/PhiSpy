@@ -23,7 +23,8 @@ def find_repeat(fn, st, ppno, extra_dna, output_dir):
         rptout.write(f">pp{ppno} {st}\n{fn}\n")
 
     try:
-        repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3)
+        # set the False parameter to True to enable debugging of repeat finder
+        repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3, ppno, False)
     except Exception as e:
         message(f"There was an error running repeatfinder for {fn}:{e}\n", "RED", 'stderr')
         return {}
