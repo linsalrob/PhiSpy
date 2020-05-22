@@ -120,6 +120,12 @@ If you have new genome, we recommend annotating it using the [RAST server](http:
  
 After annotation, you can download the genome directory from the server.
 
+### gzip support
+
+`PhiSpy.py` natively supports both reading and writing files in `gzip` format. If you provide a `gzipped` input file, we will write a `gzipped` output file.
+
+### HMM Searches
+
 When also considering the signal from HMM profile search:
 ```bash
 PhiSpy.py genbank_file -o output_directory --phmms hmm_db --threads 4 --color
@@ -194,7 +200,7 @@ If we can detect the _att_ sites, the additional columns will be:
 To analyze this data, you can use:
 
 ```
-PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb
+PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb.gz 
 ```
 
 And you should get a prophage table that has this information (for example, take a look at `output_directory/prophage.tbl`).
@@ -236,29 +242,22 @@ PhiSpy.py -v
 
 If within reference datasets, close relatives to bacteria of your interest are missing, you can make your own training sets by providing at least a single genome in which you indicate prophage proteins. This is done by adding a new qualifier GenBank annotation for each CDS feature within a prophage region: `/is_phage="1"`. This allows PhiSpy to distinguish the signal from bacterial/phage regions and make a training set to use afterwards during classification with random forest algorithm. 
 
-To make a training set out of your files use `make_training_sets.py` script:
+To make a training set out of your files use the `PhiSpy.py` option `-m`:
 
 ```bash
-python3 scripts/make_training_sets.py -d input_directory -o output_directory -k kmer_size -t kmers_type -g groups_file --retrain --phmms hmm_db --color --threads 4
+PhiSpy.py -o output_directory -k kmer_size -t kmers_type -g groups_file --retrain --phmms hmm_db --color --threads 4 genome.gb.gz
 ```
 where:
-- `input_directory`: a directory where GenBank files to use for training are stored.
 - `output_directory`: a directory where are temporary and final training sets will be written.
 - `kmer_size`: is the size of kmers that will be produces. By default it's 12. If changed, remember to also change that parameter while running PhiSpy with produced training sets.
 - `kmers_type`: type of generated kmers. By default 'all' means generating kmers by 1 nt. If changed, remember to also change that parameter while running PhiSpy with produced training sets.
 - `groups_file`: a file mapping GenBank file names with extension and the name of group they will make; each file can be assigned to more than one group - take a look at how the reference data grouping file was constructed: `tests/groups.txt`.
 Beside the flags that allow training with phmm signal, there's also a `--retrain` flag. When used, it overwrites all the training sets in the `output_directory` that will be produced while training. That includes: `phage_kmers_all_wohost.txt`, `trainSets_genericAll.txt` and `trainingGenome_list.txt`. The same will happen when `trainingGenome_list.txt` is missing in `output_directory`.
+- `genome.gb.gz` is a gzip compressed GenBank file that has the `/is_phage="1"` flags set.
 If `--retrain` is not set, the script extends the `trainingGenome_list.txt`, adds new files to `output_directory` (overwrites the ones with the same group name) and updates `phage_kmers_all_wohost.txt`. 
 
-The default reference data is trained by the following command:
-```bash
-python3 scripts/make_training_sets.py -d tests -o PhiSpyModules/data -g tests/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4
-```
-You can modify/update the `test` directory and `groups.txt` file for your needs.
-
-Within the `output_directory` you will find a `trainSets` directory with a single trainSet file for each genome and (if requested) with updated input GenBank files and temp files from the last hmmsearch.
 
 ## Preparing GenBank files
-- it is recommended to mark prophage proteins even from prophage remnants/disrupted regions composed of a few proteins with `is_phage="1"` to minimize the loss of good signal, kmers in particular,
+- it is recommended to mark prophage proteins even from prophage remnants/disrupted regions composed of a few proteins with `/is_phage="1"` to minimize the loss of good signal, kmers in particular,
 - don't use too many genomes (e.g. a 100) as you may end up with a small set of phage-specific kmers,
 - try to pick several genomes with different prophages to increase the diversity.
