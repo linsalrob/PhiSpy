@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from argparse import Namespace
 
-from .protein_functions import is_phage_func, is_unknown_func
+from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func
 from .formatting import message
 
 def find_training_genome(training_flag):
@@ -102,11 +102,14 @@ def find_mean(all_len):
 def calc_pp(func):
     func = func.replace('-', ' ')
     func = func.replace(',', ' ')
+    func = func.replace('/', ' ')
     x = 0
     if is_phage_func(func):
         x = 1
-    elif is_unknown_func(func):
+    if is_unknown_func(func):
         x = 0.5
+    if is_not_phage_func(func):
+        x = 0
 
     # a few special cases
     if 'recombinase' in func or 'integrase' in func:
