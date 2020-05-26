@@ -27,11 +27,8 @@ def find_training_genome(training_flag):
 
 
 def call_randomforest(**kwargs):
-    output_dir = kwargs['output_dir']
     training_file = kwargs['training_set']
     test_data = kwargs['test_data']
-
-    outfile = os.path.join(output_dir, "classify.tsv")
 
     if not pkg_resources.resource_exists('PhiSpyModules', training_file):
         message(f"FATAL: Can not find data file {training_file}\n", "RED", 'stderr')
@@ -51,7 +48,7 @@ def call_randomforest(**kwargs):
     """
     clf = RandomForestClassifier(n_estimators=kwargs['randomforest_trees'], n_jobs=kwargs['threads'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
-    np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
+    return clf.predict_proba(test_data)[:,1]
 
 
 def my_sort(orf_list):
@@ -138,24 +135,17 @@ def make_initial_tbl(**kwargs):
             }
             x.append(ft)
     try:
-        infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
     except IOError as e:
         message(f"There was an error reading or writing classify/initial_tbl: {e}\n", "RED", 'stderr')
         sys.exit(-1)
 
-    j = 0
     ranks = [[] for n in range(len(x))]
-    for line in infile:
-        val = float(line.strip())
+    for j, val in enumerate(self.rfdata):
         for k in range(j-int(self.window_size/2), j+int(self.window_size/2)):
             if k < 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                 continue
             ranks[k].append(val)
-        j += 1
-    infile.close()
-    if not self.keep:
-        os.remove(os.path.join(self.output_dir, 'classify.tsv'))
 
     # calculate threshold
     y = []
