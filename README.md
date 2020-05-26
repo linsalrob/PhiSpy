@@ -116,9 +116,8 @@ where:
 - `genbank file`: The input DNA sequence file in GenBank format.
 - `output directory`: The output directory is the directory where the final output file will be created.
 
-If you have new genome, we recommend annotating it using the [RAST server](http://rast.nmpdr.org/rast.cgi) or [PROKKA](https://github.com/tseemann/prokka).
- 
-After annotation, you can download the genome directory from the server.
+If you have new genome, we recommend annotating it using the [RAST server](http://rast.nmpdr.org/rast.cgi) or [PROKKA](https://github.com/tseemann/prokka). RAST has a server that allows you to upload and download the genome (and can handle lots of genomes), while PROKKA is stand-alone software.
+
 
 ### gzip support
 
@@ -194,7 +193,7 @@ important; (iii) when looking at insertion points this allows you to visualize t
    
 4. **prophage_information.tsv**  (code: 8)
  
- This is a tab separated file. The file contains all the genes of the genome, one per line.
+ This is a tab separated file, and is the key file to assess prophages in genomes (see [assessing predictions](#assessing_predictions), below). The file contains all the genes of the genome, one per line.
  The tenth colum represents the status of a gene. If this column is 0 then we consider this a bacterial gene. 
  If it is non-zero it is probably a phage gene, and the higher the score the more likely we believe it is a phage
   gene. This is the raw data that we use to identify the prophages in your genome.
@@ -247,10 +246,10 @@ Code | File
 --- | ---
 1 | prophage_coordinates.tsv 
 2 | GenBank format output 
-4 | prophage and bacterial sequences  
-8 | prophage_information.tsv  
-16 | prophage.tsv  
-32 | GFF3 format  
+4 | prophage and bacterial sequences
+8 | prophage_information.tsv
+16 | prophage.tsv
+32 | GFF3 format
 64 | prophage.tbl 
 
 
@@ -258,6 +257,8 @@ So for example, if you want to get `GenBank format output` (2) and `prophage_inf
 enter an `--output_choice` of 10.
 
 The default is 3: you will get both the `prophage_coordinates.tsv` and `GenBank format output` files.
+
+If you want _all_ files output, use `--output-choice 127`.
 
 # Example Data
 
@@ -277,6 +278,27 @@ pp_1 | NC_002737 | 529631 | 569288
 pp_2 | NC_002737 | 778642 | 820599
 pp_3 | NC_002737 | 1192630 | 1222549
 pp_4 | NC_002737 | 1775862 | 1782822
+
+# Assessing predictions
+
+As with any software, it is critical that you assess the output from `phispy` to see if it actually makes sense! We start be ensuring we have the `prophage_information.tsv` file output (this is not output by default, and requires adding 8 to the `--output-choice` flag).
+
+That is a tab-separated text file that you can import into Microsoft Excel, LibreOffice Calc, Google Sheets, or your favorite spreadsheet viewing program. 
+
+There are a few columns that you should pay attention to:
+- _position_ (the 6<sup>th</sup> column) is the position of the gene in the genome. If you sort by this column you will always return the genome to the original order.
+- _Final status_ (the 10<sup>th</sup> column) is whether this region is predicted to be a prophage or not. The number is the prophage number. If the entry is 0 it is not a prophage.
+- _pp_ and _my status_ (the 8<sup>th</sup> and 9<sup>th</sup> columns) are interim indicators about whether this gene is potentially part of a phage.
+
+We recommend:
+1. Freeze the first row of the spreadsheet so you can see the column headers
+2. Sort the spreadsheet by the _my status_ column and color any row red where the value in this column is greater than 0
+3. Sort the spreadsheet by the _final status_ column and color those rows identified as a prophage green.
+4. Sort the spreadsheet by the _position_ column.
+
+Now all the prophages are colored green, while all the potential prophage genes that are not included as part of a prophage are colored red. You can easily review those non-prophage regions and determine whether _you_ think they should be included in prophages. Note that in most cases you can adjust the `phispy` parameters to include regions you think are prophages.
+
+**Note:** Ensure that while you are reviewing the results, you pay particular attention to the _contig_ column. In partial genomes, contig breaks are very often located in prophages. This is usual because prophages often contain sequences that are repeated around the genome. We have an [open issue](https://github.com/linsalrob/PhiSpy/issues/33) open issue to try and resolve this in a meaningful way.
 
 
 # Tips, Tricks, and Errors
