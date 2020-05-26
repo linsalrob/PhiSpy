@@ -98,8 +98,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         do classification          #
     ######################################
     PhiSpyModules.message('Start Classification Algorithm...\n', "GREEN", 'stderr')
-    PhiSpyModules.call_randomforest(**vars(args_parser))
-    PhiSpyModules.make_initial_tbl(**vars(args_parser))
+    args_parser.rfdata = PhiSpyModules.call_randomforest(**vars(args_parser))
+    args_parser.inital_tbl = PhiSpyModules.make_initial_tbl(**vars(args_parser))
 
     ######################################
     #         i dont know what           #
