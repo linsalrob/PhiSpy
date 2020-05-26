@@ -193,7 +193,7 @@ important; (iii) when looking at insertion points this allows you to visualize t
    
 4. **prophage_information.tsv**  (code: 8)
  
- This is a tab separated file, and is the key file to assess prophages in genomes (see [assessing predictions](#assessing_predictions), below). The file contains all the genes of the genome, one per line.
+ This is a tab separated file, and is the key file to assess prophages in genomes (see [assessing predictions](#assessing-predictions), below). The file contains all the genes of the genome, one per line.
  The tenth colum represents the status of a gene. If this column is 0 then we consider this a bacterial gene. 
  If it is non-zero it is probably a phage gene, and the higher the score the more likely we believe it is a phage
   gene. This is the raw data that we use to identify the prophages in your genome.
