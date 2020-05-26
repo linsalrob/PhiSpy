@@ -120,6 +120,7 @@ def calc_pp(func):
 
 def make_initial_tbl(**kwargs):
     self = Namespace(**kwargs)
+    data = []
     x = []
     for entry in self.record:
         for feature in entry.get_features('CDS'):
@@ -134,11 +135,6 @@ def make_initial_tbl(**kwargs):
                 'pp': calc_pp(feature.function),
             }
             x.append(ft)
-    try:
-        outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
-    except IOError as e:
-        message(f"There was an error reading or writing classify/initial_tbl: {e}\n", "RED", 'stderr')
-        sys.exit(-1)
 
     ranks = [[] for n in range(len(x))]
     for j, val in enumerate(self.rfdata):
@@ -168,29 +164,34 @@ def make_initial_tbl(**kwargs):
     finding things above the larger center or just a plain threshold.
     
     """
-    j = 0
-    outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\t')
-    outfile.write('end of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
-    while j < len(x):
-        if x[j]['rank'] > threshold:
-            x[j]['status'] = 1
-        outfile.write(str(x[j]['fig']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['function']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['contig']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['start']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['stop']))
-        outfile.write('\t')
-        outfile.write(str(j))
-        outfile.write('\t')
-        outfile.write(str(x[j]['rank']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['status']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['pp']))
-        outfile.write('\n')
-        j = j+1
-    outfile.close()
+
+    """
+    Eventually each row has:
+        0. gene id           6. rank                12. start of attR
+        1. function          7. my status           13. end of attR
+        2. contig            8. pp                  14. sequence of attL
+        3. start             9. final status        15. sequence of attR
+        4. stop             10. start of attL       16. Reason for att site choice
+        5. position         11. end of attL
+        
+    However, at this point we only have  0 .. 8
+    """
+
+
+    for i in range(len(x)):
+        status = 0 if x[i]['rank'] > threshold else 0
+        thisrow = [
+            x[i]['fig'],
+            x[i]['function'],
+            x[i]['contig'],
+            x[i]['start'],
+            x[i]['stop'],
+            i,
+            x[i]['rank'],
+            status,
+            x[i]['pp']
+        ]
+        data.append(thisrow)
+    return data
+
+

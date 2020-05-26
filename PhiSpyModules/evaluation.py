@@ -186,14 +186,8 @@ def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_st
 
 def fixing_start_end(**kwargs):
     self = Namespace(**kwargs)
-    try:
-        infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
-    except IOError as e:
-        message(f"There was an error reading initial_tbl.tsv: {e}\n", "RED", 'stderr')
-        sys.exit(-1)
-
     # make all predicted pp list
-    message("Checking prophages in initial_tbl.tsv\n", "GREEN", 'stderr')
+    message("Checking prophages we might have found\n", "GREEN", 'stderr')
     pp = {}
     i = 0
     flag = 0
@@ -201,54 +195,54 @@ def fixing_start_end(**kwargs):
     intg_index = 1
     genome = {}
     index = 1
-    temp = {}
     distance_from_last_prophage = 1000
-    for line in infile:
-        oldtemp = temp
-        temp = line.strip().split("\t")
+    last_pp = ["" for x in range(9)]
+
+    for this_pp in self.initial_tbl:
         distance_from_last_prophage += 1
-        if temp[1] == 'function':
-            continue
+
         # Find location of all prophage regions
-        if float(temp[7]) >= 1 or float(temp[8]) >= 1:
-            # This is a prophage region. Is it a new prophage
+        # columns 7 and 8 are my_status and pp
+        if float(this_pp[7]) >= 1 or float(this_pp[8]) >= 1:
+            # This is a prophage region. Is it a new prophage?
             new_prophage = False
             # check the sequences are on the same contig. If not, definitely a new prophage
-            if temp[2] != oldtemp[2]:
+            if this_pp[2] != last_pp[2]:
                 new_prophage = True
             if flag == 0 and distance_from_last_prophage > self.nonprophage_genegaps:
-                # we need at least 10 non phage genes betweeen prophages. This should be a variable.
+                # we need at least 10 non phage genes betweeen prophages.
                 new_prophage = True
             if new_prophage:
                 i += 1
                 pp[i] = {}
-                pp[i]['contig'] = temp[2]
-                pp[i]['start'] = min(int(temp[3]), int(temp[4]))
-                pp[i]['stop'] = max(int(temp[3]), int(temp[4]))
+                pp[i]['contig'] = this_pp[2]
+                pp[i]['start'] = min(int(this_pp[3]), int(this_pp[4]))
+                pp[i]['stop'] = max(int(this_pp[3]), int(this_pp[4]))
                 pp[i]['num genes'] = 1
                 flag = 1
             else:
-                pp[i]['stop'] = max(pp[i]['stop'], int(temp[3]), int(temp[4]))
+                pp[i]['stop'] = max(pp[i]['stop'], int(this_pp[3]), int(this_pp[4]))
                 pp[i]['num genes'] += 1
             distance_from_last_prophage = 0
         else:
             flag = 0
             # Find location of integrases
-        if float(temp[8]) == 1.5:
+        if float(this_pp[8]) == 1.5:
             intg[intg_index] = {}
-            intg[intg_index]['start'] = min(int(temp[3]), int(temp[4]))
-            intg[intg_index]['stop'] = max(int(temp[3]), int(temp[4]))
-            intg[intg_index]['contig'] = str(temp[2])
+            intg[intg_index]['start'] = min(int(this_pp[3]), int(this_pp[4]))
+            intg[intg_index]['stop'] = max(int(this_pp[3]), int(this_pp[4]))
+            intg[intg_index]['contig'] = str(this_pp[2])
             intg_index += 1
         genome[index] = {}
-        genome[index]['start'] = int(temp[3])
-        genome[index]['stop'] = int(temp[4])
-        genome[index]['pp'] = float(temp[8])
-        genome[index]['contig'] = temp[2]
-        genome[index]['function'] = temp[1]
-        genome[index]['rank'] = float(temp[6])
+        genome[index]['start'] = int(this_pp[3])
+        genome[index]['stop'] = int(this_pp[4])
+        genome[index]['pp'] = float(this_pp[8])
+        genome[index]['contig'] = this_pp[2]
+        genome[index]['function'] = this_pp[1]
+        genome[index]['rank'] = float(this_pp[6])
         index += 1
-    infile.close()
+        last_pp = this_pp
+
     #######################################################################################
     #                                                                                     #
     # Filter the potential prophages based on how many potential prophage genes are       #
@@ -366,26 +360,21 @@ def fixing_start_end(**kwargs):
                                          "One chosen somewhat randomly!\n", "YELLOW", 'stderr')
     # fix start end for all pp
     try:
-        infile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'r')
         outfile = open(os.path.join(self.output_dir, self.file_prefix + 'prophage_informations.tsv'), 'w')
     except IOError as e:
         message(f"There was an error opening the files: {e}\n", "RED", 'stderr')
         sys.exit(-1)
 
-    for line in infile:
-        temp = re.split('\t', line.strip())
-        if temp[1] == 'function':
-            outfile.write(line)
-            continue
-        me = check_pp(temp[2], int(temp[3]), int(temp[4]), pp)
+    outfile.write("identifier\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\t")
+    outfile.write("start of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\t")
+    outfile.write("Reason for att site\n")
+
+    for this_pp in self.initial_tbl:
+        me = check_pp(this_pp[2], int(this_pp[3]), int(this_pp[4]), pp)
         if me == 0:
-            outfile.write(line.strip() + '\t0' + '\n')
+            outfile.write("\t".join(map(str, this_pp + [0])) + '\n')
         else:
-            outfile.write(line.strip() + '\t' + str(me) + '\n')
-    infile.close()
-    outfile.close()
-    if not self.keep:
-        os.remove(os.path.join(self.output_dir, 'initial_tbl.tsv'))
+            outfile.write("\t".join(map(str, this_pp)) + '\t' + str(me) + '\n')
 
     """
     now we need to decide which files to keep
