@@ -100,6 +100,7 @@ def calc_pp(func):
     func = func.replace('-', ' ')
     func = func.replace(',', ' ')
     func = func.replace('/', ' ')
+    func = func.lower()
     x = 0
     if is_phage_func(func):
         x = 1
@@ -111,10 +112,7 @@ def calc_pp(func):
     # a few special cases
     if 'recombinase' in func or 'integrase' in func:
         x = 1.5
-    if ('phage' in func) and ('shock' in func):
-        x = 0
-    if "dna binding domain" in func:
-        x = 0
+
     return x
 
 
