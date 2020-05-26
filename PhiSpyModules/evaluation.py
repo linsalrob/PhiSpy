@@ -209,6 +209,7 @@ def fixing_start_end(**kwargs):
             # check the sequences are on the same contig. If not, definitely a new prophage
             if this_pp[2] != last_pp[2]:
                 new_prophage = True
+                distance_from_last_prophage = 1000
             if flag == 0 and distance_from_last_prophage > self.nonprophage_genegaps:
                 # we need at least 10 non phage genes betweeen prophages.
                 new_prophage = True
@@ -220,6 +221,7 @@ def fixing_start_end(**kwargs):
                 pp[i]['stop'] = max(int(this_pp[3]), int(this_pp[4]))
                 pp[i]['num genes'] = 1
                 flag = 1
+                last_pp = this_pp
             else:
                 pp[i]['stop'] = max(pp[i]['stop'], int(this_pp[3]), int(this_pp[4]))
                 pp[i]['num genes'] += 1
@@ -241,7 +243,7 @@ def fixing_start_end(**kwargs):
         genome[index]['function'] = this_pp[1]
         genome[index]['rank'] = float(this_pp[6])
         index += 1
-        last_pp = this_pp
+
 
     #######################################################################################
     #                                                                                     #
@@ -360,7 +362,7 @@ def fixing_start_end(**kwargs):
                                          "One chosen somewhat randomly!\n", "YELLOW", 'stderr')
     # fix start end for all pp
     try:
-        outfile = open(os.path.join(self.output_dir, self.file_prefix + 'prophage_informations.tsv'), 'w')
+        outfile = open(os.path.join(self.output_dir, self.file_prefix + 'prophage_information.tsv'), 'w')
     except IOError as e:
         message(f"There was an error opening the files: {e}\n", "RED", 'stderr')
         sys.exit(-1)
