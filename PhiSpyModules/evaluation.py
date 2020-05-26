@@ -232,8 +232,6 @@ def fixing_start_end(**kwargs):
                 pp[i]['num genes'] += 1
             distance_from_last_prophage = 0
         else:
-            if temp[0] == 'fig|160490.1.peg.707':
-                message("BUGGGER: Got to here but shouldn't\n", "RED", 'stderr')
             flag = 0
             # Find location of integrases
         if float(temp[8]) == 1.5:
