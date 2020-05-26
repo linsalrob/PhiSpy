@@ -53,6 +53,7 @@ def is_not_phage_func(x):
 
     x = x.lower()
     if (
+        ('phage' in x) and ('shock' in x) or
         "conjugal transfer" in x or
         "flagella" in x or
         "flagellar" in x or
@@ -60,8 +61,10 @@ def is_not_phage_func(x):
         "flagellum" in x or
         "hypothetical" in x or
         "ribosomal protein" in x or
-        "secY" in x or
-        "Summary phrase" in x
+        "secy" in x or
+        "summary phrase" in x or
+        "dna binding domain" in x or
+        "Abortive infection bacteriophage resistance protein" in x
         ):
             return True
     return False
@@ -111,39 +114,8 @@ def is_unknown_func(x):
     return False
 
 
-def add_unknown_function_initial_tbl(infile, outfile):
-    try:
-        f = open(infile, 'r')
-        fw = open(outfile, 'w')
-    except:
-        print('ERROR: Cannot open initial_tbl.tsv add_unknown_function_initial_tbl.')
-        return 0
-    flag = 0
-    for line in f:
-        if flag == 0:
-            fw.write(line)
-            flag = 1
-            continue
-        line = line.strip()
-        temp = re.split('\t', line)
-        i = 0
-        while i < 8:
-            fw.write(temp[i] + '\t')
-            i = i + 1
-        if is_unknown_func(temp[1]):
-            fw.write('0.5\n')
-        else:
-            fw.write(temp[8] + '\n')
-
-    f.close()
-    fw.close()
-    return 1
-
-
-def consider_unknown(output_dir):
-    it = os.path.join(output_dir, 'initial_tbl.tsv')
-    it2 = os.path.join(output_dir, 'initial_tbl_2.tsv')
-    x = add_unknown_function_initial_tbl(it, it2)
-    if x == 1:
-        os.remove(it)
-        os.rename(it2, it)
+def downweighting_unknown_functions(self):
+    for d in self.initial_tbl:
+        if d[8] > 0 and is_unknown_func(d[1]):
+            d[8] = 0.5
+    return self.initial_tbl
