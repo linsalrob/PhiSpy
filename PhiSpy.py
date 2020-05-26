@@ -106,8 +106,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     ###### added in this version 2.2 #####
     if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
-        PhiSpyModules.message('As the training flag is zero, considering unknown functions\n', "RED", 'stderr')
-        PhiSpyModules.consider_unknown(args_parser.output_dir)
+        PhiSpyModules.message('As the training flag is zero, down-weighting unknown functions\n', "RED", 'stderr')
+        args_parser.initial_tbl = PhiSpyModules.downweighting_unknown_functions(args_parser)
 
     ######################################
     #         do evaluation              #
