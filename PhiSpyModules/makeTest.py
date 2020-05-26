@@ -391,7 +391,12 @@ def make_set_train(**kwargs):
     kwargs['making_training_set'] = True
     self = Namespace(**kwargs)
 
-    with open(os.path.join(self.output_dir, self.make_training_data),'w') as outfile:
+    if self.output_dir:
+        of = os.path.join(self.output_dir, self.make_training_data)
+    else:
+        of = self.make_training_data
+
+    with open(of,'w') as outfile:
         outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
         for d in measure_features(**kwargs):
             outfile.write("\t".join(map(str, d)) + "\n")

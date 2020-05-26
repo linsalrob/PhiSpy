@@ -36,10 +36,11 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         sys.exit(-1)
 
     # check whether output directory was provided
-    if not args_parser.output_dir:
+    if not args_parser.output_dir and not args_parser.make_training_data:
         PhiSpyModules.message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", 'stderr')
         sys.exit(-1)
-    os.makedirs(args_parser.output_dir, exist_ok=True)
+    elif args_parser.output_dir:
+        os.makedirs(args_parser.output_dir, exist_ok=True)
 
     ######################################
     #       add HMM search signal        #
