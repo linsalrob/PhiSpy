@@ -410,7 +410,7 @@ def fixing_start_end(**kwargs):
         # we want to KEEP the prophage_information.tsv that we created earlier
         # if oc >= 8, or if we get to this point and oc is 7 or less we want to
         # delete it.
-        os.remove(os.path.join(self.output_dir, self.file_prefix + 'prophage_informations.tsv'))
+        os.remove(os.path.join(self.output_dir, self.file_prefix + 'prophage_information.tsv'))
     if oc == 8:
         oc = 0
     if oc >= 4:
