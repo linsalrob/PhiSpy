@@ -55,6 +55,7 @@ def is_not_phage_func(x):
     if (
         ('phage' in x) and ('shock' in x) or
         "conjugal transfer" in x or
+        "conjugative" in x or
         "flagella" in x or
         "flagellar" in x or
         "flagellin" in x or
