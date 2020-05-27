@@ -104,9 +104,9 @@ def calc_pp(func):
     x = 0
     if is_phage_func(func):
         x = 1
-    if is_unknown_func(func):
+    elif is_unknown_func(func):
         x = 0.5
-    if is_not_phage_func(func):
+    elif is_not_phage_func(func):
         x = 0
 
     # a few special cases
