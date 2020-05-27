@@ -103,6 +103,11 @@ This uses the `GenBank` format file for *Streptococcus pyogenes* M1 GAS that we 
 
 You will find the output files from this query in `output_directory`.
 
+## Download more testing data
+
+You can also download all the genomes in [tests/](tests). These are not installed with PhiSpy if you use pip/conda, but will be if you clone the repository.
+Please note that these are stored on [git lfs](https://git-lfs.github.com/), and so if you notice an error that the files are small and don't ungzip, you may need to (i) install
+`git lfs` and (ii) use `git lfs fetch` to update this data.
 
 # Running PhiSpy.py
 
