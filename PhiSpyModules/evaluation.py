@@ -187,7 +187,8 @@ def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_st
 def fixing_start_end(**kwargs):
     self = Namespace(**kwargs)
     # make all predicted pp list
-    message("Checking prophages we might have found\n", "GREEN", 'stderr')
+    if not self.quiet:
+        message("Checking prophages we might have found\n", "GREEN", 'stderr')
     pp = {}
     i = 0
     flag = 0
@@ -263,7 +264,7 @@ def fixing_start_end(**kwargs):
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
                                     "Dropped. Not enough genes"])
     # print a list of all prophages and the number of genes
-    if prophagesummary:
+    if prophagesummary and not self.quiet:
         sys.stderr.write('Potential prophages (sorted highest to lowest)\n')
         sys.stderr.write('Contig\tStart\tStop\tNumber of potential genes\tStatus\n')
         for p in sorted(prophagesummary, key=lambda x: x[3], reverse=True):
@@ -275,7 +276,8 @@ def fixing_start_end(**kwargs):
     dna = {entry.id: str(entry.seq) for entry in self.record}
     extra_dna = 2000
     for i in pp:
-        message(f"PROPHAGE: {i} Contig: {pp[i]['contig']} Start: {pp[i]['start']} Stop: {pp[i]['stop']}", "PINK", 'stderr')
+        if not self.quiet:
+            message(f"PROPHAGE: {i} Contig: {pp[i]['contig']} Start: {pp[i]['start']} Stop: {pp[i]['stop']}", "PINK", 'stderr')
         start = pp[i]['start'] - extra_dna
         if start < 1:
             start = 1
@@ -286,7 +288,8 @@ def fixing_start_end(**kwargs):
         if stop > len(dna[pp[i]['contig']]):
             stop = len(dna[pp[i]['contig']])
         if stop - start > 200000:
-            message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp", "PINK", 'stderr')
+            if not self.quiet:
+                message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp", "PINK", 'stderr')
             continue
         repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extra_dna, self.output_dir)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
@@ -341,12 +344,14 @@ def fixing_start_end(**kwargs):
                         msg = f"The attL sequence had no length from {int(bestrep['s1']) - 1} to "
                         msg += f"{int(bestrep['e1']) - 1} on contig {pp[i]['contig']} "
                         msg += f"(length: {len(dna[pp[i]['contig']])} )"
-                        message(msg, "YELLOW", 'stderr')
+                        if not self.quiet:
+                            message(msg, "YELLOW", 'stderr')
                     if len(attRseq) == 0:
                         msg = f"The attL sequence had no length from {int(bestrep['s2']) - 1} to "
                         msg += f"{int(bestrep['e2']) - 1} on contig {pp[i]['contig']} "
                         msg += f"(length: {len(dna[pp[i]['contig']])} )"
-                        message(msg, "YELLOW", 'stderr')
+                        if not self.quiet:
+                            message(msg, "YELLOW", 'stderr')
                     pp[i]['att'] = [
                         bestrep['s1'],
                         bestrep['e1'],
@@ -357,7 +362,7 @@ def fixing_start_end(**kwargs):
                         "Longest Repeat flanking phage and within " + str(extra_dna) + " bp"
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
-                    if samelenrep > 1:
+                    if samelenrep > 1 and not self.quiet:
                         message(f"There were {samelenrep} repeats with the same length as the best. " +
                                          "One chosen somewhat randomly!\n", "YELLOW", 'stderr')
     # fix start end for all pp

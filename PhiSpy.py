@@ -35,19 +35,13 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         PhiSpyModules.message("ERROR: Please provide an input file. Use -h for more options\n", "RED", 'stderr')
         sys.exit(-1)
 
-    # check whether output directory was provided
-    if not args_parser.output_dir and not args_parser.make_training_data:
-        PhiSpyModules.message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", 'stderr')
-        sys.exit(-1)
-    elif args_parser.output_dir:
-        os.makedirs(args_parser.output_dir, exist_ok=True)
-
     ######################################
     #       add HMM search signal        #
     ######################################
     # if phmm search is required
     if args_parser.phmms:
-        PhiSpyModules.message('Performing HMM search.\n', "GREEN", 'stderr')
+        if not args_parser.quiet:
+            PhiSpyModules.message('Performing HMM search.\n', "GREEN", 'stderr')
         args_parser.infile = PhiSpyModules.search_phmms(**vars(args_parser))
 
     ######################################
@@ -64,7 +58,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         else:
             handle = open(args_parser.infile, 'r')
     except IOError as e:
-        PhiSpyModules.message(f"There was an error reading {args_parser.infile}: {e}", "RED",'stderr')
+        if not args_parser.quiet:
+            PhiSpyModules.message(f"There was an error reading {args_parser.infile}: {e}", "RED",'stderr')
         sys.exit(20)
 
     args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(handle, "genbank")))
@@ -75,29 +70,34 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     if ncontigs == 0:
         msg = f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n"
         msg += "There is no data to process\n"
-        PhiSpyModules.message(msg, "RED", "stderr")
+        if not args_parser.quiet:
+            PhiSpyModules.message(msg, "RED", "stderr")
         sys.exit(20)
 
-    PhiSpyModules.message(f"Processing {ncontigs} contigs \n", "GREEN", 'stderr')
+    if not args_parser.quiet:
+        PhiSpyModules.message(f"Processing {ncontigs} contigs \n", "GREEN", 'stderr')
 
     ######################################
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
-        PhiSpyModules.message('Making Training Set...\n', "GREEN", 'stderr')
+        if not args_parser.quiet:
+            PhiSpyModules.message('Making Training Set...\n', "GREEN", 'stderr')
         my_make_train_flag = PhiSpyModules.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
     #         make testing set           #
     ######################################
-    PhiSpyModules.message('Making Testing Set...\n', "GREEN", 'stderr')
+    if not args_parser.quiet:
+        PhiSpyModules.message('Making Testing Set...\n', "GREEN", 'stderr')
     args_parser.test_data = PhiSpyModules.measure_features(**vars(args_parser))
 
     ######################################
     #         do classification          #
     ######################################
-    PhiSpyModules.message('Start Classification Algorithm...\n', "GREEN", 'stderr')
+    if not args_parser.quiet:
+        PhiSpyModules.message('Start Classification Algorithm...\n', "GREEN", 'stderr')
     args_parser.rfdata = PhiSpyModules.call_randomforest(**vars(args_parser))
     args_parser.initial_tbl = PhiSpyModules.make_initial_tbl(**vars(args_parser))
 
@@ -106,15 +106,20 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     ###### added in this version 2.2 #####
     if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
-        PhiSpyModules.message('As the training flag is zero, down-weighting unknown functions\n', "RED", 'stderr')
+        if not args_parser.quiet:
+            PhiSpyModules.message('As the training flag is zero, down-weighting unknown functions\n', "RED", 'stderr')
         args_parser.initial_tbl = PhiSpyModules.downweighting_unknown_functions(args_parser)
 
     ######################################
     #         do evaluation              #
     ######################################
-    PhiSpyModules.message('Evaluating...\n', "GREEN", 'stderr')
+    if not args_parser.quiet:
+        PhiSpyModules.message('Evaluating...\n', "GREEN", 'stderr')
     PhiSpyModules.fixing_start_end(**vars(args_parser))
-    PhiSpyModules.message('Done!!!\n', "GREEN", 'stderr')
+    # don't forget to close the log!
+    args_parser.log.close()
+    if not args_parser.quiet:
+        PhiSpyModules.message('Done!!!\n', "GREEN", 'stderr')
 
 
 

@@ -91,7 +91,9 @@ def get_args():
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('--output_choice', type=int, default=3,
                         help='Sum of codes for files to output. For more details see the README.md file')
-    parser.add_argument('-qt', '--quiet', type=bool, default=False, const=True, nargs='?',
+    parser.add_argument('--log', type=argparse.FileType('w'),
+                        help="Log file to write details to")
+    parser.add_argument('--quiet', action='store_true',
                         help='Run in quiet mode')
     parser.add_argument('-k', '--keep', type=bool, default=False, const=True, nargs='?',
                         help='Do not delete temp files')
@@ -103,5 +105,16 @@ def get_args():
         if not args.file_prefix.endswith("_"):
             args.file_prefix += "_"
         args.file_prefix = args.file_prefix.replace(' ', '_')
+
+    # check whether output directory was provided
+    if not args.output_dir and not args.make_training_data:
+        if not args.quiet:
+            message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", 'stderr')
+        sys.exit(-1)
+    elif args.output_dir:
+        os.makedirs(args.output_dir, exist_ok=True)
+
+    if not args.log:
+        args.log = open(os.path.join(args.output_dir, args.file_prefix + 'phispy.log'), 'w')
     return args
 
