@@ -3,6 +3,7 @@ import os
 import sys
 import gzip
 from functools import reduce
+from PhiSpyModules import log_and_message
 
 from Bio import SeqIO
 
@@ -18,6 +19,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         parse the options          #
     ######################################
     args_parser = PhiSpyModules.get_args()
+    log_and_message(f"Starting PhiSpy.py with the following arguments\n{args_parser}")
+
 
     ######################################
     #   list the training sets and exit  #
@@ -32,7 +35,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
 
     # if we get here we need an input file
     if not args_parser.infile:
-        PhiSpyModules.message("ERROR: Please provide an input file. Use -h for more options\n", "RED", 'stderr')
+        PhiSpyModules.log_and_message("ERROR: Please provide an input file. Use -h for more options", c="RED",
+                                      stderr=True, stdout=False)
         sys.exit(-1)
 
     ######################################
@@ -40,8 +44,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     # if phmm search is required
     if args_parser.phmms:
-        if not args_parser.quiet:
-            PhiSpyModules.message('Performing HMM search.\n', "GREEN", 'stderr')
+        PhiSpyModules.log_and_message('Performing HMM search.', c="GREEN", stderr=True, stdout=False,
+                                      quiet=args_parser.quiet)
         args_parser.infile = PhiSpyModules.search_phmms(**vars(args_parser))
 
     ######################################
@@ -58,8 +62,8 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         else:
             handle = open(args_parser.infile, 'r')
     except IOError as e:
-        if not args_parser.quiet:
-            PhiSpyModules.message(f"There was an error reading {args_parser.infile}: {e}", "RED",'stderr')
+        PhiSpyModules.log_and_message(f"There was an error reading {args_parser.infile}: {e}", c="RED",
+                                      stderr=True, stdout=False, quiet=args_parser.quiet)
         sys.exit(20)
 
     args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(handle, "genbank")))
@@ -69,35 +73,35 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ncontigs = reduce(lambda sum, element: sum + 1, args_parser.record, 0)
     if ncontigs == 0:
         msg = f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n"
-        msg += "There is no data to process\n"
-        if not args_parser.quiet:
-            PhiSpyModules.message(msg, "RED", "stderr")
+        msg += "There is no data to process"
+        PhiSpyModules.log_and_message(msg, c="RED", stderr=True, stdout=False, quiet=args_parser.quiet)
         sys.exit(20)
 
-    if not args_parser.quiet:
-        PhiSpyModules.message(f"Processing {ncontigs} contigs \n", "GREEN", 'stderr')
+    PhiSpyModules.log_and_message(f"Processing {ncontigs} contigs", c="GREEN", stderr=True, stdout=False,
+                                  quiet=args_parser.quiet)
 
     ######################################
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
         if not args_parser.quiet:
-            PhiSpyModules.message('Making Training Set...\n', "GREEN", 'stderr')
+            PhiSpyModules.log_and_message('Making Training Set...', c="GREEN", stderr=True, stdout=False,
+                                          quiet=args_parser.quiet)
         my_make_train_flag = PhiSpyModules.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
     #         make testing set           #
     ######################################
-    if not args_parser.quiet:
-        PhiSpyModules.message('Making Testing Set...\n', "GREEN", 'stderr')
+    PhiSpyModules.log_and_message('Making Testing Set...', c="GREEN", stderr=True, stdout=False,
+                                  quiet=args_parser.quiet)
     args_parser.test_data = PhiSpyModules.measure_features(**vars(args_parser))
 
     ######################################
     #         do classification          #
     ######################################
-    if not args_parser.quiet:
-        PhiSpyModules.message('Start Classification Algorithm...\n', "GREEN", 'stderr')
+    PhiSpyModules.log_and_message('Start Classification Algorithm...', c="GREEN", stderr=True, stdout=False,
+                                  quiet=args_parser.quiet)
     args_parser.rfdata = PhiSpyModules.call_randomforest(**vars(args_parser))
     args_parser.initial_tbl = PhiSpyModules.make_initial_tbl(**vars(args_parser))
 
@@ -106,21 +110,18 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     ###### added in this version 2.2 #####
     if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
-        if not args_parser.quiet:
-            PhiSpyModules.message('As the training flag is zero, down-weighting unknown functions\n', "RED", 'stderr')
+        PhiSpyModules.log_and_message('As the training flag is zero, down-weighting unknown functions', c="RED",
+                                      stderr=True, stdout=False, quiet=args_parser.quiet)
         args_parser.initial_tbl = PhiSpyModules.downweighting_unknown_functions(args_parser)
 
     ######################################
     #         do evaluation              #
     ######################################
-    if not args_parser.quiet:
-        PhiSpyModules.message('Evaluating...\n', "GREEN", 'stderr')
+    PhiSpyModules.log_and_message('Evaluating...', c="GREEN", stderr=True, stdout=False, quiet=args_parser.quiet)
     PhiSpyModules.fixing_start_end(**vars(args_parser))
     # don't forget to close the log!
-    args_parser.log.close()
-    if not args_parser.quiet:
-        PhiSpyModules.message('Done!!!\n', "GREEN", 'stderr')
-
+    PhiSpyModules.log_and_message(f'Done!!! Output is in {args_parser.output_dir} and the log is in {args_parser.log}',
+                                  c="WHITE", stderr=True, stdout=False, quiet=args_parser.quiet)
 
 
 if __name__== "__main__":

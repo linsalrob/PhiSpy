@@ -9,13 +9,14 @@ import numpy as np
 from argparse import Namespace
 
 from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func
-from .formatting import message
+from .writers import log_and_message
 
 def find_training_genome(training_flag):
     try:
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except IOError as e:
-        message(f"There was an error opening data/trainingGenome_list.txt: {e}\n", "RED", 'stderr')
+        log_and_message(f"There was an error opening data/trainingGenome_list.txt: {e}\n", c="RED", stderr=True,
+                        loglevel="CRITICAL")
         return ''
 
     for line in f:
@@ -31,9 +32,10 @@ def call_randomforest(**kwargs):
     test_data = kwargs['test_data']
 
     if not pkg_resources.resource_exists('PhiSpyModules', training_file):
-        message(f"FATAL: Can not find data file {training_file}\n", "RED", 'stderr')
+        log_and_message(f"FATAL: Can not find data file {training_file}\n", c="RED", stderr=True, loglevel="CRITICAL")
         sys.exit(-1)
     strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
+    log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
 
     if 'phmms' not in kwargs:
@@ -46,6 +48,7 @@ def call_randomforest(**kwargs):
     in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
     "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
     """
+    log_and_message(f"Running the random forest classifier with {kwargs['randomforest_trees']} trees and {kwargs['threads']} threads")
     clf = RandomForestClassifier(n_estimators=kwargs['randomforest_trees'], n_jobs=kwargs['threads'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     return clf.predict_proba(test_data)[:,1]
@@ -155,6 +158,7 @@ def make_initial_tbl(**kwargs):
     km.fit(y2)
     centers = km.cluster_centers_
     threshold = max(centers[0][0], centers[1][0])
+    log_and_message(f"Rank threshold calculated as {threshold}")
     """
     Note added by Rob:
     At this point we have the classifications for each ORF and we want to take a sliding window and decide where 

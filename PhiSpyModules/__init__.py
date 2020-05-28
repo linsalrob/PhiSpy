@@ -9,6 +9,7 @@ from .helper_functions import get_args, print_list, is_gzip_file
 from .pathtype import PathType
 from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prophage_tbl, write_prophage_tsv
 from .writers import prophage_measurements_to_tbl
+from .writers import log_and_message
 from .search_phmms import search_phmms
 from .formatting import message
 
@@ -22,7 +23,7 @@ __all__ = ['SeqioFilter',
            'get_args', 'print_list', 'is_gzip_file',
            'PathType',
            'write_gff3', 'write_genbank', 'write_phage_and_bact', 'write_prophage_tbl', 'write_prophage_tsv',
-           'prophage_measurements_to_tbl',
+           'prophage_measurements_to_tbl', 'log_and_message',
            'search_phmms',
            'message'
            ]

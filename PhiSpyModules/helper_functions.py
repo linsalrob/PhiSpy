@@ -5,9 +5,9 @@ import argparse
 import re
 import pkg_resources
 import binascii
+import logging
 
 from .formatting import message
-
 
 def print_list():
     f = None
@@ -43,6 +43,22 @@ def is_gzip_file(f):
     with open(f, 'rb') as i:
         return binascii.hexlify(i.read(2)) == b'1f8b'
 
+def create_logger(self):
+    """
+    Add a logger to self
+    :param self: the args parsed object
+    :return: a logger for the args parsed object
+    """
+    if not self.log:
+        self.log = os.path.join(self.output_dir, self.file_prefix + 'phispy.log')
+
+    logger = logging.getLogger('PhiSpy')
+    logger.setLevel(5)
+    hdlr = logging.FileHandler(self.log)
+    fmt = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    hdlr.setFormatter(fmt)
+    logger.addHandler(hdlr)
+    return logger
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -108,13 +124,11 @@ def get_args():
 
     # check whether output directory was provided
     if not args.output_dir and not args.make_training_data:
-        if not args.quiet:
-            message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", 'stderr')
+        log_and_message("ERROR: Output directory (-o) is required. Use -h for more options\n", c="RED", stderr=True, quiet=args.quiet)
         sys.exit(-1)
     elif args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
 
-    if not args.log:
-        args.log = open(os.path.join(args.output_dir, args.file_prefix + 'phispy.log'), 'w')
+    args.logger = create_logger(args)
     return args
 

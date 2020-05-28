@@ -6,6 +6,7 @@ A module to write the output in different formats
 import os
 import gzip
 
+
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from collections import OrderedDict
@@ -13,11 +14,46 @@ from collections import OrderedDict
 import PhiSpyModules.version as version
 from .formatting import message
 from .helper_functions import is_gzip_file
+import logging
 
 __author__ = 'Rob Edwards'
 
+def log_and_message(msg, c="WHITE", stderr=False, stdout=False, quiet=False, loglevel="INFO"):
+    """
+    Write the message to both the log and an output stream. By default we will just log the message in the
+    log.
 
-def write_gff3(output_dir, pp, fileprefix=""):
+    Note that we also adhere to the quiet option of self, and will only write to the log
+    Set either stderr or stdout to true to write to those streams too (but you will need to reset quiet if appropriate)
+
+    :param self: The arg parser object
+    :param msg: the message to write
+    :param c: the color to write the message
+    :param stderr: write the message to stderr
+    :param stdout: write the message to stdout
+    :param level: the logging level. See https://docs.python.org/3/library/logging.html#levels for a list
+    :return:
+    """
+
+    if loglevel == 'CRITICAL':
+        logging.getLogger('PhiSpy').critical(msg.strip())
+    elif loglevel == 'ERROR':
+        logging.getLogger('PhiSpy').error(msg.strip())
+    elif loglevel == 'WARNING':
+        logging.getLogger('PhiSpy').warning(msg.strip())
+    elif loglevel == 'DEBUG':
+        logging.getLogger('PhiSpy').debug(msg.strip())
+    else:
+        logging.getLogger('PhiSpy').info(msg.strip())
+
+    if not quiet:
+        if stderr:
+            message(msg,c, "stderr")
+        if stdout:
+            message(msg, c, "stdout")
+
+
+def write_gff3(self, pp):
     """
     Write GFF3 code. This was adapted from code contribued by [Jose Francisco Sanchez-Herrero]
     (https://github.com/JFsanchezherrero/)
@@ -27,9 +63,9 @@ def write_gff3(output_dir, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
-    message("Writing GFF3 output file", "GREEN", 'stderr')
+    log_and_message("Writing GFF3 output file", c="GREEN", stderr=True, quiet=self.quiet)
     # GFF output
-    out_gff = open(os.path.join(output_dir, fileprefix + "prophage.gff3"), "w")
+    out_gff = open(os.path.join(self.output_dir, self.file_prefix + "prophage.gff3"), "w")
     out_gff.write("##gff-version 3")
     out_gff.write("\n")
     
@@ -66,7 +102,7 @@ def write_gff3(output_dir, pp, fileprefix=""):
     out_gff.close()
 
 
-def write_genbank(infile, record, output_directory, pp, fileprefix=""):
+def write_genbank(self, pp):
     """
     Write prophages and their potential attachment sites in updated input GenBank file.
     :param infile: path to input file
@@ -76,11 +112,11 @@ def write_genbank(infile, record, output_directory, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
-    message("Writing GenBank output file", "GREEN", 'stderr')
+    log_and_message("Writing GenBank output file", c="GREEN", stderr=True, quiet=self.quiet)
     prophage_feature_type = 'misc_feature'  # / prophage_region
-    outfile = os.path.join(output_directory, fileprefix + os.path.basename(infile))
+    outfile = os.path.join(self.output_dir, self.file_prefix + os.path.basename(self.infile))
     for i in pp:
-        record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
+        self.record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
                     location=FeatureLocation(pp[i]['start'], pp[i]['stop']),
                     type=prophage_feature_type,
                     strand=1,
@@ -88,7 +124,7 @@ def write_genbank(infile, record, output_directory, pp, fileprefix=""):
                         {'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'}
                     )))
         if 'atts' in pp[i]:
-            record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
+            self.record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
                         location=FeatureLocation(int(pp[i]['att'][0]), int(pp[i]['att'][1])) +
                                  FeatureLocation(int(pp[i]['att'][2]), int(pp[i]['att'][3])),
                         type='repeat_region',
@@ -96,15 +132,15 @@ def write_genbank(infile, record, output_directory, pp, fileprefix=""):
                         qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
 
     # are we writing a gzip file
-    if is_gzip_file(infile):
+    if is_gzip_file(self.infile):
         handle = gzip.open(outfile, 'wt')
     else:
         handle = open(outfile, 'w')
 
-    SeqIO.write(record, handle, 'genbank')
+    SeqIO.write(self.record, handle, 'genbank')
 
 
-def write_phage_and_bact(output_dir, pp, dna, fileprefix=None):
+def write_phage_and_bact(self, pp, dna):
     """
     Separate out the phage and bacterial fractions into fasta files
     :param output_dir: The output directory to write the files to
@@ -113,9 +149,9 @@ def write_phage_and_bact(output_dir, pp, dna, fileprefix=None):
     :param fileprefix: an optional file prefix prepended to the files
     :return:
     """
-    message('Writing bacterial and phage DNA as fasta', "GREEN", 'stderr')
-    phage_out = open(os.path.join(output_dir, fileprefix + "phage.fasta"), "w")
-    bacteria_out = open(os.path.join(output_dir, fileprefix + "bacteria.fasta"), "w")
+    log_and_message('Writing bacterial and phage DNA as fasta', c="GREEN", stderr=True, quiet=self.quiet)
+    phage_out = open(os.path.join(self.output_dir, self.file_prefix + "phage.fasta"), "w")
+    bacteria_out = open(os.path.join(self.output_dir, self.file_prefix + "bacteria.fasta"), "w")
     
     contig_to_phage = {}
     for i in pp:
@@ -149,7 +185,7 @@ def write_phage_and_bact(output_dir, pp, dna, fileprefix=None):
     bacteria_out.close()
 
 
-def write_prophage_coordinates(outputdir, pp, fileprefix=""):
+def write_prophage_coordinates(self, pp):
     """
     Write the coordinates and other details about the prophages
     :param outputdir: the output directory to write to
@@ -157,8 +193,8 @@ def write_prophage_coordinates(outputdir, pp, fileprefix=""):
     :param fileprefix: An optional prefix that will be prepended to the filename
     """
 
-    message("Writing prophage_coordinates output file", "GREEN", 'stderr')
-    with open(os.path.join(outputdir, fileprefix + 'prophage_coordinates.tsv'), 'w') as out:
+    log_and_message("Writing prophage_coordinates output file", c="GREEN", stderr=True, quiet=self.quiet)
+    with open(os.path.join(self.output_dir, self.file_prefix + 'prophage_coordinates.tsv'), 'w') as out:
         for i in pp:
             if 'atts' not in pp[i]:
                 pp[i]['atts'] = ""
@@ -172,7 +208,7 @@ def write_prophage_coordinates(outputdir, pp, fileprefix=""):
             out.write("\t".join(map(str, locs)) + "\n")
 
 
-def write_prophage_tbl(outputdir, pp, fileprefix=""):
+def write_prophage_tbl(self, pp):
     """
     Create a prophage_tbl file from our pp dictionary
     :param outputdir: the directory to write to
@@ -181,8 +217,8 @@ def write_prophage_tbl(outputdir, pp, fileprefix=""):
     :return: None
     """
 
-    message("Writing prophage.tbl output file", "GREEN", 'stderr')
-    with open(os.path.join(outputdir, fileprefix + "prophage.tbl"), 'w') as out:
+    log_and_message("Writing prophage.tbl output file", c="GREEN", stderr=True, quiet=self.quiet)
+    with open(os.path.join(self.output_dir, self.file_prefix + "prophage.tbl"), 'w') as out:
         for i in pp:
             locs = [
                 "pp_" + str(i),
@@ -193,7 +229,7 @@ def write_prophage_tbl(outputdir, pp, fileprefix=""):
             out.write(locs[0] + "\t" + "_".join(map(str, locs[1:])) + "\n")
 
 
-def write_prophage_tsv(outputdir, pp, fileprefix=""):
+def write_prophage_tsv(self, pp):
     """
     Create a tsv with headers for this data. Issue #28 item 2
     :param outputdir: the directory to write to
@@ -202,8 +238,8 @@ def write_prophage_tsv(outputdir, pp, fileprefix=""):
     :return: None
     """
 
-    message("Writing prophage.tsv output file", "GREEN", 'stderr')
-    with open(os.path.join(outputdir, fileprefix + "prophage.tsv"), 'w') as out:
+    log_and_message("Writing prophage.tsv output file", c="GREEN", stderr=True, quiet=self.quiet)
+    with open(os.path.join(self.output_dir, self.file_prefix + "prophage.tsv"), 'w') as out:
         out.write("Prophage number\tContig\tStart\tStop\n")
         for i in pp:
             locs = [
@@ -220,7 +256,7 @@ def prophage_measurements_to_tbl(inputf, outputf):
         f = open(inputf, 'r')
         fw = open(outputf, 'w')
     except IOError as e:
-        message(f"There was an error trying to convert the measurements to a tbl: {e}\n", "RED", 'stderr')
+        log_and_message(f"There was an error trying to convert the measurements to a tbl: {e}", c="RED", stderr=True)
         return
     pp = {}
     ppindx = 0

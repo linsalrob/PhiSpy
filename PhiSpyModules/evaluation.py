@@ -6,14 +6,14 @@ from argparse import Namespace
 
 from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
 from .writers import write_prophage_tsv, write_genbank, write_prophage_coordinates
-from .formatting import message
+from .writers import log_and_message
 
 import PhiSpyRepeatFinder
 
 
 def find_repeat(fn, st, ppno, extra_dna, output_dir):
     if len(fn) == 0:
-        message("Len sequence is 0 so ignoring\n", "RED", 'stderr')
+        log_and_message("Len sequence is 0 so ignoring\n", c="RED", stderr=True, loglevel="WARNING")
         return {}
 
     rep = {}
@@ -26,7 +26,8 @@ def find_repeat(fn, st, ppno, extra_dna, output_dir):
         # set the False parameter to True to enable debugging of repeat finder
         repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3, ppno, False)
     except Exception as e:
-        message(f"There was an error running repeatfinder for {fn}:{e}\n", "RED", 'stderr')
+        log_and_message(f"There was an error running repeatfinder for {fn}:{e}\n", c="RED", stderr=True,
+                        loglevel="WARNING")
         return {}
 
     for r in repeats:
@@ -187,8 +188,7 @@ def clarification_by_phage_word(sjcontig, bef_start, bef_stop, aft_start, aft_st
 def fixing_start_end(**kwargs):
     self = Namespace(**kwargs)
     # make all predicted pp list
-    if not self.quiet:
-        message("Checking prophages we might have found\n", "GREEN", 'stderr')
+    log_and_message("Checking prophages we might have found", c="GREEN", stderr=True, quiet=self.quiet)
     pp = {}
     i = 0
     flag = 0
@@ -264,20 +264,19 @@ def fixing_start_end(**kwargs):
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
                                     "Dropped. Not enough genes"])
     # print a list of all prophages and the number of genes
-    if prophagesummary and not self.quiet:
-        sys.stderr.write('Potential prophages (sorted highest to lowest)\n')
-        sys.stderr.write('Contig\tStart\tStop\tNumber of potential genes\tStatus\n')
+    if prophagesummary:
+        log_and_message('Potential prophages (sorted highest to lowest)', stderr=True, quiet=self.quiet)
+        log_and_message('Contig\tStart\tStop\tNumber of potential genes\tStatus', stderr=True, quiet=self.quiet)
         for p in sorted(prophagesummary, key=lambda x: x[3], reverse=True):
-            sys.stderr.write("\t".join(map(str, p)) + "\n")
+            log_and_message("\t".join(map(str, p)), stderr=True, quiet=self.quiet)
     pp = temppp
-    sys.stderr.write("\n")
     # End filtering
     # find start end for all pp using repeat finder
     dna = {entry.id: str(entry.seq) for entry in self.record}
     extra_dna = 2000
     for i in pp:
-        if not self.quiet:
-            message(f"PROPHAGE: {i} Contig: {pp[i]['contig']} Start: {pp[i]['start']} Stop: {pp[i]['stop']}", "PINK", 'stderr')
+        log_and_message(f"PROPHAGE: {i} Contig: {pp[i]['contig']} Start: {pp[i]['start']} Stop: {pp[i]['stop']}",
+                        c="PINK", stderr=True, quiet=self.quiet)
         start = pp[i]['start'] - extra_dna
         if start < 1:
             start = 1
@@ -288,8 +287,8 @@ def fixing_start_end(**kwargs):
         if stop > len(dna[pp[i]['contig']]):
             stop = len(dna[pp[i]['contig']])
         if stop - start > 200000:
-            if not self.quiet:
-                message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp", "PINK", 'stderr')
+            log_and_message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp",
+                            c="PINK", stderr=True, quiet=self.quiet)
             continue
         repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extra_dna, self.output_dir)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
@@ -344,14 +343,12 @@ def fixing_start_end(**kwargs):
                         msg = f"The attL sequence had no length from {int(bestrep['s1']) - 1} to "
                         msg += f"{int(bestrep['e1']) - 1} on contig {pp[i]['contig']} "
                         msg += f"(length: {len(dna[pp[i]['contig']])} )"
-                        if not self.quiet:
-                            message(msg, "YELLOW", 'stderr')
+                        log_and_message(msg, c="YELLOW", stderr=True, quiet=self.quiet)
                     if len(attRseq) == 0:
                         msg = f"The attL sequence had no length from {int(bestrep['s2']) - 1} to "
                         msg += f"{int(bestrep['e2']) - 1} on contig {pp[i]['contig']} "
                         msg += f"(length: {len(dna[pp[i]['contig']])} )"
-                        if not self.quiet:
-                            message(msg, "YELLOW", 'stderr')
+                        log_and_message(msg, c="YELLOW", stderr=True, quiet=self.quiet)
                     pp[i]['att'] = [
                         bestrep['s1'],
                         bestrep['e1'],
@@ -362,14 +359,14 @@ def fixing_start_end(**kwargs):
                         "Longest Repeat flanking phage and within " + str(extra_dna) + " bp"
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
-                    if samelenrep > 1 and not self.quiet:
-                        message(f"There were {samelenrep} repeats with the same length as the best. " +
-                                         "One chosen somewhat randomly!\n", "YELLOW", 'stderr')
+                    if samelenrep > 1:
+                        msg=f"There were {samelenrep} repeats with the same length as the best. One chosen somewhat randomly!"
+                        log_and_message(msg, c="YELLOW", stderr=True, quiet=self.quiet)
     # fix start end for all pp
     try:
         outfile = open(os.path.join(self.output_dir, self.file_prefix + 'prophage_information.tsv'), 'w')
     except IOError as e:
-        message(f"There was an error opening the files: {e}\n", "RED", 'stderr')
+        log_and_message(f"There was an error opening the files: {e}\n", c="RED", stderr=True, loglevel="CRITICAL")
         sys.exit(-1)
 
     outfile.write("identifier\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\t")
@@ -401,15 +398,15 @@ def fixing_start_end(**kwargs):
     oc = self.output_choice
     if oc >= 64:
         # write the prophage location table
-        write_prophage_tbl(self.output_dir, pp, self.file_prefix)
+        write_prophage_tbl(self, pp)
         oc -= 64
     if oc >= 32:
         # write the prophage in GFF3 format
-        write_gff3(self.output_dir, pp, self.file_prefix)
+        write_gff3(self, pp)
         oc -= 32
     if oc >= 16:
         # write a tsv file of this data
-        write_prophage_tsv(self.output_dir, pp, self.file_prefix)
+        write_prophage_tsv(self, pp)
         oc -= 16
     if oc < 8:
         # we want to KEEP the prophage_information.tsv that we created earlier
@@ -420,14 +417,14 @@ def fixing_start_end(**kwargs):
         oc = 0
     if oc >= 4:
         # separate out the bacteria and phage as fasta files
-        write_phage_and_bact(self.output_dir, pp, dna, self.file_prefix)
+        write_phage_and_bact(self, pp, dna)
         oc -= 4
     if oc >= 2:
         # update input GenBank file and incorporate prophage regions
-        write_genbank(self.infile, self.record, self.output_dir, pp, self.file_prefix)
+        write_genbank(self, pp)
     if oc >= 1:
         # print the prophage coordinates:
-        write_prophage_coordinates(self.output_dir, pp, self.file_prefix)
+        write_prophage_coordinates(self, pp)
 
 
 
