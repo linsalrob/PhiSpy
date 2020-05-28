@@ -31,7 +31,7 @@ def log_and_message(msg, c="WHITE", stderr=False, stdout=False, quiet=False, log
     :param c: the color to write the message
     :param stderr: write the message to stderr
     :param stdout: write the message to stdout
-    :param level: the logging level. See https://docs.python.org/3/library/logging.html#levels for a list
+    :param loglevel: the logging level. See https://docs.python.org/3/library/logging.html#levels for a list
     :return:
     """
 
@@ -58,9 +58,9 @@ def write_gff3(self, pp):
     Write GFF3 code. This was adapted from code contribued by [Jose Francisco Sanchez-Herrero]
     (https://github.com/JFsanchezherrero/)
 
-    :param output_dir: the location to write to
-    :param pp: the list of prophage objects
-    :param fileprefix: An optional prefix that will be prepended to the filename
+    :param self: the data object
+    :param pp: array of pp dictionaries
+    :return: None
     """
 
     log_and_message("Writing GFF3 output file", c="GREEN", stderr=True, quiet=self.quiet)
@@ -105,11 +105,9 @@ def write_gff3(self, pp):
 def write_genbank(self, pp):
     """
     Write prophages and their potential attachment sites in updated input GenBank file.
-    :param infile: path to input file
-    :param record: SeqRecord generator of input file
-    :param output_directory: the location to write to
-    :param pp: the list of prophage objects
-    :param fileprefix: An optional prefix that will be prepended to the filename
+    :param self: the data object
+    :param pp: array of pp dictionaries
+    :return: None
     """
 
     log_and_message("Writing GenBank output file", c="GREEN", stderr=True, quiet=self.quiet)
@@ -143,11 +141,10 @@ def write_genbank(self, pp):
 def write_phage_and_bact(self, pp, dna):
     """
     Separate out the phage and bacterial fractions into fasta files
-    :param output_dir: The output directory to write the files to
-    :param pp: the prophage object
+    :param self: the data object
+    :param pp: array of pp dictionaries
     :param dna: the DNA sequence object
-    :param fileprefix: an optional file prefix prepended to the files
-    :return:
+    :return: None
     """
     log_and_message('Writing bacterial and phage DNA as fasta', c="GREEN", stderr=True, quiet=self.quiet)
     phage_out = open(os.path.join(self.output_dir, self.file_prefix + "phage.fasta"), "w")
@@ -188,9 +185,9 @@ def write_phage_and_bact(self, pp, dna):
 def write_prophage_coordinates(self, pp):
     """
     Write the coordinates and other details about the prophages
-    :param outputdir: the output directory to write to
-    :param pp: the prophage object
-    :param fileprefix: An optional prefix that will be prepended to the filename
+    :param self: the data object
+    :param pp: array of pp dictionaries
+    :return: None
     """
 
     log_and_message("Writing prophage_coordinates output file", c="GREEN", stderr=True, quiet=self.quiet)
@@ -211,9 +208,8 @@ def write_prophage_coordinates(self, pp):
 def write_prophage_tbl(self, pp):
     """
     Create a prophage_tbl file from our pp dictionary
-    :param outputdir: the directory to write to
+    :param self: the data object
     :param pp: array of pp dictionaries
-    :param fileprefix: An optional prefix that will be prepended to the filename
     :return: None
     """
 
@@ -232,9 +228,8 @@ def write_prophage_tbl(self, pp):
 def write_prophage_tsv(self, pp):
     """
     Create a tsv with headers for this data. Issue #28 item 2
-    :param outputdir: the directory to write to
+    :param self: the data object
     :param pp: array of pp dictionaries
-    :param fileprefix: An optional prefix that will be prepended to the filename
     :return: None
     """
 
@@ -249,6 +244,20 @@ def write_prophage_tsv(self, pp):
                 pp[i]['stop']
             ]
             out.write("\t".join(map(str, locs)) + "\n")
+
+
+def write_test_data(self, pp):
+    """
+    Write the testing measurements
+    :param self: the data object
+    :param measurements: the measurements
+    :return: None
+    """
+    log_and_message("Writing test_data output file", c="GREEN", stderr=True, quiet=self.quiet)
+    with open(os.path.join(self.output_dir, self.file_prefix + "test_data.tsv"), 'w') as out:
+        out.write('identifier\torf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
+        for i, d in enumerate(self.test_data):
+            out.write("\t".join(map(str, [self.initial_tbl[i][0]] + d)) + "\n")
 
 
 def prophage_measurements_to_tbl(inputf, outputf):
@@ -287,3 +296,5 @@ def prophage_measurements_to_tbl(inputf, outputf):
         fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
     f.close()
     fw.close()
+
+

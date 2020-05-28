@@ -5,7 +5,7 @@ import sys
 from argparse import Namespace
 
 from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
-from .writers import write_prophage_tsv, write_genbank, write_prophage_coordinates
+from .writers import write_prophage_tsv, write_genbank, write_prophage_coordinates, write_test_data
 from .writers import log_and_message
 
 import PhiSpyRepeatFinder
@@ -392,10 +392,16 @@ def fixing_start_end(**kwargs):
         16 | prophage.tsv  
         32 | GFF3 format  
         64 | prophage.tbl
+        128 | test data used in the random forest
     As explained in the README. 
     """
 
     oc = self.output_choice
+
+    if oc >= 128:
+        # write the calculated data
+        write_test_data(self, pp)
+        oc -= 128
     if oc >= 64:
         # write the prophage location table
         write_prophage_tbl(self, pp)
@@ -425,6 +431,7 @@ def fixing_start_end(**kwargs):
     if oc >= 1:
         # print the prophage coordinates:
         write_prophage_coordinates(self, pp)
+
 
 
 
