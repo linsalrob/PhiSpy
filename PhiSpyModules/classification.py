@@ -177,7 +177,7 @@ def make_initial_tbl(**kwargs):
 
 
     for i in range(len(x)):
-        status = 0 if x[i]['rank'] > threshold else 0
+        status = 1 if x[i]['rank'] > threshold else 0
         thisrow = [
             x[i]['fig'],
             x[i]['function'],
