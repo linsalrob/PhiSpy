@@ -107,8 +107,8 @@ def get_args():
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('--output_choice', type=int, default=3,
                         help='Sum of codes for files to output. For more details see the README.md file')
-    parser.add_argument('--log', type=argparse.FileType('w'),
-                        help="Log file to write details to")
+    parser.add_argument('--log', type=str,
+                        help="Name of the log file to write details to (defulat: phispy.log)")
     parser.add_argument('--quiet', action='store_true',
                         help='Run in quiet mode')
     parser.add_argument('-k', '--keep', type=bool, default=False, const=True, nargs='?',
