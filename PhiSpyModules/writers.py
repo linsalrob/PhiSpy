@@ -255,7 +255,11 @@ def write_test_data(self, pp):
     """
     log_and_message("Writing test_data output file", c="GREEN", stderr=True, quiet=self.quiet)
     with open(os.path.join(self.output_dir, self.file_prefix + "test_data.tsv"), 'w') as out:
-        out.write('identifier\torf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
+        if self.phmms:
+            out.write('identifier\torf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
+        else:
+            out.write('identifier\torf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tstatus\n')
+
         for i, d in enumerate(self.test_data):
             out.write("\t".join(map(str, [self.initial_tbl[i][0]] + d)) + "\n")
 
