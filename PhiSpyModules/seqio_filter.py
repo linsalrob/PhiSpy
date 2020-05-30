@@ -2,6 +2,8 @@ import types
 from Bio import SeqFeature
 from copy import copy
 
+from .writers import log_and_message
+from Bio.SeqFeature import FeatureLocation, CompoundLocation
 
 class SeqioFilter( list ):
     """This class is to allow filtering of the Biopython SeqIO record
@@ -54,48 +56,119 @@ class SeqioFilter( list ):
     def get_entry(self, id):
         return self[self.get_n[id]]
 
-    def distance_between(self, locations):
-        return -(locations[0].end - locations[1].start)
+    def merge_or_split(self, seq, feature, mindistance = 100):
+        """
+        :param feature:
+        :param mindistance:
+        :return:
+        """
+        thisid = " ".join(feature.qualifiers.get('locus_tag', [str(feature.location)]))
 
-    def merge_or_split(self, feature):
-        cutoff_distance           = 100
-        feature.location_operator = None
-        last_part_start           = feature.location.parts[0].start
-        last_part_end             = feature.location.parts[0].end
-        mor_features              = []
+        # do we need to do anything
+        if type(feature.location) != CompoundLocation:
+            log_and_message(f"Error {thisid} does not appear to be a compound location\n",
+                            c="RED", stderr=True, loglevel="WARNING")
+            return
+
+        log_and_message(f"merging/splitting {thisid} original location: {feature.location}")
 
         if 'product' in feature.qualifiers:
             feature.qualifiers['product'][0] = 'Merged-or-split: ' + feature.qualifiers['product'][0]
         else:
             feature.qualifiers['product'] = ['Merged-or-split: not assigned']
 
-        # in case parts are not written in increasing order
-        tmp = []
-        for i in range(len(feature.location.parts)):
-            tmp.append((feature.location.parts[i].start, feature.location.parts[i]))
-        feature.location.parts = []
-        for t in sorted(tmp):
-            feature.location.parts.append(t[1])
 
-        for i in range(len(feature.location.parts) - 1):
-            if self.distance_between(feature.location.parts[i : i+2]) < cutoff_distance:
-                # do merging stuff here
-                last_part_end = feature.location.parts[i + 1].end
-            else:
-                # do splitting stuff here
-                if last_part_end == feature.location.parts[i].end:
-                    nf = copy(feature)
-                    nf.location = SeqFeature.FeatureLocation(last_part_start, last_part_end, feature.strand)
-                    mor_features.append(nf)
-                    last_part_start = feature.location.parts[i + 1].start
+        # simplify our coding
+        loc = feature.location
+        # first we find the strand
+        strand = loc.parts[0].strand
+
+        # test that all locations are on the same strand
+        # record an error if not
+        for p in loc.parts:
+            if p.strand != strand:
+                msg = "Error: We can not handle compound locations on different strands. For {thisid} we have {loc}"
+                log_and_message(msg, c="RED", stderr=True, loglevel="WARNING")
+                return
+
+        all_locs = []
+        merged = loc.parts[0]
+        # handle features on the + strand
+        if strand > 0:
+            for p in loc.parts[1:]:
+                if p.start < merged.start:
+                    # this feature spans a break
+                    msg = (f"Feature {thisid} spans the origin: {loc}\n"
+                           f"WARNING: THIS IS AN UNTESTED FEATURE!\n"
+                           f"We have not thoroughly tested conditions where an ORF on the +ve strand appears to cross "
+                           f"the origin of the contig. We would appreciate you posting an issue on GitHub and sending "
+                           f"Rob a copy of your genome to test!\n")
+                    log_and_message(msg, c="YELLOW", stderr=True, loglevel='WARNING')
+
+                    all_locs.append(merged)
+                    merged = p
+                    continue
+                if p.start > merged.start and p.start < merged.end:
+                    merged = FeatureLocation(merged.start, p.end, strand)
+                elif p.start > merged.end:
+                    if merged.end - p.start > mindistance:
+                        all_locs.append(merged)
+                        merged = p
+                    else:
+                        merged = FeatureLocation(merged.start, p.end, strand)
                 else:
-                    last_part_start = feature.location.parts[i].start
-                last_part_end = feature.location.parts[i + 1].end
-        nf = copy(feature)
-        nf.location = SeqFeature.FeatureLocation(last_part_start, last_part_end, feature.strand)
-        mor_features.append(nf)
+                    all_locs.append(merged)
+                    merged = p
+        # handle features on the -ve strand
+        else:
+            for p in loc.parts[1:]:
+                if merged.start < p.start:
+                    # this feature spans a break
+                    msg = (f"Feature {thisid} spans the origin: {loc}\n"
+                           f"WARNING: THIS IS AN UNTESTED FEATURE!\n"
+                           f"We have not thoroughly tested conditions where an ORF on the -ve strand appears to cross "
+                           f"the origin of the contig. We would appreciate you posting an issue on GitHub and sending "
+                           f"Rob a copy of your genome to test!\n")
+                    log_and_message(msg, c="YELLOW", stderr=True, loglevel='WARNING')
 
-        return mor_features
+                    all_locs.append(merged)
+                    merged = p
+                    continue
+                if p.end > merged.start and p.end < merged.end:
+                    # trivial case, the ORFs overlap
+                    merged = FeatureLocation(p.start, merged.end, strand)
+                elif p.end < merged.start:
+                    # more complex case, there is a gap
+                    if merged.start - p.end > mindistance:
+                        all_locs.append(merged)
+                        merged = p
+                    else:
+                        merged = FeatureLocation(p.start, merged.end, strand)
+                else:
+                    all_locs.append(merged)
+                    merged = p
+
+        if all_locs:
+            # we have multiple features, so we need to add features
+            # make sure we add the last feature
+            all_locs.append(merged)
+            # remove the current feature from seq.features
+            seq.features.remove(feature)
+            log_and_message("We could not join the whole feature into a single new feature.")
+            # create new
+            for f in all_locs:
+                newfeat = feature
+                newfeat.location = f
+                seq.features.append(newfeat)
+                log_and_message(f"Appended part of a multiple feature {thisid} loc: {f}\n")
+        else:
+            # we just replace the old feature
+            seq.features.remove(feature)
+            # update the location
+            feature.location = merged
+            # add the new feature
+            seq.features.append(feature)
+            log_and_message(f"Created a single feature: {thisid} loc: {merged}\n")
 
     def attach_methods(self, target):
         """This method allows attaching new methods to the SeqIO entry object
@@ -104,19 +177,13 @@ class SeqioFilter( list ):
                target: is the SeqIO object that will be attaching a method to
         """
 
-        # if feature has a complex location then merge or split it
-        new_features    = []
-        joined_features = []
-        for feature in target.features:
-            if feature.location_operator == 'join':
-                new_features.extend(self.merge_or_split(feature))
-                joined_features.append(feature)
-        for feature in joined_features:
-            target.features.remove(feature)
-        target.features.extend(new_features)
+        for feat in target.features:
+            if type(feat.location) == CompoundLocation:
+                self.merge_or_split(target, feat)
 
         # sort the features based on their location in the genome
-        target.features.sort( key = lambda feature : tuple([min(feature.location.start, feature.location.end),  max(feature.location.start, feature.location.end)]) )
+        target.features.sort( key = lambda feature : tuple([min(feature.location.start, feature.location.end),
+                                                            max(feature.location.start, feature.location.end)]) )
 
         def get_features(target, feature_type):
             for feature in target.features:
