@@ -148,7 +148,9 @@ def write_phage_and_bact(self, pp, dna):
     """
     log_and_message('Writing bacterial and phage DNA as fasta', c="GREEN", stderr=True, quiet=self.quiet)
     phage_out = open(os.path.join(self.output_dir, self.file_prefix + "phage.fasta"), "w")
+    phage_genbank = open(os.path.join(self.output_dir, self.file_prefix + "phage.gbk"), "w")
     bacteria_out = open(os.path.join(self.output_dir, self.file_prefix + "bacteria.fasta"), "w")
+    bacteria_genbank = open(os.path.join(self.output_dir, self.file_prefix + "bacteria.gbk"), "w")
     
     contig_to_phage = {}
     for i in pp:
@@ -160,26 +162,50 @@ def write_phage_and_bact(self, pp, dna):
     for contig in dna:
         if contig not in contig_to_phage:
             bacteria_out.write(f">{contig}\n{dna[contig]}\n")
+            SeqIO.write(self.record.get_entry(contig), bacteria_genbank, "genbank")
             continue
         pps1 = list(contig_to_phage[contig])
         pps = sorted(pps1, key=lambda k: pp[k]['start'])
         bactstart = 0
         dnaseq = ""
+        hostcounter = 0
         for ppnum in pps:
             pphagestart = pp[ppnum]['start']
             pphagestop = pp[ppnum]['stop']
 
             phageseq = dna[contig][pphagestart:pphagestop]
             phage_out.write(f">{contig}_{pphagestart}_{pphagestop} [pp {ppnum}]\n{phageseq}\n")
+            pp_gbk = self.record.get_entry(contig)[pphagestart:pphagestop]
+            # set the locus tag
+            pp_gbk.name += f"_PP{ppnum}"
+            # set the Accession
+            pp_gbk.id += f"_PP{ppnum}"
+            #set the definition line
+            pp_gbk.description += f" prophage PP{ppnum} on {contig} from {pphagestart} to {pphagestop}"
+            SeqIO.write(pp_gbk, phage_genbank, "genbank")
 
             dnaseq += dna[contig][bactstart:pphagestart - 1]
             dnaseq += "N" * len(phageseq)
+            host_gbk = self.record.get_entry(contig)[bactstart:pphagestart - 1]
+            hostcounter += 1
+            host_gbk.name += f"_region_{hostcounter}"
+            host_gbk.id += f"_region_{hostcounter}"
+            host_gbk.description += f" region {hostcounter} on {contig} from {bactstart} to {pphagestart - 1}"
+            SeqIO.write(host_gbk, bacteria_genbank, "genbank")
             bactstart = pphagestop + 1
         dnaseq += dna[contig][bactstart:]
+        host_gbk = self.record.get_entry(contig)[bactstart:]
+        hostcounter += 1
+        host_gbk.name += f"_region_{hostcounter}"
+        host_gbk.id += f"_region_{hostcounter}"
+        host_gbk.description += f" region {hostcounter} on {contig} from {bactstart} onwards"
         bacteria_out.write(f">{contig} [phage regions replaced with N]\n{dnaseq}\n")
+        SeqIO.write(host_gbk, bacteria_genbank, "genbank")
 
     phage_out.close()
+    phage_genbank.close()
     bacteria_out.close()
+    bacteria_genbank.close()
 
 
 def write_prophage_coordinates(self, pp):
