@@ -190,8 +190,10 @@ If the original GenBank file was provided in `gzip` format this file will also b
 
 3. **prophage and bacterial sequences**  (code: 4)
 
-`PhiSpy` can automatically separate the DNA sequences into prophage and bacterial components. If this output is chosen, we generate two fasta
-files. The first contains the entire genome, but the prophage regions have been masked with `N`s. We explicitly chose this format for a
+`PhiSpy` can automatically separate the DNA sequences into prophage and bacterial components. If this output is chosen, we generate both fasta and
+GenBank format outputs: 
+ - _GenBank files_: Two files are made, one for the bacteria and one for the phages. Each contains the appropriate fragments of the genome annotated as in the original.
+ - _fasta files_: Two files are made, the first contains the entire genome, but the prophage regions have been masked with `N`s. We explicitly chose this format for a
 few reasons: (i) it is trivial to convert this format into separate contigs without the Ns but it is more complex to go from separate contigs
 back to a single joined contig; (ii) when read mapping against the genome, understanding that reads map either side of a prophage maybe
 important; (iii) when looking at insertion points this allows you to visualize the where the prophage was lying.
