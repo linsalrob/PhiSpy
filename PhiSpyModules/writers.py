@@ -193,6 +193,7 @@ def write_phage_and_bact(self, pp, dna):
             host_gbk.description += f" region {hostcounter} on {contig} from {bactstart} to {pphagestart - 1}"
             SeqIO.write(host_gbk, bacteria_genbank, "genbank")
             bactstart = pphagestop + 1
+            
         dnaseq += dna[contig][bactstart:]
         host_gbk = self.record.get_entry(contig)[bactstart:]
         hostcounter += 1
