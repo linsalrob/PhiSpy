@@ -58,11 +58,15 @@ class SeqioFilter( list ):
 
     def merge_or_split(self, seq, feature, mindistance = 100):
         """
-        :param feature:
-        :param mindistance:
+        Merge or split sequence features with compound locations
+        :param seq: the sequence object
+        :param feature: The feature with a compound location to merge or split
+        :param mindistance: the distance with which they will be merged/split
         :return:
         """
         thisid = " ".join(feature.qualifiers.get('locus_tag', [str(feature.location)]))
+        # find the index of this in the list. We could also pass this as an arg
+        idx = seq.features.index(feature)
 
         # do we need to do anything
         if type(feature.location) != CompoundLocation:
@@ -152,23 +156,23 @@ class SeqioFilter( list ):
             # we have multiple features, so we need to add features
             # make sure we add the last feature
             all_locs.append(merged)
-            # remove the current feature from seq.features
-            seq.features.remove(feature)
-            log_and_message("We could not join the whole feature into a single new feature.")
-            # create new
+            log_and_message(f"We could not join the whole {feature.type} feature into a single new feature.")
+            # replace the existing compound feature with the first one of the split features
+            newfeat = feature
+            newfeat.location = all_locs[0]
+            seq.features[idx] = newfeat
+            # append the other features
             for f in all_locs:
-                newfeat = feature
                 newfeat.location = f
                 seq.features.append(newfeat)
-                log_and_message(f"Appended part of a multiple feature {thisid} loc: {f}\n")
+                log_and_message(f"Appended part of a multiple {feature.type} feature {thisid} loc: {f}\n")
         else:
-            # we just replace the old feature
-            seq.features.remove(feature)
+            # we just replace the old feature with the new
             # update the location
             feature.location = merged
             # add the new feature
-            seq.features.append(feature)
-            log_and_message(f"Created a single feature: {thisid} loc: {merged}\n")
+            seq.features[idx] = feature
+            log_and_message(f"Created a single {feature.type} feature: {thisid} loc: {merged}\n")
 
     def attach_methods(self, target):
         """This method allows attaching new methods to the SeqIO entry object
@@ -177,6 +181,7 @@ class SeqioFilter( list ):
                target: is the SeqIO object that will be attaching a method to
         """
 
+        # resolve compound locations!
         for feat in target.features:
             if type(feat.location) == CompoundLocation:
                 self.merge_or_split(target, feat)
