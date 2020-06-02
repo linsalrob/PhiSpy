@@ -16,3 +16,14 @@ class ColorNotFoundError(Error):
 
     def __init__(self, message):
         self.message = message
+        super().__init__(self.message)
+
+class NoBasesCounted(Error):
+    """
+    An exception raised when no AT or GC bases are counted
+    """
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
