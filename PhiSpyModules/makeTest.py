@@ -6,6 +6,7 @@ import pkg_resources
 from argparse import Namespace
 
 from .formatting import message
+from .errors import NoBasesCounted
 
 class ShannonScore:
     def __init__(self, kmers_type):
@@ -224,8 +225,7 @@ def find_atgc_skew(seq):
             print("base", base)
             sys.exit("ERROR: Non nucleotide base found")
     if(total_at * total_gc) == 0:
-        print(seq)
-        sys.exit("a total of zero total_at*total_gc")
+        raise NoBasesCounted("a total of zero total_at*total_gc")
     return float(a)/total_at, float(t)/total_at, float(g)/total_gc, float(c)/total_gc
 
 def find_avg_atgc_skew(orf_list, mycontig, dna):
@@ -236,12 +236,19 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     for i in orf_list:
         start = i['start']
         stop = i['stop']
-        if start < stop:
-            bact = dna[mycontig][start - 1:stop]
-            xa, xt, xg, xc = find_atgc_skew(bact)
-        else:
-            bact = dna[mycontig][stop - 1:start]
-            xt, xa, xc, xg = find_atgc_skew(bact)
+        try:
+            if start < stop:
+                bact = dna[mycontig][start - 1:stop]
+                xa, xt, xg, xc = find_atgc_skew(bact)
+            else:
+                bact = dna[mycontig][stop - 1:start]
+                xt, xa, xc, xg = find_atgc_skew(bact)
+        except NoBasesCounted as e:
+            sys.stderr.write(e.message + "\n")
+            sys.stderr.write(f"No bases were counted for orf {i} from {start} to {stop}\n")
+            sys.stderr.write("This error is usually thrown with an exceptionally short ORF that is only a " +
+                             " few bases. You should check this ORF and confirm it is real!\n")
+            sys.exit()
         if len(bact) < 3:
             continue
         a_skew.append(xa)
