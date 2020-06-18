@@ -1,9 +1,11 @@
 import types
 from Bio import SeqFeature
-from copy import copy
+import copy
 
 from .writers import log_and_message
 from Bio.SeqFeature import FeatureLocation, CompoundLocation
+
+import sys
 
 class SeqioFilter( list ):
     """This class is to allow filtering of the Biopython SeqIO record
@@ -115,14 +117,14 @@ class SeqioFilter( list ):
                 if p.start > merged.start and p.start < merged.end:
                     merged = FeatureLocation(merged.start, p.end, strand)
                 elif p.start > merged.end:
-                    if merged.end - p.start > mindistance:
+                    if p.start - merged.end > mindistance:
                         all_locs.append(merged)
-                        merged = p
+                        merged = FeatureLocation(p.start, p.end, strand)
                     else:
                         merged = FeatureLocation(merged.start, p.end, strand)
                 else:
                     all_locs.append(merged)
-                    merged = p
+                    merged = FeatureLocation(p.start, p.end, strand)
         # handle features on the -ve strand
         else:
             for p in loc.parts[1:]:
@@ -145,12 +147,12 @@ class SeqioFilter( list ):
                     # more complex case, there is a gap
                     if merged.start - p.end > mindistance:
                         all_locs.append(merged)
-                        merged = p
+                        merged = FeatureLocation(p.start, p.end, strand)
                     else:
                         merged = FeatureLocation(p.start, merged.end, strand)
                 else:
                     all_locs.append(merged)
-                    merged = p
+                    merged = FeatureLocation(p.start, p.end, strand)
 
         if all_locs:
             # we have multiple features, so we need to add features
@@ -159,13 +161,17 @@ class SeqioFilter( list ):
             log_and_message(f"We could not join the whole {feature.type} feature into a single new feature.")
             # replace the existing compound feature with the first one of the split features
             newfeat = feature
+            sys.stderr.write(f"Started with {newfeat} that has location {newfeat.location}\n")
             newfeat.location = all_locs[0]
+            sys.stderr.write(f"Now its location is {newfeat.location}\n")
             seq.features[idx] = newfeat
+            sys.stderr.write(f"And the feat at {idx} has location {seq.features[idx].location}\n")
             # append the other features
-            for f in all_locs:
+            for f in all_locs[1:]:
+                newfeat = copy.deepcopy(feature)
                 newfeat.location = f
                 seq.features.append(newfeat)
-                log_and_message(f"Appended part of a multiple {feature.type} feature {thisid} loc: {f}\n")
+                log_and_message(f"Appended part of a multiple {newfeat.type} feature {thisid} loc: {f}\n")
         else:
             # we just replace the old feature with the new
             # update the location
