@@ -5,8 +5,6 @@ import copy
 from .writers import log_and_message
 from Bio.SeqFeature import FeatureLocation, CompoundLocation
 
-import sys
-
 class SeqioFilter( list ):
     """This class is to allow filtering of the Biopython SeqIO record
 
@@ -161,11 +159,8 @@ class SeqioFilter( list ):
             log_and_message(f"We could not join the whole {feature.type} feature into a single new feature.")
             # replace the existing compound feature with the first one of the split features
             newfeat = feature
-            sys.stderr.write(f"Started with {newfeat} that has location {newfeat.location}\n")
             newfeat.location = all_locs[0]
-            sys.stderr.write(f"Now its location is {newfeat.location}\n")
             seq.features[idx] = newfeat
-            sys.stderr.write(f"And the feat at {idx} has location {seq.features[idx].location}\n")
             # append the other features
             for f in all_locs[1:]:
                 newfeat = copy.deepcopy(feature)
