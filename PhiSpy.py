@@ -3,7 +3,6 @@ import os
 import sys
 import gzip
 from functools import reduce
-from PhiSpyModules import log_and_message
 
 from Bio import SeqIO
 
@@ -19,8 +18,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         parse the options          #
     ######################################
     args_parser = PhiSpyModules.get_args()
-    log_and_message(f"Starting PhiSpy.py with the following arguments\n{args_parser}")
-
+    PhiSpyModules.log_and_message(f"Starting PhiSpy.py with the following arguments\n{args_parser}")
 
     ######################################
     #   list the training sets and exit  #
@@ -29,15 +27,19 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         PhiSpyModules.print_list()
         exit(0)
 
-    if args_parser.version:
-        print("PhiSpy version: {}".format(PhiSpyModules.version.__version__))
-        sys.exit(0)
-
     # if we get here we need an input file
     if not args_parser.infile:
         PhiSpyModules.log_and_message("ERROR: Please provide an input file. Use -h for more options", c="RED",
                                       stderr=True, stdout=False)
         sys.exit(-1)
+
+    # check whether output directory was provided
+    if not args_parser.output_dir and not args_parser.make_training_data:
+        PhiSpyModules.log_and_message("ERROR: Output directory (-o) is required. Use -h for more options\n", c="RED",
+                                      stderr=True, quiet=args.quiet)
+        sys.exit(-1)
+    elif args_parser.output_dir:
+        os.makedirs(args_parser.output_dir, exist_ok=True)
 
     ######################################
     #       add HMM search signal        #

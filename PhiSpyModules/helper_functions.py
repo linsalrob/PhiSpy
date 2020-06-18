@@ -9,6 +9,11 @@ import logging
 
 from .formatting import message
 
+try:
+    __version__ = pkg_resources.get_distribution('phispy').version
+except Exception:
+    __version__ = 'unknown'
+
 def print_list():
     f = None
     try:
@@ -113,21 +118,13 @@ def get_args():
                         help='Run in quiet mode')
     parser.add_argument('-k', '--keep', type=bool, default=False, const=True, nargs='?',
                         help='Do not delete temp files')
-    parser.add_argument('-v', '--version', type=bool, default=False, const=True, nargs='?',
-                        help="Print the version and exit")
+    parser.add_argument('-v', '--version', action='version', version=__version__)
     args = parser.parse_args()
 
     if args.file_prefix != "":
         if not args.file_prefix.endswith("_"):
             args.file_prefix += "_"
         args.file_prefix = args.file_prefix.replace(' ', '_')
-
-    # check whether output directory was provided
-    if not args.output_dir and not args.make_training_data:
-        log_and_message("ERROR: Output directory (-o) is required. Use -h for more options\n", c="RED", stderr=True, quiet=args.quiet)
-        sys.exit(-1)
-    elif args.output_dir:
-        os.makedirs(args.output_dir, exist_ok=True)
 
     args.logger = create_logger(args)
     return args
