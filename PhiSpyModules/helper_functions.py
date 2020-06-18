@@ -121,10 +121,27 @@ def get_args():
     parser.add_argument('-v', '--version', action='version', version=__version__)
     args = parser.parse_args()
 
+
+    ######################################
+    #   list the training sets and exit  #
+    ######################################
+    if args.list:
+        print_list()
+        exit(0)
+
     if args.file_prefix != "":
         if not args.file_prefix.endswith("_"):
             args.file_prefix += "_"
         args.file_prefix = args.file_prefix.replace(' ', '_')
+
+    # check whether output directory was provided
+    if not args.output_dir and not args.make_training_data:
+        message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", "stderr")
+        sys.exit(-1)
+    elif args.output_dir:
+        os.makedirs(args.output_dir, exist_ok=True)
+    else:
+        args.output_dir=""
 
     args.logger = create_logger(args)
     return args
