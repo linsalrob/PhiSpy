@@ -1,17 +1,17 @@
 import os
-import re
+import sys
 import math
 import sys
 import pkg_resources
 from argparse import Namespace
 
-from .log_and_message import message
+from .log_and_message import log_and_message
 from .errors import NoBasesCounted
 
 class ShannonScore:
     def __init__(self, kmers_type):
         # Create a hash of the kmers that points to the index of an array that holds the value
-        self._kmers = {}
+        self._kmers = set()
         self._kmers_phage = []
         self._kmers_all = []
         self._kmers_type = kmers_type
@@ -21,7 +21,7 @@ class ShannonScore:
 
         for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
             line = line.decode().strip()
-            self._kmers[line] = ''
+            self._kmers.add(line)
 
     def reset(self):
         self._kmers_phage = []
@@ -36,7 +36,7 @@ class ShannonScore:
         for kmer in kmers:
             self._kmers_all[-1] += 1
             try:            
-                self._kmers[kmer]
+                self._kmers.add(kmer)
                 self._kmers_phage[-1].append(kmer)
             except KeyError:
                 continue
@@ -304,11 +304,16 @@ def measure_features(**kwargs):
             )
             all_orf_list[entry.id] = orf_list
 
+    if len(all_orf_list) == 0:
+        log_and_message("There were no ORFs predicted in {self.infile}. Please annotate the genome and try again",
+                        "RED", stderr=True, quiet=self.quiet)
+        sys.exit(0)
+
     for mycontig in all_orf_list:
         orf_list = all_orf_list[mycontig]
         if not orf_list:
             # an empty list of orfs
-            message("No ORFs were found in {mycontig}", "YELLOW", 'stderr')
+            log_and_message("No ORFs were found in {mycontig}", "YELLOW", stderr=True, quiet=self.quiet)
             continue
         all_median = find_all_median(orf_list)
         lengths = []
