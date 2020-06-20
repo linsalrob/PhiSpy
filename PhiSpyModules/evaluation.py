@@ -4,9 +4,7 @@ import math
 import sys
 from argparse import Namespace
 
-from .writers import write_phage_and_bact, write_gff3, write_prophage_tbl
-from .writers import write_prophage_tsv, write_genbank, write_prophage_coordinates, write_test_data
-from .writers import log_and_message
+from .log_and_message import log_and_message
 
 import PhiSpyRepeatFinder
 
@@ -267,7 +265,7 @@ def fixing_start_end(**kwargs):
     if prophagesummary:
         log_and_message('Potential prophages (sorted highest to lowest)', stderr=True, quiet=self.quiet)
         log_and_message('Contig\tStart\tStop\tNumber of potential genes\tStatus', stderr=True, quiet=self.quiet)
-        for p in sorted(prophagesummary, key=lambda x: x[3], reverse=True):
+        for p in sorted(prophagesummary, key=lambda x: (x[3], x[1]), reverse=True):
             log_and_message("\t".join(map(str, p)), stderr=True, quiet=self.quiet)
     pp = temppp
     # End filtering
@@ -362,76 +360,8 @@ def fixing_start_end(**kwargs):
                     if samelenrep > 1:
                         msg=f"There were {samelenrep} repeats with the same length as the best. One chosen somewhat randomly!"
                         log_and_message(msg, c="YELLOW", stderr=True, quiet=self.quiet)
-    # fix start end for all pp
-    try:
-        outfile = open(os.path.join(self.output_dir, self.file_prefix + 'prophage_information.tsv'), 'w')
-    except IOError as e:
-        log_and_message(f"There was an error opening the files: {e}\n", c="RED", stderr=True, loglevel="CRITICAL")
-        sys.exit(-1)
 
-    outfile.write("identifier\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\t")
-    outfile.write("start of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\t")
-    outfile.write("Reason for att site\n")
-
-    for this_pp in self.initial_tbl:
-        me = check_pp(this_pp[2], int(this_pp[3]), int(this_pp[4]), pp)
-        if me == 0:
-            outfile.write("\t".join(map(str, this_pp + [0])) + '\n')
-        else:
-            outfile.write("\t".join(map(str, this_pp)) + '\t' + str(me) + '\n')
-
-    """
-    now we need to decide which files to keep
-    It is based on this code:
-        Code | File
-        --- | ---
-        1 | prophage_coordinates.tsv 
-        2 | GenBank format output 
-        4 | prophage and bacterial sequences  
-        8 | prophage_information.tsv  
-        16 | prophage.tsv  
-        32 | GFF3 format  
-        64 | prophage.tbl
-        128 | test data used in the random forest
-    As explained in the README. 
-    """
-
-    oc = self.output_choice
-
-    if oc >= 128:
-        # write the calculated data
-        write_test_data(self, pp)
-        oc -= 128
-    if oc >= 64:
-        # write the prophage location table
-        write_prophage_tbl(self, pp)
-        oc -= 64
-    if oc >= 32:
-        # write the prophage in GFF3 format
-        write_gff3(self, pp)
-        oc -= 32
-    if oc >= 16:
-        # write a tsv file of this data
-        write_prophage_tsv(self, pp)
-        oc -= 16
-    if oc < 8:
-        # we want to KEEP the prophage_information.tsv that we created earlier
-        # if oc >= 8, or if we get to this point and oc is 7 or less we want to
-        # delete it.
-        os.remove(os.path.join(self.output_dir, self.file_prefix + 'prophage_information.tsv'))
-    if oc == 8:
-        oc = 0
-    if oc >= 4:
-        # separate out the bacteria and phage as fasta files
-        write_phage_and_bact(self, pp, dna)
-        oc -= 4
-    if oc >= 2:
-        # update input GenBank file and incorporate prophage regions
-        write_genbank(self, pp)
-    if oc >= 1:
-        # print the prophage coordinates:
-        write_prophage_coordinates(self, pp)
-
+    return pp
 
 
 

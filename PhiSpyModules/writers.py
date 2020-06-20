@@ -6,60 +6,26 @@ A module to write the output in different formats
 import os
 import gzip
 
-
+from argparse import Namespace
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from collections import OrderedDict
 
 import PhiSpyModules.version as version
-from .formatting import message
+from .log_and_message import log_and_message
 from .helper_functions import is_gzip_file
-import logging
+from .evaluation import check_pp
+
 
 __author__ = 'Rob Edwards'
 
-def log_and_message(msg, c="WHITE", stderr=False, stdout=False, quiet=False, loglevel="INFO"):
-    """
-    Write the message to both the log and an output stream. By default we will just log the message in the
-    log.
 
-    Note that we also adhere to the quiet option of self, and will only write to the log
-    Set either stderr or stdout to true to write to those streams too (but you will need to reset quiet if appropriate)
-
-    :param self: The arg parser object
-    :param msg: the message to write
-    :param c: the color to write the message
-    :param stderr: write the message to stderr
-    :param stdout: write the message to stdout
-    :param loglevel: the logging level. See https://docs.python.org/3/library/logging.html#levels for a list
-    :return:
-    """
-
-    if loglevel == 'CRITICAL':
-        logging.getLogger('PhiSpy').critical(msg.strip())
-    elif loglevel == 'ERROR':
-        logging.getLogger('PhiSpy').error(msg.strip())
-    elif loglevel == 'WARNING':
-        logging.getLogger('PhiSpy').warning(msg.strip())
-    elif loglevel == 'DEBUG':
-        logging.getLogger('PhiSpy').debug(msg.strip())
-    else:
-        logging.getLogger('PhiSpy').info(msg.strip())
-
-    if not quiet:
-        if stderr:
-            message(msg,c, "stderr")
-        if stdout:
-            message(msg, c, "stdout")
-
-
-def write_gff3(self, pp):
+def write_gff3(self):
     """
     Write GFF3 code. This was adapted from code contribued by [Jose Francisco Sanchez-Herrero]
     (https://github.com/JFsanchezherrero/)
 
     :param self: the data object
-    :param pp: array of pp dictionaries
     :return: None
     """
 
@@ -70,61 +36,60 @@ def write_gff3(self, pp):
     out_gff.write("\n")
     
     # loop through pp results
-    for i in pp:
+    for i in self.pp:
         # GFF
         # strand is not known...
-        out_gff.write(str(pp[i]['contig']) +
+        out_gff.write(str(self.pp[i]['contig']) +
                       '\tPhiSpy\tprophage_region\t' +
-                      str(pp[i]['start']) + '\t' + 
-                      str(pp[i]['stop']) + '\t.\t.' + 
+                      str(self.pp[i]['start']) + '\t' +
+                      str(self.pp[i]['stop']) + '\t.\t.' +
                       ' \t.\tID=pp' + str(i))
         out_gff.write('\n')
 
-        if 'att' not in pp[i]:
-            pp[i]['att'] = ""
+        if 'att' not in self.pp[i]:
+            self.pp[i]['att'] = ""
         else:
             # attL
-            out_gff.write(str(pp[i]['contig']) +
+            out_gff.write(str(self.pp[i]['contig']) +
                           '\tPhiSpy\tattL\t' +
-                          str(pp[i]['att'][0]) + '\t' + 
-                          str(pp[i]['att'][1]) + '\t.\t.' + 
+                          str(self.pp[i]['att'][0]) + '\t' +
+                          str(self.pp[i]['att'][1]) + '\t.\t.' +
                           ' \t.\tID=pp' + str(i))
             out_gff.write('\n')
 
             # attR
-            out_gff.write(str(pp[i]['contig']) +
+            out_gff.write(str(self.pp[i]['contig']) +
                           '\tPhiSpy\tattR\t' +
-                          str(pp[i]['att'][2]) + '\t' +
-                          str(pp[i]['att'][3]) + '\t.\t.' +
+                          str(self.pp[i]['att'][2]) + '\t' +
+                          str(self.pp[i]['att'][3]) + '\t.\t.' +
                           ' \t.\tID=pp' + str(i))
             out_gff.write('\n')
         
     out_gff.close()
 
 
-def write_genbank(self, pp):
+def write_genbank(self):
     """
     Write prophages and their potential attachment sites in updated input GenBank file.
     :param self: the data object
-    :param pp: array of pp dictionaries
     :return: None
     """
 
     log_and_message("Writing GenBank output file", c="GREEN", stderr=True, quiet=self.quiet)
     prophage_feature_type = 'misc_feature'  # / prophage_region
     outfile = os.path.join(self.output_dir, self.file_prefix + os.path.basename(self.infile))
-    for i in pp:
-        self.record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
-                    location=FeatureLocation(pp[i]['start'], pp[i]['stop']),
+    for i in self.pp:
+        self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
+                    location=FeatureLocation(self.pp[i]['start'], self.pp[i]['stop']),
                     type=prophage_feature_type,
                     strand=1,
                     qualifiers=OrderedDict(
                         {'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'}
                     )))
-        if 'atts' in pp[i]:
-            self.record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
-                        location=FeatureLocation(int(pp[i]['att'][0]), int(pp[i]['att'][1])) +
-                                 FeatureLocation(int(pp[i]['att'][2]), int(pp[i]['att'][3])),
+        if 'atts' in self.pp[i]:
+            self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
+                        location=FeatureLocation(int(self.pp[i]['att'][0]), int(self.pp[i]['att'][1])) +
+                                 FeatureLocation(int(self.pp[i]['att'][2]), int(self.pp[i]['att'][3])),
                         type='repeat_region',
                         strand=1,
                         qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
@@ -138,11 +103,10 @@ def write_genbank(self, pp):
     SeqIO.write(self.record, handle, 'genbank')
 
 
-def write_phage_and_bact(self, pp, dna):
+def write_phage_and_bact(self):
     """
     Separate out the phage and bacterial fractions into fasta files
     :param self: the data object
-    :param pp: array of pp dictionaries
     :param dna: the DNA sequence object
     :return: None
     """
@@ -151,10 +115,12 @@ def write_phage_and_bact(self, pp, dna):
     phage_genbank = open(os.path.join(self.output_dir, self.file_prefix + "phage.gbk"), "w")
     bacteria_out = open(os.path.join(self.output_dir, self.file_prefix + "bacteria.fasta"), "w")
     bacteria_genbank = open(os.path.join(self.output_dir, self.file_prefix + "bacteria.gbk"), "w")
+
+    dna = {entry.id: str(entry.seq) for entry in self.record}
     
     contig_to_phage = {}
-    for i in pp:
-        contig = pp[i]['contig']  # contig name
+    for i in self.pp:
+        contig = self.pp[i]['contig']  # contig name
         if contig not in contig_to_phage:
             contig_to_phage[contig] = set()
         contig_to_phage[contig].add(i)
@@ -165,13 +131,13 @@ def write_phage_and_bact(self, pp, dna):
             SeqIO.write(self.record.get_entry(contig), bacteria_genbank, "genbank")
             continue
         pps1 = list(contig_to_phage[contig])
-        pps = sorted(pps1, key=lambda k: pp[k]['start'])
+        pps = sorted(pps1, key=lambda k: self.pp[k]['start'])
         bactstart = 0
         dnaseq = ""
         hostcounter = 0
         for ppnum in pps:
-            pphagestart = pp[ppnum]['start']
-            pphagestop = pp[ppnum]['stop']
+            pphagestart = self.pp[ppnum]['start']
+            pphagestop = self.pp[ppnum]['stop']
 
             phageseq = dna[contig][pphagestart:pphagestop]
             phage_out.write(f">{contig}_{pphagestart}_{pphagestop} [pp {ppnum}]\n{phageseq}\n")
@@ -209,71 +175,84 @@ def write_phage_and_bact(self, pp, dna):
     bacteria_genbank.close()
 
 
-def write_prophage_coordinates(self, pp):
+def write_prophage_coordinates(self):
     """
     Write the coordinates and other details about the prophages
     :param self: the data object
-    :param pp: array of pp dictionaries
     :return: None
     """
 
     log_and_message("Writing prophage_coordinates output file", c="GREEN", stderr=True, quiet=self.quiet)
     with open(os.path.join(self.output_dir, self.file_prefix + 'prophage_coordinates.tsv'), 'w') as out:
-        for i in pp:
-            if 'atts' not in pp[i]:
-                pp[i]['atts'] = ""
+        for i in self.pp:
+            if 'atts' not in self.pp[i]:
+                self.pp[i]['atts'] = ""
             locs = [
                 "pp" + str(i),
-                pp[i]['contig'],
-                pp[i]['start'],
-                pp[i]['stop'],
-                pp[i]['atts']
+                self.pp[i]['contig'],
+                self.pp[i]['start'],
+                self.pp[i]['stop'],
+                self.pp[i]['atts']
             ]
             out.write("\t".join(map(str, locs)) + "\n")
 
 
-def write_prophage_tbl(self, pp):
+def write_prophage_tbl(self):
     """
     Create a prophage_tbl file from our pp dictionary
     :param self: the data object
-    :param pp: array of pp dictionaries
     :return: None
     """
 
     log_and_message("Writing prophage.tbl output file", c="GREEN", stderr=True, quiet=self.quiet)
     with open(os.path.join(self.output_dir, self.file_prefix + "prophage.tbl"), 'w') as out:
-        for i in pp:
+        for i in self.pp:
             locs = [
                 "pp_" + str(i),
-                pp[i]['contig'],
-                pp[i]['start'],
-                pp[i]['stop']
+                self.pp[i]['contig'],
+                self.pp[i]['start'],
+                self.pp[i]['stop']
             ]
             out.write(locs[0] + "\t" + "_".join(map(str, locs[1:])) + "\n")
 
+def write_prophage_information(self):
+    """
+    Write the full ORF table
+    :param self: the data object
+    :return:
+    """
 
-def write_prophage_tsv(self, pp):
+    log_and_message("Writing prophage_information.tsv output file", c="GREEN", stderr=True, quiet=self.quiet)
+    with open(os.path.join(self.output_dir, self.file_prefix + "prophage_information.tsv"), 'w') as out:
+        out.write("identifier\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\t")
+        out.write("start of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\t")
+        out.write("Reason for att site\n")
+
+        for this_pp in self.initial_tbl:
+            ppnum = check_pp(this_pp[2], int(this_pp[3]), int(this_pp[4]), self.pp)
+            out.write("\t".join(map(str, this_pp + [ppnum])) + '\n')
+
+def write_prophage_tsv(self):
     """
     Create a tsv with headers for this data. Issue #28 item 2
     :param self: the data object
-    :param pp: array of pp dictionaries
     :return: None
     """
 
     log_and_message("Writing prophage.tsv output file", c="GREEN", stderr=True, quiet=self.quiet)
     with open(os.path.join(self.output_dir, self.file_prefix + "prophage.tsv"), 'w') as out:
         out.write("Prophage number\tContig\tStart\tStop\n")
-        for i in pp:
+        for i in self.pp:
             locs = [
                 "pp_" + str(i),
-                pp[i]['contig'],
-                pp[i]['start'],
-                pp[i]['stop']
+                self.pp[i]['contig'],
+                self.pp[i]['start'],
+                self.pp[i]['stop']
             ]
             out.write("\t".join(map(str, locs)) + "\n")
 
 
-def write_test_data(self, pp):
+def write_test_data(self):
     """
     Write the testing measurements
     :param self: the data object
@@ -328,4 +307,57 @@ def prophage_measurements_to_tbl(inputf, outputf):
     f.close()
     fw.close()
 
+def write_all_outputs(**kwargs):
+    self = Namespace(**kwargs)
+    # make all predicted pp list
+    log_and_message("Creating output files", c="GREEN", stderr=True, quiet=self.quiet)
+
+    """
+    now we need to decide which files to keep
+    It is based on this code:
+        Code | File
+        --- | ---
+        1 | prophage_coordinates.tsv 
+        2 | GenBank format output 
+        4 | prophage and bacterial sequences  
+        8 | prophage_information.tsv  
+        16 | prophage.tsv  
+        32 | GFF3 format  
+        64 | prophage.tbl
+        128 | test data used in the random forest
+    As explained in the README. 
+    """
+
+    oc = self.output_choice
+
+    if oc >= 128:
+        # write the calculated data
+        write_test_data(self)
+        oc -= 128
+    if oc >= 64:
+        # write the prophage location table
+        write_prophage_tbl(self)
+        oc -= 64
+    if oc >= 32:
+        # write the prophage in GFF3 format
+        write_gff3(self)
+        oc -= 32
+    if oc >= 16:
+        # write a tsv file of this data
+        write_prophage_tsv(self)
+        oc -= 16
+    if oc > 8:
+        # write prophage_information.tsv
+        write_prophage_information(self)
+        oc -= 8
+    if oc >= 4:
+        # separate out the bacteria and phage as fasta files
+        write_phage_and_bact(self)
+        oc -= 4
+    if oc >= 2:
+        # update input GenBank file and incorporate prophage regions
+        write_genbank(self)
+    if oc >= 1:
+        # print the prophage coordinates:
+        write_prophage_coordinates(self)
 

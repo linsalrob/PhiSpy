@@ -5,4 +5,3 @@ try:
     __version__ = pkg_resources.get_distribution('PhiSpy').version
 except Exception:
     __version__ = 'unknown'
-

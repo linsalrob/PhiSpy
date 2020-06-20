@@ -8,10 +8,9 @@ from .evaluation import fixing_start_end
 from .helper_functions import get_args, print_list, is_gzip_file
 from .pathtype import PathType
 from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prophage_tbl, write_prophage_tsv
-from .writers import prophage_measurements_to_tbl
-from .writers import log_and_message
+from .writers import prophage_measurements_to_tbl, write_all_outputs, write_prophage_information
 from .search_phmms import search_phmms
-from .formatting import message
+from .log_and_message import log_and_message, message
 from .errors import ColorNotFoundError, NoBasesCounted
 
 from .version import __version__
@@ -24,7 +23,7 @@ __all__ = ['SeqioFilter',
            'get_args', 'print_list', 'is_gzip_file',
            'PathType',
            'write_gff3', 'write_genbank', 'write_phage_and_bact', 'write_prophage_tbl', 'write_prophage_tsv',
-           'prophage_measurements_to_tbl', 'log_and_message',
+           'prophage_measurements_to_tbl', 'write_all_outputs', 'write_prophage_information', 'log_and_message',
            'search_phmms',
            'message',
             'ColorNotFoundError', 'NoBasesCounted'

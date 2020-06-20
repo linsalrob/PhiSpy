@@ -106,7 +106,13 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         do evaluation              #
     ######################################
     PhiSpyModules.log_and_message('Evaluating...', c="GREEN", stderr=True, stdout=False, quiet=args_parser.quiet)
-    PhiSpyModules.fixing_start_end(**vars(args_parser))
+    args_parser.pp = PhiSpyModules.fixing_start_end(**vars(args_parser))
+
+    ######################################
+    #         write outputs              #
+    ######################################
+    PhiSpyModules.write_all_outputs(**vars(args_parser))
+
     # don't forget to close the log!
     PhiSpyModules.log_and_message(f'Done!!! Output is in {args_parser.output_dir} and the log is in {args_parser.log}',
                                   c="WHITE", stderr=True, stdout=False, quiet=args_parser.quiet)

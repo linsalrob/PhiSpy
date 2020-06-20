@@ -2,7 +2,7 @@ import types
 from Bio import SeqFeature
 import copy
 
-from .writers import log_and_message
+from .log_and_message import log_and_message
 from Bio.SeqFeature import FeatureLocation, CompoundLocation
 
 class SeqioFilter( list ):

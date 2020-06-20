@@ -5,7 +5,7 @@ import sys
 import pkg_resources
 from argparse import Namespace
 
-from .formatting import message
+from .log_and_message import message
 from .errors import NoBasesCounted
 
 class ShannonScore:

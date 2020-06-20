@@ -9,7 +9,7 @@ import numpy as np
 from argparse import Namespace
 
 from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func
-from .writers import log_and_message
+from .log_and_message import log_and_message
 
 def find_training_genome(training_flag):
     try:

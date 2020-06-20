@@ -43,34 +43,3 @@ class Colors(object):
         'RED': '\033[91m',
         'WHITE': '\033[0m',
         }
-
-
-def message(msg, c, stream):
-    """
-    Print a message to stderr using color
-    :param msg: the message to print
-    :param c: the colour to use
-    :param stream: either stderr or stdout
-    :return: nothing
-    """
-
-    c = c.upper()
-    # we strip any newline off message in case it was added and then we add it here! Ensures always only one newline
-    msg = msg.strip()
-    if c not in Colors.color:
-        raise ColorNotFoundError(f"Color {c} was not found")
-
-    if stream.lower() == 'stderr':
-        if os.fstat(0) == os.fstat(1):
-            #  stderr is not redirected
-            sys.stderr.write(f"{Colors.color[c]}{msg}{Colors.color['ENDC']}\n")
-        else:
-            sys.stderr.write(f"{msg}\n")
-    elif stream.lower() == 'stdout':
-        if os.fstat(0) == os.fstat(1):
-            #  stderr is not redirected
-            sys.stdout.write(f"{Colors.color[c]}{msg}{Colors.color['ENDC']}\n")
-        else:
-            sys.stdout.write(f"{msg}\n")
-    else:
-        raise IOError(f"There is no IO stream {stream}")

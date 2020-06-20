@@ -7,7 +7,7 @@ import pkg_resources
 import binascii
 import logging
 
-from .formatting import message
+from .log_and_message import message
 
 try:
     __version__ = pkg_resources.get_distribution('phispy').version
