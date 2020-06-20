@@ -33,7 +33,7 @@ def call_randomforest(**kwargs):
 
     if not pkg_resources.resource_exists('PhiSpyModules', training_file):
         log_and_message(f"FATAL: Can not find data file {training_file}\n", c="RED", stderr=True, loglevel="CRITICAL")
-        sys.exit(-1)
+        sys.exit(11)
     strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
     log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)

@@ -21,7 +21,7 @@ def print_list():
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
     except:
         message('Cannot find the list of training sets. It should be in data/trainingGenome_list.txt', "RED", 'stderr')
-        sys.exit(-1)
+        sys.exit(10)
     for line in f:
         line = line.decode().strip()
         temp = re.split('\t', line)
@@ -137,7 +137,7 @@ def get_args():
     # check whether output directory was provided
     if not args.output_dir and not args.make_training_data:
         message("ERROR: Output directory (-o) is required. Use -h for more options\n", "RED", "stderr")
-        sys.exit(-1)
+        sys.exit(3)
     elif args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
     else:

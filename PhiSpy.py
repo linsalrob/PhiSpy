@@ -24,7 +24,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     if not args_parser.infile:
         PhiSpyModules.log_and_message("ERROR: Please provide an input file. Use -h for more options", c="RED",
                                       stderr=True, stdout=False)
-        sys.exit(-1)
+        sys.exit(2)
 
 
     ######################################
@@ -63,7 +63,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
         msg = f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n"
         msg += "There is no data to process"
         PhiSpyModules.log_and_message(msg, c="RED", stderr=True, stdout=False, quiet=args_parser.quiet)
-        sys.exit(20)
+        sys.exit(30)
 
     PhiSpyModules.log_and_message(f"Processing {ncontigs} contigs", c="GREEN", stderr=True, stdout=False,
                                   quiet=args_parser.quiet)

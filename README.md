@@ -321,10 +321,17 @@ Now all the prophages are colored green, while all the potential prophage genes 
 
 **Note:** Ensure that while you are reviewing the results, you pay particular attention to the _contig_ column. In partial genomes, contig breaks are very often located in prophages. This is usual because prophages often contain sequences that are repeated around the genome. We have an [open issue](https://github.com/linsalrob/PhiSpy/issues/33) open issue to try and resolve this in a meaningful way.
 
+# Interactive PhiSpy
+
+We have created a [jupyter notebook](https://github.com/linsalrob/PhiSpy/blob/master/jupyter_notebooks/PhiSpy.ipynb) 
+example where you can run `PhiSpy` to test the effect of the different parameters
+on your prophage predictions. Change the name of the genbank file to point to your genome, and 
+change the values in `parameters` and see how the prophage predictions vary!
 
 # Tips, Tricks, and Errors
 
-If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install phispy` since python3-pip requires `build-essential` and `python3-dev`! 
+If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install phispy` 
+since python3-pip requires `build-essential` and `python3-dev`! 
 
 If you try `PhiSpy.py -v` and get an error like this:
 
@@ -346,6 +353,24 @@ echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc
 source ~/.bashrc
 PhiSpy.py -v
 ```
+
+# Exit (error) codes
+
+We use a few different error codes to signify things that we could not compute. So far, we have:
+
+Exit Code | Meaning | Suggested solution
+--- | --- | ---
+2 | No input file provided | We need a file to work with!
+3 | No output directory provided | We need somewhere to write the results to!
+10 | No training sets available | This should be in the default install. Please check your installation
+11 | The specific training set is not available | Check the argument passed to the `--training_set` parameter
+13 | No kmers file found | This should be in the default install. Please check your installation
+20 | IO Error | There was an error reading your input file.
+25 | Non nucleotide base found | Check for a non-standard base in your sequence
+26 | An ORF with no bases | This is probably a really short ORF and should be deleted.
+30 | No contigs | We filter contigs by length, and so try adjusting the `--min_contig_size` parameter, though the default is 5,000 bp and you will need some adjacent genes!
+40 | No ORFs in your genbank file | Please annotate your genome, e.g. using [RAST](http://rast.nmpdr.org/) or [PROKKA](https://github.com/tseemann/prokka)
+20 | 
 
 # Making your own training sets
 

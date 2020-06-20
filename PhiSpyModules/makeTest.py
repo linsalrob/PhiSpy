@@ -17,7 +17,8 @@ class ShannonScore:
         self._kmers_type = kmers_type
         kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
         if not pkg_resources.resource_exists:
-            sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
+            log_and_message(f"ERROR: Kmers file {kmers_file} not found", "RED", stderr=True, quiet=self.quiet)
+            sys.exit(13)
 
         for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
             line = line.decode().strip()
@@ -221,9 +222,8 @@ def find_atgc_skew(seq):
             c += 0.25
             total_gc += 0.25
         else:
-            print("seq", seq)
-            print("base", base)
-            sys.exit("ERROR: Non nucleotide base found")
+            log_and_message(f"A non nucleotide base ({base}) was found in {seq}", "RED", stderr=True)
+            sys.exit(25)
     if(total_at * total_gc) == 0:
         raise NoBasesCounted("a total of zero total_at*total_gc")
     return float(a)/total_at, float(t)/total_at, float(g)/total_gc, float(c)/total_gc
@@ -244,11 +244,12 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
                 bact = dna[mycontig][stop - 1:start]
                 xt, xa, xc, xg = find_atgc_skew(bact)
         except NoBasesCounted as e:
-            sys.stderr.write(e.message + "\n")
-            sys.stderr.write(f"No bases were counted for orf {i} from {start} to {stop}\n")
-            sys.stderr.write("This error is usually thrown with an exceptionally short ORF that is only a " +
-                             " few bases. You should check this ORF and confirm it is real!\n")
-            sys.exit()
+            msg = e.message + "\n"
+            msg += f"No bases were counted for orf {i} from {start} to {stop}\n"
+            msg += "This error is usually thrown with an exceptionally short ORF that is only a "
+            msg += " few bases. You should check this ORF and confirm it is real!\n"
+            log_and_message(msg, "RED", stderr=True)
+            sys.exit(26)
         if len(bact) < 3:
             continue
         a_skew.append(xa)
@@ -305,9 +306,9 @@ def measure_features(**kwargs):
             all_orf_list[entry.id] = orf_list
 
     if len(all_orf_list) == 0:
-        log_and_message("There were no ORFs predicted in {self.infile}. Please annotate the genome and try again",
+        log_and_message(f"There were no ORFs predicted in {self.infile}. Please annotate the genome and try again",
                         "RED", stderr=True, quiet=self.quiet)
-        sys.exit(0)
+        sys.exit(40)
 
     for mycontig in all_orf_list:
         orf_list = all_orf_list[mycontig]
