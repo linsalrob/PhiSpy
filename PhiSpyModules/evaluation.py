@@ -265,7 +265,7 @@ def fixing_start_end(**kwargs):
     if prophagesummary:
         log_and_message('Potential prophages (sorted highest to lowest)', stderr=True, quiet=self.quiet)
         log_and_message('Contig\tStart\tStop\tNumber of potential genes\tStatus', stderr=True, quiet=self.quiet)
-        for p in sorted(prophagesummary, key=lambda x: (x[3], x[1]), reverse=True):
+        for p in sorted(prophagesummary, key=lambda x: (x[3], x[0], x[1]), reverse=True):
             log_and_message("\t".join(map(str, p)), stderr=True, quiet=self.quiet)
     pp = temppp
     # End filtering
