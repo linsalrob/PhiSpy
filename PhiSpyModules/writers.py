@@ -357,6 +357,7 @@ def write_all_outputs(**kwargs):
     if oc >= 2:
         # update input GenBank file and incorporate prophage regions
         write_genbank(self)
+        oc -= 2
     if oc >= 1:
         # print the prophage coordinates:
         write_prophage_coordinates(self)
