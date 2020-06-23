@@ -230,7 +230,8 @@ def write_prophage_information(self):
 
         for this_pp in self.initial_tbl:
             ppnum = check_pp(this_pp[2], int(this_pp[3]), int(this_pp[4]), self.pp)
-            out.write("\t".join(map(str, this_pp + [ppnum])) + '\n')
+            out.write("\t".join(map(str, this_pp + [ppnum])))
+            out.write("\t" + self.pp[ppnum]['atts'] + "\n")
 
 def write_prophage_tsv(self):
     """
