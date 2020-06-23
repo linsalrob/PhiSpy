@@ -60,12 +60,12 @@ def is_not_phage_func(x):
         "flagellar" in x or
         "flagellin" in x or
         "flagellum" in x or
-        "hypothetical" in x or
         "ribosomal protein" in x or
+        "translation elongation factor" in x or
         "secy" in x or
         "summary phrase" in x or
         "dna binding domain" in x or
-        "Abortive infection bacteriophage resistance protein" in x
+        "abortive infection bacteriophage resistance protein" in x
         ):
             return True
     return False
