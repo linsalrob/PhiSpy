@@ -112,7 +112,8 @@ def get_args():
                         help='Number of threads to use while searching with phmms and the random forest.')
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('--output_choice', type=int, default=3,
-                        help='Sum of codes for files to output. For more details see the README.md file')
+                        help='Sum of codes for files to output. For more details see the README.md file at ' +
+                            'https://github.com/linsalrob/PhiSpy#choosing-which-output-files-are-created')
     parser.add_argument('--log', type=str,
                         help="Name of the log file to write details to (default: phispy.log)")
     parser.add_argument('--quiet', action='store_true',
