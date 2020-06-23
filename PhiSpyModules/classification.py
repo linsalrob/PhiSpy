@@ -119,12 +119,52 @@ def calc_pp(func):
     return x
 
 
+"""
+Artemis colour codes
+
+These come from the Setting Colours section of  
+https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
+
+0 white (RGB values: 255 255 255)
+1 dark grey (RGB values: 100 100 100)
+2 red (RGB values: 255 0 0)
+3 green (RGB values: 0 255 0)
+4 blue (RGB values: 0 0 255)
+5 cyan (RGB values: 0 255 255)
+6 magenta (RGB values: 255 0 255)
+7 yellow (RGB values: 255 255 0)
+8 pale green (RGB values: 152 251 152)
+9 light sky blue (RGB values: 135 206 250)
+10 orange (RGB values: 255 165 0)
+11 brown (RGB values: 200 150 100)
+12 pale pink (RGB values: 255 200 200)
+13 light grey (RGB values: 170 170 170)
+14 black (RGB values: 0 0 0)
+15 mid red: (RGB values: 255 63 63)
+16 light red (RGB values: 255 127 127)
+17 pink (RGB values: 255 191 191)
+
+"""
+
+
 def make_initial_tbl(**kwargs):
     self = Namespace(**kwargs)
     data = []
     x = []
     for entry in self.record:
         for feature in entry.get_features('CDS'):
+            pp_score = calc_pp(feature.function)
+            if self.color:
+                if pp_score > 1:
+                    feature.qualifiers['colour'] = 2 # red
+                elif 'mobile element protein' in feature.function.lower():
+                    feature.qualifiers['colour'] = 6 # pink
+                elif pp_score == 1:
+                    feature.qualifiers['colour'] = 4 # blue
+                elif is_unknown_func(feature.function):
+                    feature.qualifiers['colour'] = 13  # light grey
+                elif pp_score == 0.5:
+                    feature.qualifiers['colour'] = 9 # light blue
             ft = {
                 'fig': feature.id,
                 'function': feature.function,
@@ -133,8 +173,10 @@ def make_initial_tbl(**kwargs):
                 'stop': feature.stop,
                 'rank': 0.0,
                 'status': 0,
-                'pp': calc_pp(feature.function),
+                'pp': pp_score,
             }
+
+
             x.append(ft)
 
     ranks = [[] for n in range(len(x))]
@@ -143,6 +185,7 @@ def make_initial_tbl(**kwargs):
             if k < 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                 continue
             ranks[k].append(val)
+
 
     # calculate threshold
     y = []
@@ -179,9 +222,14 @@ def make_initial_tbl(**kwargs):
     However, at this point we only have  0 .. 8
     """
 
-
     for i in range(len(x)):
         status = 1 if x[i]['rank'] > threshold else 0
+        # for regions that are absolutely not prophages (esp. ribosomal proteins)
+        # set the rank to 0. We should, perhaps, mark these as potentially mobile?
+        if is_not_phage_func(x[i]['function']):
+            x[i]['rank'] = 0
+            status = 0
+            x[i]['pp'] = 0
         thisrow = [
             x[i]['fig'],
             x[i]['function'],
