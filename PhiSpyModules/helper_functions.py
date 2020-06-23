@@ -100,7 +100,8 @@ def get_args():
                         help='Type of kmers used for calculating Shannon scores. [Default: all]')
     parser.add_argument('--phmms', type=str,
                         help='Phage HMM profile database (like pVOGs) will be mapped against the genome of ' +
-                             'interest and used as additional feature to identify prophages.')
+                            'interest and used as additional feature to identify prophages.\nNote that this ' +
+                            'is experimental at the moment')
     parser.add_argument('--skip_search', action='store_true',
                         help='If set, the search part will be skipped and the program will assume the ' +
                              'existance of updated GenBank files.')
@@ -113,7 +114,7 @@ def get_args():
     parser.add_argument('--output_choice', type=int, default=3,
                         help='Sum of codes for files to output. For more details see the README.md file')
     parser.add_argument('--log', type=str,
-                        help="Name of the log file to write details to (defulat: phispy.log)")
+                        help="Name of the log file to write details to (default: phispy.log)")
     parser.add_argument('--quiet', action='store_true',
                         help='Run in quiet mode')
     parser.add_argument('-k', '--keep', type=bool, default=False, const=True, nargs='?',
