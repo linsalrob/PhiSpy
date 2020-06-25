@@ -53,21 +53,22 @@ def is_not_phage_func(x):
 
     x = x.lower()
     if (
-        ('phage' in x) and ('shock' in x) or
-        "conjugal transfer" in x or
-        "conjugative" in x or
-        "flagella" in x or
-        "flagellar" in x or
-        "flagellin" in x or
-        "flagellum" in x or
-        "ribosomal protein" in x or
-        "translation elongation factor" in x or
-        "secy" in x or
-        "summary phrase" in x or
-        "dna binding domain" in x or
-        "abortive infection bacteriophage resistance protein" in x
-        ):
-            return True
+            ('phage' in x and 'shock' in x) or
+            ('trna' in x and 'synthase' in x) or
+            "conjugal transfer" in x or
+            "conjugative" in x or
+            "flagella" in x or
+            "flagellar" in x or
+            "flagellin" in x or
+            "flagellum" in x or
+            "ribosomal protein" in x or
+            "translation elongation factor" in x or
+            "secy" in x or
+            "summary phrase" in x or
+            "dna binding domain" in x or
+            "abortive infection bacteriophage resistance protein" in x
+    ):
+        return True
     return False
 
 
