@@ -279,7 +279,7 @@ enter an `--output_choice` of 10.
 
 The default is 3: you will get both the `prophage_coordinates.tsv` and `GenBank format output` files.
 
-If you want _all_ files output, use `--output-choice 255`.
+If you want _all_ files output, use `--output_choice 255`.
 
 # Example Data
 
