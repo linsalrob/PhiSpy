@@ -243,7 +243,6 @@ def fixing_start_end(**kwargs):
         genome[index]['rank'] = float(this_pp[6])
         index += 1
 
-
     #######################################################################################
     #                                                                                     #
     # Filter the potential prophages based on how many potential prophage genes are       #
