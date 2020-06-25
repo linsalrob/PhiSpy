@@ -228,10 +228,15 @@ def write_prophage_information(self):
         out.write("start of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\t")
         out.write("Reason for att site\n")
 
+        written_atts = set()
         for this_pp in self.initial_tbl:
             ppnum = check_pp(this_pp[2], int(this_pp[3]), int(this_pp[4]), self.pp)
             out.write("\t".join(map(str, this_pp + [ppnum])))
-            out.write("\t" + self.pp[ppnum]['atts'] + "\n")
+            if ppnum > 0 and ppnum not in written_atts:
+                out.write("\t" + self.pp[ppnum]['atts'] + "\n")
+                written_atts.add(ppnum)
+            else:
+                out.write("\n")
 
 def write_prophage_tsv(self):
     """
