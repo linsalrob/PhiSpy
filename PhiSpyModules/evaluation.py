@@ -220,6 +220,7 @@ def fixing_start_end(**kwargs):
                 pp[i]['stop'] = max(int(this_pp[3]), int(this_pp[4]))
                 pp[i]['num genes'] = 1
                 pp[i]['annotated_as_pp'] = False
+                pp[i]['phage_genes'] = 0
                 flag = 1
                 last_pp = this_pp
             else:
@@ -237,7 +238,7 @@ def fixing_start_end(**kwargs):
             intg_index += 1
 
         if this_pp[8] >=1:
-            pp[i]['annotated_as_pp'] = True # whether at least one of the genes is a phage gene
+            pp[i]['phage_genes'] += 1 # number of genes annotated as phage genes
 
         genome[index] = {}
         genome[index]['start'] = int(this_pp[3])
@@ -250,21 +251,6 @@ def fixing_start_end(**kwargs):
 
     #######################################################################################
     #                                                                                     #
-    #  Only keep those regions that have been annotated as a phage like gene.             #
-    #  We use the value of column 8 (pp which comes from calc_pp(func)                    #
-    #  that is set to 1 if it is a phage function, 1.5 if integrase,                      #
-    #  or 0.5 if it is an unknown function.                                               #
-    #                                                                                     #
-    #  However, we allow users to override this with the --relaxed flag                   #
-    #                                                                                     #
-    #######################################################################################
-
-    if self.relaxed:
-        for i in pp:
-            pp[i]['annotated_as_pp'] = True
-
-    #######################################################################################
-    #                                                                                     #
     # Filter the potential prophages based on how many potential prophage genes are       #
     # in the window, and tell us which ones were dropped.                                 #
     #                                                                                     #
@@ -273,13 +259,16 @@ def fixing_start_end(**kwargs):
     j = 1
     prophagesummary = []
     for i in pp:
-        if pp[i]['num genes'] >= self.number and pp[i]['annotated_as_pp']:
+        if pp[i]['num genes'] >= self.number and pp[i]['phage_genes'] >= self.phage_genes:
             temppp[j] = pp[i]
             j += 1
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
+        elif pp[i]['num genes'] >= self.number and pp[i]['phage_genes'] > 0:
+            prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
+                                    f"Dropped. Only {pp[i]['phage_genes']} were identified as phage genes"])
         elif pp[i]['num genes'] >= self.number:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
-                                    "Dropped. No genes are annotated as phage genes. Add the --relaxed option to include"])
+                                    "Dropped. No genes were identified as phage genes"])
         else:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
                                     "Dropped. Not enough genes"])
