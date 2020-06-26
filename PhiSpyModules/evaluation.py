@@ -265,7 +265,7 @@ def fixing_start_end(**kwargs):
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'], "Kept"])
         elif pp[i]['num genes'] >= self.number and pp[i]['phage_genes'] > 0:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
-                                    f"Dropped. Only {pp[i]['phage_genes']} were identified as phage genes"])
+                                    f"Dropped. Only {pp[i]['phage_genes']} gene(s) were identified as phage genes"])
         elif pp[i]['num genes'] >= self.number:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
                                     "Dropped. No genes were identified as phage genes"])
