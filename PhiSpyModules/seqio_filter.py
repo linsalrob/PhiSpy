@@ -117,7 +117,7 @@ class SeqioFilter( list ):
                 elif p.start > merged.end:
                     if p.start - merged.end > mindistance:
                         all_locs.append(merged)
-                        merged = FeatureLocation(p.start, p.end, strand)
+                        merged = FeatureLocation(p.start - 1, p.end, strand)
                     else:
                         merged = FeatureLocation(merged.start, p.end, strand)
                 else:
@@ -145,7 +145,7 @@ class SeqioFilter( list ):
                     # more complex case, there is a gap
                     if merged.start - p.end > mindistance:
                         all_locs.append(merged)
-                        merged = FeatureLocation(p.start, p.end, strand)
+                        merged = FeatureLocation(p.start, p.end - 1, strand)
                     else:
                         merged = FeatureLocation(p.start, merged.end, strand)
                 else:
