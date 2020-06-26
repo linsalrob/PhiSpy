@@ -123,6 +123,19 @@ where:
 
 If you have new genome, we recommend annotating it using the [RAST server](http://rast.nmpdr.org/rast.cgi) or [PROKKA](https://github.com/tseemann/prokka). RAST has a server that allows you to upload and download the genome (and can handle lots of genomes), while PROKKA is stand-alone software.
 
+### phage_genes
+
+By default, `PhiSpy.py` uses *strict* mode, where we look for two or more genes that are likely to be a phage in each prophage region. If you increase the value of `--phage_genes` that will reduce the number of prophages that are predicted. Conversely, if you reduce this, or set it to `0` we will overcall mobile elements. 
+
+When `--phage_genes` is set to `0`, `PhiSpy.py` will identify other mobile elements like plasmids, integrons, and pathogenicity islands. Somewhat unexpectedly, it will also identify the ribosomal RNA operons as likely being mobile since they are unlike the host's backbone!
+
+### color
+
+If you add the `--color` flag, we will color the CDS based on their function. The colors are primarily used in [artemis](https://sanger-pathogens.github.io/Artemis/) for visualizing phage regions.
+
+### file name prefixes
+
+By default the outputs from `PhiSpy.py` have standard names. If you supply a file name prefix it will be prepended to all the file so that you can run `PhiSpy.py` on multiple genomes and have the outputs in the same directory without overwriting each other.
 
 ### gzip support
 
