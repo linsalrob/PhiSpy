@@ -165,16 +165,57 @@ def compare_real_predicted(phage: dict, nonphage: dict, predicted: dict, print_f
     fn = len(phage_set.intersection(not_predicted))
 
     print(f"TP: {tp}  FP: {fp}  TN: {tn}  FN: {fn}")
-    accuracy = (tp+tn)/(tp + tn + fp + fn)
-    precision = tp/(tp+fp)
-    recall = tp/(tp+fn)
-    specificity = tn/(tn+fp)
-    f1_score = 2*(recall * precision) / (recall + precision)
-    print(f"Accuracy:    {accuracy:.3f}\t(this is the ratio of the correctly labeled phage genes to the whole pool of genes")
-    print(f"Precision:   {precision:.3f}\t(This is the ratio of correctly labeled phage genes to all predictions)")
-    print(f"Recall:      {recall:.3f}\t(This is the fraction of actual phage genes we got right)")
-    print(f"Specificity: {specificity:.3f}\t(This is the fraction of non phage genes we got right)")
-    print(f"f1 score: {f1_score:.3f}\t(this is the harmonic mean of precision and recall, and is the best measure when, as in this case, there is a big difference between the number of phage and non-phage genes)")
+    try:
+        accuracy = (tp+tn)/(tp + tn + fp + fn)
+    except ZeroDivisionError:
+        accuracy = "NaN"
+
+    try:
+        precision = tp/(tp+fp)
+    except ZeroDivisionError:
+        precision = "NaN"
+
+    try:
+        recall = tp/(tp+fn)
+    except ZeroDivisionError:
+        recall = "NaN"
+
+    try:
+        specificity = tn/(tn+fp)
+    except ZeroDivisionError:
+        specificity = "NaN"
+
+    f1_score = "NaN"
+    if accuracy != "NaN" and precision != "NaN" and recall != "NaN" and specificity != "NaN":
+        try:
+            f1_score = 2*(recall * precision) / (recall + precision)
+        except ZeroDivisionError:
+            f1_score = "NaN"
+
+    if accuracy != "NaN":
+        print(f"Accuracy:    {accuracy:.3f}\t(this is the ratio of the correctly labeled phage genes to the whole pool of genes")
+    else:
+        print("Accuracy: NaN")
+
+    if precision != "NaN":
+        print(f"Precision:   {precision:.3f}\t(This is the ratio of correctly labeled phage genes to all predictions)")
+    else:
+        print("Precision: NaN")
+
+    if recall != "NaN":
+        print(f"Recall:      {recall:.3f}\t(This is the fraction of actual phage genes we got right)")
+    else:
+        print("Recall: NaN")
+
+    if specificity != "NaN":
+        print(f"Specificity: {specificity:.3f}\t(This is the fraction of non phage genes we got right)")
+    else:
+        print("Specificity: NaN")
+    
+    if f1_score != "NaN":
+        print(f"f1 score: {f1_score:.3f}\t(this is the harmonic mean of precision and recall, and is the best measure when, as in this case, there is a big difference between the number of phage and non-phage genes)")
+    else:
+        print("f1 score: NaN")
 
     if print_fp:
         for i in nonphage_set.intersection(predicted_set):
