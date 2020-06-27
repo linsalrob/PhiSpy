@@ -96,7 +96,6 @@ def predicted_regions(regf, gbkf, verbose):
             assert(len(p) == 3), f"Expected a tple of [contig, start, stop] in {regf}"
             p[1] = int(p[1])
             p[2] = int(p[2])
-            print(f"{p}")
             if p[0] not in regions:
                 regions[p[0]] = []
             if p[2] < p[1]:
@@ -116,9 +115,9 @@ def predicted_regions(regf, gbkf, verbose):
                 for feat in seq[loc[0]:loc[1]].features:
                     if feat.type == 'CDS':
                         if 'product' in feat.qualifiers:
-                            predicted[str(feat.translate(seq, cds=False).seq).upper()] = feat.qualifiers['product'][0]
+                            predicted[str(feat.translate(seq[loc[0]:loc[1]], cds=False).seq).upper()] = feat.qualifiers['product'][0]
                         else:
-                            predicted[str(feat.translate(seq, cds=False).seq).upper()] = f"Hypothetical protein (not annotated in {gbkf})"
+                            predicted[str(feat.translate(seq[loc[0]:loc[1]], cds=False).seq).upper()] = f"Hypothetical protein (not annotated in {gbkf})"
 
     if verbose:
         message(f"Found {len(predicted)} predicted prophage features", "BLUE", "stderr")
