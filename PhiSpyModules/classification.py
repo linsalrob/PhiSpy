@@ -38,6 +38,7 @@ def call_randomforest(**kwargs):
     log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
 
+<<<<<<< HEAD
     all_metrics = ['orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
     if kwargs['phmms']:
         kwargs['metrics'].append('phmms')
@@ -55,6 +56,11 @@ def call_randomforest(**kwargs):
     #     test_data = np.delete(test_data, 5, 1)
     # else:
     #     log_and_message(f"phmms considered and based on {kwargs['phmms']}.")
+=======
+    if not kwargs['phmms']:
+        train_data = np.delete(train_data, 5, 1)
+        test_data = np.delete(test_data, 5, 1)
+>>>>>>> b1c836d3163423f8a5b63eb4852f87ae5565b090
     """
     Przemek's comment
     by default 10 until version 0.22 where default is 100
