@@ -38,9 +38,9 @@ def call_randomforest(**kwargs):
     log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
 
-    if 'phmms' not in kwargs:
+    if not kwargs['phmms']:
         train_data = np.delete(train_data, 5, 1)
-        test_data = np.delete(train_data, 5, 1)
+        test_data = np.delete(test_data, 5, 1)
     """
     Przemek's comment
     by default 10 until version 0.22 where default is 100
