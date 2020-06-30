@@ -38,9 +38,23 @@ def call_randomforest(**kwargs):
     log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
 
-    if 'phmms' not in kwargs:
-        train_data = np.delete(train_data, 5, 1)
-        test_data = np.delete(train_data, 5, 1)
+    all_metrics = ['orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
+    if kwargs['phmms']:
+        kwargs['metrics'].append('phmms')
+
+    if len(kwargs['metrics']) < len(all_metrics):
+        log_and_message(f"Using the following metric(s): {', '.join(sorted(kwargs['metrics']))}.")
+        skip_metrics = [all_metrics.index(x) for x in set(all_metrics) - set(kwargs['metrics'])]
+        train_data = np.delete(train_data, skip_metrics, 1)
+        test_data = np.delete(test_data, skip_metrics, 1)
+    else:
+        log_and_message(f"Using all metrics.")
+    # if not kwargs['phmms']:
+    #     log_and_message(f"Removing phmms column from test and train datasets - OK.")
+    #     train_data = np.delete(train_data, 5, 1)
+    #     test_data = np.delete(test_data, 5, 1)
+    # else:
+    #     log_and_message(f"phmms considered and based on {kwargs['phmms']}.")
     """
     Przemek's comment
     by default 10 until version 0.22 where default is 100
@@ -122,7 +136,7 @@ def calc_pp(func):
 """
 Artemis colour codes
 
-These come from the Setting Colours section of  
+These come from the Setting Colours section of
 https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
 
 0 white (RGB values: 255 255 255)
@@ -204,10 +218,10 @@ def make_initial_tbl(**kwargs):
     log_and_message(f"Rank threshold calculated as {threshold}")
     """
     Note added by Rob:
-    At this point we have the classifications for each ORF and we want to take a sliding window and decide where 
-    the phage should start. We have two calculations for a threshold for the rank: either the kmeans centers and 
+    At this point we have the classifications for each ORF and we want to take a sliding window and decide where
+    the phage should start. We have two calculations for a threshold for the rank: either the kmeans centers and
     finding things above the larger center or just a plain threshold.
-    
+
     """
 
     """
@@ -218,7 +232,7 @@ def make_initial_tbl(**kwargs):
         3. start             9. final status        15. sequence of attR
         4. stop             10. start of attL       16. Reason for att site choice
         5. position         11. end of attL
-        
+
     However, at this point we only have  0 .. 8
     """
 
@@ -243,5 +257,3 @@ def make_initial_tbl(**kwargs):
         ]
         data.append(thisrow)
     return data
-
-
