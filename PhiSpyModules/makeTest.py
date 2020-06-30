@@ -11,7 +11,7 @@ from .errors import NoBasesCounted
 class ShannonScore:
     def __init__(self, kmers_type):
         # Create a hash of the kmers that points to the index of an array that holds the value
-        self._kmers = set()
+        self._kmers = {}
         self._kmers_phage = []
         self._kmers_all = []
         self._kmers_type = kmers_type
@@ -22,7 +22,7 @@ class ShannonScore:
 
         for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
             line = line.decode().strip()
-            self._kmers.add(line)
+            self._kmers[line] = ''
 
     def reset(self):
         self._kmers_phage = []
@@ -36,8 +36,8 @@ class ShannonScore:
         kmers = self.kmerize_orf(seq, mer, self._kmers_type)
         for kmer in kmers:
             self._kmers_all[-1] += 1
-            try:            
-                self._kmers.add(kmer)
+            try:
+                self._kmers[kmer]
                 self._kmers_phage[-1].append(kmer)
             except KeyError:
                 continue
@@ -260,7 +260,7 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
 
 def reverse_complement(seq):
 
-    rcd = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 
+    rcd = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C',
            'R': 'Y', 'Y': 'R', 'M': 'K', 'K': 'M',
            'S': 'S', 'W': 'W',
            'H': 'D', 'D': 'H',
