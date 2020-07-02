@@ -48,7 +48,7 @@ def call_randomforest(**kwargs):
         train_data = np.delete(train_data, skip_metrics, 1)
         test_data = np.delete(test_data, skip_metrics, 1)
     else:
-        log_and_message(f"Using all metrics.")
+        log_and_message(f"Using all metrics: {', '.join(all_metrics)}.")
 
     """
     Przemek's comment
