@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 __author__ = 'Przemek Decewicz'
 
 from argparse import Namespace
@@ -6,18 +5,27 @@ from Bio import SeqIO
 from glob import glob
 from os import path, remove
 from subprocess import call
+import gzip
+
+from .helper_functions import is_gzip_file
 
 def read_genbank(infile, infile_type, target_type):
     """
     This function reads the GenBank file and extracts protein and/or nucleotide sequences in a manner that will allow easier mapping of results against it's genome.
     """
 
+    if is_gzip_file(infile):
+        handle = gzip.open(infile, 'rt')
+    else:
+        handle = open(infile, 'r')
+
+
     if infile_type == 'genbank':
-        genome = { 'contigs': list(SeqIO.parse(infile, 'genbank')),
+        genome = { 'contigs': list(SeqIO.parse(handle, 'genbank')),
                    'proteins': [],
                    'info': {}}
     elif infile_type == 'contigs':
-        genome = { 'contigs': list(SeqIO.parse(infile, 'fasta')),
+        genome = { 'contigs': list(SeqIO.parse(handle, 'fasta')),
                    'proteins': [],
                    'info': {}}
 
@@ -68,6 +76,7 @@ def read_genbank(infile, infile_type, target_type):
     elif target_type == 'contigs':
         print('  Read %i contigs.' % len(genome['contigs']))
 
+    handle.close()
     return genome
 
 
