@@ -164,6 +164,16 @@ When `--color` flag is used, additional qualifier `/color` will be added in the 
 
 When running PhiSpy again on the same input data and with `--phmms` option you can skip the search step by `--skip_search` flag.
 
+Another database that maybe of interest is the [VOGdb](http://vogdb.org/) database. You can download all their VOGs, and the press them into a compiled format for `hmmer`:
+
+```bash
+curl -LO http://fileshare.csb.univie.ac.at/vog/latest/vog.hmm.tar.gz
+mkdir vog
+tar -C vog -xf vog.hmm.tar.gz
+cat vog/* > VOGs.hmms
+hmmpress VOGs.hmms
+```
+
 # Help
 
 For the help menu use the `-h` option:
