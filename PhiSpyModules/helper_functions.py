@@ -107,9 +107,6 @@ def get_args():
                         help='Phage HMM profile database (like pVOGs) will be mapped against the genome of ' +
                             'interest and used as additional feature to identify prophages.\nNote that this ' +
                             'is experimental at the moment')
-    parser.add_argument('--skip_search', action='store_true',
-                        help='If set, the search part will be skipped and the program will assume the ' +
-                             'existance of updated GenBank files.')
     parser.add_argument('--color', action='store_true',
                         help='If set, within the output GenBank file CDSs with phmms hits will be ' +
                              'colored (for viewing in Artemis).')
