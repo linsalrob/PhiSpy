@@ -32,7 +32,7 @@ def search_phmms_rob(**kwargs):
     self = Namespace(**kwargs)
     log_and_message(f"Running HMM profiles against {self.phmms}", c="GREEN", stderr=True, quiet=self.quiet)
     # write the amino acids to a named temporary file that we will unlink later
-    aaout = NamedTemporaryFile(mode='w+t', delete=False)
+    aaout = NamedTemporaryFile(mode='w+t', dir=self.output_dir, delete=False)
     log_and_message(f"hmmsearch: writing the amino acids to temporary file {aaout.name}\n", c="GREEN", stderr=True, quiet=self.quiet)
     aaout.seek(0)
     all_features = {}
@@ -62,21 +62,21 @@ def search_phmms_rob(**kwargs):
     hmmresult = search.communicate()[0]
     results = SearchIO.parse(StringIO(hmmresult.decode()), 'hmmer3-text')
 
-    
-    allhits = {}
-    hitcount = 0
-    rescount = 0
+    stderrcount = 0
     for res in results:
-        allhits[res.id] = {}
-
-        rescount += 1
         for hit in res:
-            allhits[res.id][hit.id] = hit.evalue
-            # print(f"Result: {res.id}: Hit: {hit.id} Eval: {hit.evalue}")
-            hitcount += 1
+            if hit.id not in all_features:
+                log_and_message(f"Found an HMM hit to {hit.id} but we don't have a record of that feature", c="RED", stderr=True,
+                                quiet=False)
+                continue
+            if 'phmm' not in all_features[hit.id].qualifiers:
+                all_features[hit.id].qualifiers['phmm'] = []
+            all_features[hit.id].qualifiers['phmm'].append(f"{res.id}:{hit.evalue}")
+            if stderrcount < 30:
+                sys.stderr.write(f"{hit.id} --> {res.id}:{hit.evalue}\n")
+                stderrcount += 1
 
-    print(f"Using hmmsearch and tempfiles there were {rescount} results and {hitcount} hits, and our dict has {len(allhits)} entries")
-
-
+    # remove the amino acids
+    os.unlink(os.path.join(self.output_dir, aaout.name))
     log_and_message(f"Completed running HMM profiles against {self.phmms}", c="GREEN", stderr=True, quiet=self.quiet)
     return self.record
