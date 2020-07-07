@@ -393,7 +393,7 @@ Exit Code | Meaning | Suggested solution
 26 | An ORF with no bases | This is probably a really short ORF and should be deleted.
 30 | No contigs | We filter contigs by length, and so try adjusting the `--min_contig_size` parameter, though the default is 5,000 bp and you will need some adjacent genes!
 40 | No ORFs in your genbank file | Please annotate your genome, e.g. using [RAST](http://rast.nmpdr.org/) or [PROKKA](https://github.com/tseemann/prokka)
-20 | 
+41 | Less than 100 ORFs are in your annotated genome. This is not enough to find a prophage | Please annotate your genome, e.g. using [RAST](http://rast.nmpdr.org/) or [PROKKA](https://github.com/tseemann/prokka)
 
 # Making your own training sets
 

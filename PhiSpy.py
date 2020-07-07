@@ -81,6 +81,11 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     PhiSpyModules.log_and_message('Making Testing Set...', c="GREEN", stderr=True, stdout=False,
                                   quiet=args_parser.quiet)
     args_parser.test_data = PhiSpyModules.measure_features(**vars(args_parser))
+    if len(args_parser.test_data) < 100:
+        m = f"Your genome only contains {len(args_parser.test_data)} ORFs. This is not enough to identify prophages.\n"
+        m += "You might consider reannotating your genome with PROKKA or RAST"
+        PhiSpyModules.log_and_message(m, c='RED', stderr=True, quiet=args_parser.quiet)
+        sys.exit(41)
 
     ######################################
     #         do classification          #
