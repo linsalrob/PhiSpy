@@ -43,7 +43,7 @@ def call_randomforest(**kwargs):
         kwargs['metrics'].append('phmms')
 
     if len(kwargs['metrics']) < len(all_metrics):
-        log_and_message(f"Using the following metric(s): {', '.join(sorted(kwargs['metrics']))}.")
+        log_and_message(f"Using the following metric(s): {', '.join(sorted(kwargs['metrics']))}.", c='GREEN', stderr=True, quiet=kwargs['quiet'])
         skip_metrics = [all_metrics.index(x) for x in set(all_metrics) - set(kwargs['metrics'])]
         train_data = np.delete(train_data, skip_metrics, 1)
         test_data = np.delete(test_data, skip_metrics, 1)
