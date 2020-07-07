@@ -10,7 +10,6 @@ from .pathtype import PathType
 from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prophage_tbl, write_prophage_tsv
 from .writers import prophage_measurements_to_tbl, write_all_outputs, write_prophage_information
 from .search_phmms import search_phmms
-from .search_phmms_int import search_phmms_rob
 from .log_and_message import log_and_message, message
 from .errors import ColorNotFoundError, NoBasesCounted
 
@@ -25,7 +24,7 @@ __all__ = ['SeqioFilter',
            'PathType',
            'write_gff3', 'write_genbank', 'write_phage_and_bact', 'write_prophage_tbl', 'write_prophage_tsv',
            'prophage_measurements_to_tbl', 'write_all_outputs', 'write_prophage_information', 'log_and_message',
-           'search_phmms', 'search_phmms_rob',
+           'search_phmms',
            'message',
             'ColorNotFoundError', 'NoBasesCounted'
            ]

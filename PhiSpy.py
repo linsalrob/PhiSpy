@@ -63,7 +63,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     ######################################
     # if phmm search is required
     if args_parser.phmms:
-        args_parser.record = PhiSpyModules.search_phmms_rob(**vars(args_parser))
+        args_parser.record = PhiSpyModules.search_phmms(**vars(args_parser))
 
     ######################################
     #         make training set          #
