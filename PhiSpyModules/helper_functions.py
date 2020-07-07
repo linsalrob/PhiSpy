@@ -71,6 +71,7 @@ def get_args():
         epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Przemysław Decewicz, Rob Edwards, " +
                "San Diego State University, San Diego, CA")
     parser.add_argument('infile', type=is_valid_file, help='Input file in genbank format', nargs='?')
+    parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('-m', '--make_training_data', type=str,
                         help='Create training data from a set of annotated genome files. Requires is_phage=1 ' +
                              'qualifier in prophage\'s CDSs')
@@ -112,7 +113,6 @@ def get_args():
                              'colored (for viewing in Artemis).')
     parser.add_argument('--threads', type=int, default=2,
                         help='Number of threads to use while searching with phmms and the random forest.')
-    parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('--output_choice', type=int, default=3,
                         help='Sum of codes for files to output. For more details see the README.md file at ' +
                             'https://github.com/linsalrob/PhiSpy#choosing-which-output-files-are-created')
@@ -134,8 +134,7 @@ def get_args():
         exit(0)
 
     if args.file_prefix != "":
-        if not args.file_prefix.endswith("_"):
-            args.file_prefix += "_"
+        args.file_prefix += "_"
         args.file_prefix = args.file_prefix.replace(' ', '_')
 
     # check whether output directory was provided
