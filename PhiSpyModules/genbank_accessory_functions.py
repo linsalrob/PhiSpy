@@ -9,10 +9,11 @@ def feature_id(seq, feat):
     :return: the id
     """
 
-    if 'protein_id' in feat.qualifiers:
-        return '|'.join(feat.qualifiers['protein_id'])
-    elif 'locus_tag' in feat.qualifiers:
+
+    if 'locus_tag' in feat.qualifiers:
         return "|".join(feat.qualifiers['locus_tag'])
+    elif 'protein_id' in feat.qualifiers:
+        return '|'.join(feat.qualifiers['protein_id'])
     elif 'db_xref' in feat.qualifiers:
         return '|'.join(feat.qualifiers['db_xref'])
     else:
