@@ -62,7 +62,6 @@ def search_phmms(**kwargs):
     hmmresult = search.communicate()[0]
     results = SearchIO.parse(StringIO(hmmresult.decode()), 'hmmer3-text')
 
-    stderrcount = 0
     for res in results:
         for hit in res:
             if hit.id not in all_features:
@@ -72,9 +71,6 @@ def search_phmms(**kwargs):
             if 'phmm' not in all_features[hit.id].qualifiers:
                 all_features[hit.id].qualifiers['phmm'] = []
             all_features[hit.id].qualifiers['phmm'].append(f"{res.id}:{hit.evalue}")
-            if stderrcount < 30:
-                sys.stderr.write(f"{hit.id} --> {res.id}:{hit.evalue}\n")
-                stderrcount += 1
 
     # remove the amino acids
     os.unlink(os.path.join(self.output_dir, aaout.name))
