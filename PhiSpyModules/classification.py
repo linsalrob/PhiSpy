@@ -48,7 +48,7 @@ def call_randomforest(**kwargs):
         train_data = np.delete(train_data, skip_metrics, 1)
         test_data = np.delete(test_data, skip_metrics, 1)
     else:
-        log_and_message(f"Using all metrics: {', '.join(all_metrics)}.")
+        log_and_message(f"Using all metrics: {', '.join(all_metrics)}.", c='GREEN', stderr=True, quiet=kwargs['quiet'])
 
     """
     Przemek's comment
@@ -57,11 +57,14 @@ def call_randomforest(**kwargs):
     in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
     "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
     """
-    log_and_message(f"Running the random forest classifier with {kwargs['randomforest_trees']} trees and {kwargs['threads']} threads")
-    clf = RandomForestClassifier(n_estimators=kwargs['randomforest_trees'], n_jobs=kwargs['threads'])
-    clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
-    return clf.predict_proba(test_data)[:,1]
-
+    log_and_message(f"Running the random forest classifier with {kwargs['randomforest_trees']} trees and {kwargs['threads']} threads", c='GREEN', stderr=True, quiet=kwargs['quiet'])
+    if train_data.shape[1] > 1:
+        clf = RandomForestClassifier(n_estimators=kwargs['randomforest_trees'], n_jobs=kwargs['threads'])
+        clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
+        return clf.predict_proba(test_data)[:,1]
+    else:
+        log_and_message("None of the metrics were requested and so we did not run the random forest. Results may be variable.", c='PINK', stderr=True, quiet=kwargs['quiet'])
+        return np.zeros(len(kwargs['test_data']))
 
 def my_sort(orf_list):
     n = len(orf_list)
