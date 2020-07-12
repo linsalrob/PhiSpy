@@ -9,6 +9,7 @@ import numpy as np
 from argparse import Namespace
 
 from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func
+from .genbank_accessory_functions import feature_id
 from .log_and_message import log_and_message
 
 def find_training_genome(training_flag):
@@ -177,8 +178,9 @@ def make_initial_tbl(**kwargs):
                     feature.qualifiers['colour'] = 13  # light grey
                 elif pp_score == 0.5:
                     feature.qualifiers['colour'] = 9 # light blue
+            fid = feature_id(entry, feature)
             ft = {
-                'fig': feature.id,
+                'fig': fid,
                 'function': feature.function,
                 'contig': entry.id,
                 'start': feature.start,
