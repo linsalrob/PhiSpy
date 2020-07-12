@@ -266,7 +266,7 @@ void print_output()
 
 	int totalRep = 0;
 	for(i=0;i<j;i++)
-		if(rep[i].visited==0 && rep[i].len>= output_rep_len){
+		if(rep[i].visited==0 && rep[i].len > output_rep_len){
 			fprintf(f,"%d\t%d\t",rep[i].fst,rep[i].fst+rep[i].len-1);
 			if(rep[i].sec>-1)
 				fprintf(f,"%d\t%d",rep[i].sec,rep[i].sec+rep[i].seclen-1);
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 PyObject *
 python_input(PyObject *self, PyObject *args) {
     /* Parse arguments */
-    if(!PyArg_ParseTuple(args, "siii", &dna, &gap_len, &ppno, &debug)) {
+    if(!PyArg_ParseTuple(args, "siiii", &dna, &gap_len, &output_rep_len, &ppno, &debug)) {
         PyErr_SetString(PyExc_RuntimeError, "Could not parse the arguments to python_input");
         return NULL;
     }
@@ -377,7 +377,7 @@ python_input(PyObject *self, PyObject *args) {
 
     int totalRep = 0;
 	for(int i=0;i<len;i++) {
-		if(rep[i].visited==0 && rep[i].len>= output_rep_len){
+		if(rep[i].visited==0 && rep[i].len > output_rep_len){
             // we just use a temp variable to deal with the
             // case when second start < 0
 		    int ss = rep[i].sec;
