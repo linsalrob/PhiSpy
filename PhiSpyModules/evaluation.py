@@ -4,12 +4,26 @@ import math
 import sys
 from argparse import Namespace
 
+from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
+
 from .log_and_message import log_and_message
+import PhiSpyModules.version as version
 
 import PhiSpyRepeatFinder
 
 
-def find_repeat(fn, st, ppno, extra_dna, output_dir):
+def find_repeat(self, contig, fn, st, ppno, extra_dna):
+    """
+    Find repeats in the DNA sequence
+    :param self: The data object
+    :param contig: the name of the contig we are searching on
+    :param fn: the nuclotide sequence to search
+    :param st: the start to find repeats at
+    :param ppno: the prophage number
+    :param extra_dna: the extra dna that flanks the sequence
+    :return: a list of repeat regions
+    """
+
     if len(fn) == 0:
         log_and_message("Len sequence is 0 so ignoring\n", c="RED", stderr=True, loglevel="WARNING")
         return {}
@@ -22,7 +36,7 @@ def find_repeat(fn, st, ppno, extra_dna, output_dir):
 
     try:
         # set the False parameter to True to enable debugging of repeat finder
-        repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3, ppno, False)
+        repeats = PhiSpyRepeatFinder.repeatFinder(fn, 3, self.min_repeat_len, ppno, False)
     except Exception as e:
         log_and_message(f"There was an error running repeatfinder for {fn}:{e}\n", c="RED", stderr=True,
                         loglevel="WARNING")
@@ -42,6 +56,14 @@ def find_repeat(fn, st, ppno, extra_dna, output_dir):
             rep[index]['e1'] = r['first_end'] + st
             rep[index]['s2'] = r['second_start'] + st
             rep[index]['e2'] = r['second_end'] + st
+            if self.include_all_repeats:
+                replen = max(rep[index]['e1'] - rep[index]['s1'], rep[index]['e2'] - rep[index]['s2'])
+                r1loc = FeatureLocation(rep[index]['s1'], rep[index]['e1'], strand=+1)
+                r2loc = FeatureLocation(rep[index]['s2'], rep[index]['e2'], strand=+1)
+                rptloc = CompoundLocation([r1loc, r2loc])
+                rptsf = SeqFeature(rptloc,type="repeat_region",
+                                   qualifiers={'note':f"{replen}bp repeat identified by PhiSpy v{version.__version__}"})
+                self.record.get_entry(contig).features.append(rptsf)
             index += 1
 
     return rep
@@ -282,15 +304,14 @@ def fixing_start_end(**kwargs):
     # End filtering
     # find start end for all pp using repeat finder
     dna = {entry.id: str(entry.seq) for entry in self.record}
-    extra_dna = 2000
     for i in pp:
         log_and_message(f"PROPHAGE: {i} Contig: {pp[i]['contig']} Start: {pp[i]['start']} Stop: {pp[i]['stop']}",
                         c="PINK", stderr=True, quiet=self.quiet)
-        start = pp[i]['start'] - extra_dna
+        start = pp[i]['start'] - self.extra_dna
         if start < 1:
             start = 1
         if 'stop' in pp[i]:
-            stop = pp[i]['stop'] + extra_dna
+            stop = pp[i]['stop'] + self.extra_dna
         else:
             stop = genome[len(genome) - 1]['stop']
         if stop > len(dna[pp[i]['contig']]):
@@ -299,7 +320,7 @@ def fixing_start_end(**kwargs):
             log_and_message(f"Not checking repeats for pp {i} because it is too big: {stop - start} bp",
                             c="PINK", stderr=True, quiet=self.quiet)
             continue
-        repeat_list = find_repeat(dna[pp[i]['contig']][start:stop], start, i, extra_dna, self.output_dir)
+        repeat_list = find_repeat(self, pp[i]['contig'], dna[pp[i]['contig']][start:stop], start, i, self.extra_dna)
         s_e = find_rna(start, stop, repeat_list, self.record, pp[i]['contig'], intg)
         if s_e != 'null':
             t = re.split('_', s_e)
@@ -365,7 +386,7 @@ def fixing_start_end(**kwargs):
                         bestrep['e2'],
                         attLseq,
                         attRseq,
-                        "Longest Repeat flanking phage and within " + str(extra_dna) + " bp"
+                        f"Longest Repeat flanking phage and within {self.extra_dna} bp"
                     ]
                     pp[i]['atts'] = "\t".join(map(str, pp[i]['att']))
                     if samelenrep > 1:
