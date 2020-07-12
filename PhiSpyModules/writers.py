@@ -232,7 +232,7 @@ def write_prophage_information(self):
         for this_pp in self.initial_tbl:
             ppnum = check_pp(this_pp[2], int(this_pp[3]), int(this_pp[4]), self.pp)
             out.write("\t".join(map(str, this_pp + [ppnum])))
-            if ppnum > 0 and ppnum not in written_atts:
+            if 'atts' in self.pp[ppnum] and ppnum > 0 and ppnum not in written_atts:
                 out.write("\t" + self.pp[ppnum]['atts'] + "\n")
                 written_atts.add(ppnum)
             else:
