@@ -392,7 +392,8 @@ def fixing_start_end(**kwargs):
                     if samelenrep > 1:
                         msg=f"There were {samelenrep} repeats with the same length as the best. One chosen somewhat randomly!"
                         log_and_message(msg, c="YELLOW", stderr=True, quiet=self.quiet)
-
+        if 'atts' not in pp[i]:
+            pp[i]['atts'] = "No potential att site found"
     return pp
 
 
