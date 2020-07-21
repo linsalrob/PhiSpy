@@ -25,7 +25,6 @@ def is_phage_func(func):
             'virion'        in a or
             'antirepressor' in a or
             'excisionase'   in a or
-            'mobile element protein' == func or
             re.search(r"\b%s\b" % "tape measure", func) or
             re.search(r"\b%s\b" % "Cro-like repressor", func) or
             re.search(r"\b%s\b" % "CI-like repressor", func) or
@@ -77,6 +76,7 @@ def is_unknown_func(x):
     if (
             (len(x) == 0) or
             # ('hypoth' in x_lower) or
+            'mobile element protein' == x_lower or
             ('hypothetical' in x_lower) or
             ('conserved protein' in x_lower) or
             ('gene product' in x_lower) or
