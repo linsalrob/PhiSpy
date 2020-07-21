@@ -93,9 +93,9 @@ def get_args():
                         help='Window size of consecutive genes to look through to find phages. [Default: %(default)d]')
     parser.add_argument('-g', '--nonprophage_genegaps', default=10, type=int,
                         help='The number of non phage genes betweeen prophages. [Default: %(default)d]')
-    parser.add_argument('--phage_genes', default=2, type=int,
+    parser.add_argument('--phage_genes', default=1, type=int,
                         help='The minimum number of genes that must be identified as belonging to a phage for the ' +
-                             'region to be included. The default is 2 or more genes.')
+                             'region to be included. The default is %(default)d or more genes.')
     parser.add_argument('--metrics', nargs='+', type=str, default=['orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction'],
                         help='The set of metrics to consider during classification. If not set, all metrics (orf_length_med, shannon_slope, at_skew, gc_skew, max_direction) will be considered.')
     parser.add_argument('-r', '--randomforest_trees', default=500, type=int,
