@@ -1,10 +1,12 @@
 import os
-import re
+import sys
 import math
 import sys
 import pkg_resources
 from argparse import Namespace
 
+from .log_and_message import log_and_message
+from .errors import NoBasesCounted
 
 class ShannonScore:
     def __init__(self, kmer_size, kmers_type, kmers_file):
@@ -14,6 +16,7 @@ class ShannonScore:
         self._kmers_all = []
         self._kmer_size = kmer_size
         self._kmers_type = kmers_type
+<<<<<<< HEAD
         # kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
         # if not pkg_resources.resource_exists:
         #     sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
@@ -25,6 +28,16 @@ class ShannonScore:
         # for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
         #     line = line.decode().strip()
             # self._kmers[line] = ''
+=======
+        kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
+        if not pkg_resources.resource_exists:
+            log_and_message(f"ERROR: Kmers file {kmers_file} not found", "RED", stderr=True, quiet=self.quiet)
+            sys.exit(13)
+
+        for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
+            line = line.decode().strip()
+            self._kmers[line] = ''
+>>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 
     def reset(self):
         self._kmers_phage = []
@@ -37,7 +50,7 @@ class ShannonScore:
         kmers = self.kmerize_orf(seq, self._kmer_size, self._kmers_type)
         for kmer in kmers:
             self._kmers_all[-1] += 1
-            try:            
+            try:
                 self._kmers[kmer]
                 self._kmers_phage[-1].append(kmer)
             except KeyError:
@@ -223,12 +236,10 @@ def find_atgc_skew(seq):
             c += 0.25
             total_gc += 0.25
         else:
-            print("seq", seq)
-            print("base", base)
-            sys.exit("ERROR: Non nucleotide base found")
+            log_and_message(f"A non nucleotide base ({base}) was found in {seq}", "RED", stderr=True)
+            sys.exit(25)
     if(total_at * total_gc) == 0:
-        print(seq)
-        sys.exit("a total of zero total_at*total_gc")
+        raise NoBasesCounted("a total of zero total_at*total_gc")
     return float(a)/total_at, float(t)/total_at, float(g)/total_gc, float(c)/total_gc
 
 def find_avg_atgc_skew(orf_list, mycontig, dna):
@@ -239,12 +250,20 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
     for i in orf_list:
         start = i['start']
         stop = i['stop']
-        if start < stop:
-            bact = dna[mycontig][start - 1:stop]
-            xa, xt, xg, xc = find_atgc_skew(bact)
-        else:
-            bact = dna[mycontig][stop - 1:start]
-            xt, xa, xc, xg = find_atgc_skew(bact)
+        try:
+            if start < stop:
+                bact = dna[mycontig][start - 1:stop]
+                xa, xt, xg, xc = find_atgc_skew(bact)
+            else:
+                bact = dna[mycontig][stop - 1:start]
+                xt, xa, xc, xg = find_atgc_skew(bact)
+        except NoBasesCounted as e:
+            msg = e.message + "\n"
+            msg += f"No bases were counted for orf {i} from {start} to {stop}\n"
+            msg += "This error is usually thrown with an exceptionally short ORF that is only a "
+            msg += " few bases. You should check this ORF and confirm it is real!\n"
+            log_and_message(msg, "RED", stderr=True)
+            sys.exit(26)
         if len(bact) < 3:
             continue
         a_skew.append(xa)
@@ -255,7 +274,7 @@ def find_avg_atgc_skew(orf_list, mycontig, dna):
 
 def reverse_complement(seq):
 
-    rcd = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 
+    rcd = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C',
            'R': 'Y', 'Y': 'R', 'M': 'K', 'K': 'M',
            'S': 'S', 'W': 'W',
            'H': 'D', 'D': 'H',
@@ -270,35 +289,51 @@ def reverse_complement(seq):
 
     return rcseq
 
-######################################################################################
-def make_test_set(**kwargs):
-    # line below is so that later we can make this a class
+def measure_features(**kwargs):
+    """
+    This is a combination of the old make_test_set // make_train_set
+    but now returns an array of the data and so reduces redundancy
+    :param kwargs: The keyworded arguments object
+    :return: an array of arrays. Each element contains median orf length, shannon slope,
+            at_skew, gc_skew, max_direction, phmms
+    """
+
     self = Namespace(**kwargs)
+<<<<<<< HEAD
     my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type, self.kmers_file)
+=======
+    data = []  # the array of arrays we will return
+    my_shannon_scores = ShannonScore(self.kmers_type)
+>>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
     all_orf_list = {}
     dna = {}
-    window = 40
+    window = self.window_size
     for entry in self.record:
         dna[entry.id] = str(entry.seq)
         for feature in entry.get_features('CDS'):
             orf_list = all_orf_list.get(entry.id, [])
+            is_phage = int(feature.qualifiers['is_phage'][0]) if 'is_phage' in feature.qualifiers else 0
             orf_list.append(
                    {'start' : feature.start,
                     'stop'  : feature.stop,
                     'phmm'  : sum([-math.log10(x) if x != 0 else 500 for x in feature.phmm])/100,
-                    'peg'   : 'peg'
+                    'peg'   : 'peg',
+                    'is_phage': is_phage  # note that we include this here, even if we are generating test data
                    }
             )
             all_orf_list[entry.id] = orf_list
-    try:
-        outfile = open(os.path.join(self.output_dir, 'testSet.txt'), 'w')
-    except:
-        sys.exit('ERROR: Cannot open file for writing: testSet.txt')
-    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\n')
+
+    if len(all_orf_list) == 0:
+        log_and_message(f"There were no ORFs predicted in {self.infile}. Please annotate the genome and try again",
+                        "RED", stderr=True, quiet=self.quiet)
+        sys.exit(40)
+
     for mycontig in all_orf_list:
-        #orf_list = my_sort(all_orf_list[mycontig])
         orf_list = all_orf_list[mycontig]
-        ######################
+        if not orf_list:
+            # an empty list of orfs
+            log_and_message("No ORFs were found in {mycontig}", "YELLOW", stderr=True, quiet=self.quiet)
+            continue
         all_median = find_all_median(orf_list)
         lengths = []
         directions = []
@@ -319,10 +354,10 @@ def make_test_set(**kwargs):
         g = sum(gg_skew) / len(gg_skew)
         c = sum(gc_skew) / len(gc_skew)
         avg_at_skew, avg_gc_skew = math.fabs(a - t), math.fabs(g - c)
-        #####################
-        i = 0
-        # while i<len(orf_list)-window +1:
-        while i < len(orf_list):
+
+        for i, orf_data in enumerate(orf_list):
+            # orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms
+            this_orf = []  # the data for this particular orf that gets added to test_data
             # initialize
             j_start = i - int(window / 2)
             j_stop = i + int(window / 2)
@@ -364,26 +399,35 @@ def make_test_set(**kwargs):
                         flag = 1
             orf.append(x)
             orf.sort()
-            outfile.write(str(my_length))
-            outfile.write('\t')
+            this_orf.append(my_length)
             if self.expand_slope:
                 s = my_shannon_scores.getSlope(j_start, j_stop)
-                outfile.write(str(s * s))
+                this_orf.append(s * s)
             else:
-                outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
-            outfile.write('\t')
-            outfile.write(str(jat))
-            outfile.write('\t')
-            outfile.write(str(jgc))
-            outfile.write('\t')
-            outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
-            outfile.write('\t')
-            outfile.write(str(sum(phmms[j_start:j_stop])))
-            outfile.write('\n')
-            i += 1
+                this_orf.append(my_shannon_scores.getSlope(j_start, j_stop))
+            this_orf.append(jat)
+            this_orf.append(jgc)
+            this_orf.append(
+                orf[len(orf) - 1] if len(orf) == 1 else orf[len(orf) - 1] + orf[len(orf) - 2]
+            )
+            this_orf.append(sum(phmms[j_start:j_stop]))
+            assert(len(this_orf) == 6)  # confirm I added everything!
+            if 'making_training_set' in self:
+                this_orf.append('1' if orf_data['is_phage'] else '0')
+            data.append(this_orf)
         my_shannon_scores.reset()
-    outfile.close()
+    return data
 
+def make_set_train(**kwargs):
+    kwargs['making_training_set'] = True
+    self = Namespace(**kwargs)
+
+    if self.output_dir:
+        of = os.path.join(self.output_dir, self.make_training_data)
+    else:
+        of = self.make_training_data
+
+<<<<<<< HEAD
 def make_set_train(**kwargs):
     self = Namespace(**kwargs)
     my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type, self.kmers_file)
@@ -499,3 +543,9 @@ def make_set_train(**kwargs):
             i += 1
         my_shannon_scores.reset()
     outfile.close()
+=======
+    with open(of,'w') as outfile:
+        outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
+        for d in measure_features(**kwargs):
+            outfile.write("\t".join(map(str, d)) + "\n")
+>>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a

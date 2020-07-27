@@ -103,6 +103,11 @@ This uses the `GenBank` format file for *Streptococcus pyogenes* M1 GAS that we 
 
 You will find the output files from this query in `output_directory`.
 
+## Download more testing data
+
+You can also download all the genomes in [tests/](tests). These are not installed with PhiSpy if you use pip/conda, but will be if you clone the repository.
+Please note that these are stored on [git lfs](https://git-lfs.github.com/), and so if you notice an error that the files are small and don't ungzip, you may need to (i) install
+`git lfs` and (ii) use `git lfs fetch` to update this data.
 
 # Running PhiSpy.py
 
@@ -116,9 +121,27 @@ where:
 - `genbank file`: The input DNA sequence file in GenBank format.
 - `output directory`: The output directory is the directory where the final output file will be created.
 
-If you have new genome, we recommend annotating it using the [RAST server](http://rast.nmpdr.org/rast.cgi) or [PROKKA](https://github.com/tseemann/prokka).
- 
-After annotation, you can download the genome directory from the server.
+If you have new genome, we recommend annotating it using the [RAST server](http://rast.nmpdr.org/rast.cgi) or [PROKKA](https://github.com/tseemann/prokka). RAST has a server that allows you to upload and download the genome (and can handle lots of genomes), while PROKKA is stand-alone software.
+
+### phage_genes
+
+By default, `PhiSpy.py` uses *strict* mode, where we look for two or more genes that are likely to be a phage in each prophage region. If you increase the value of `--phage_genes` that will reduce the number of prophages that are predicted. Conversely, if you reduce this, or set it to `0` we will overcall mobile elements. 
+
+When `--phage_genes` is set to `0`, `PhiSpy.py` will identify other mobile elements like plasmids, integrons, and pathogenicity islands. Somewhat unexpectedly, it will also identify the ribosomal RNA operons as likely being mobile since they are unlike the host's backbone!
+
+### color
+
+If you add the `--color` flag, we will color the CDS based on their function. The colors are primarily used in [artemis](https://sanger-pathogens.github.io/Artemis/) for visualizing phage regions.
+
+### file name prefixes
+
+By default the outputs from `PhiSpy.py` have standard names. If you supply a file name prefix it will be prepended to all the file so that you can run `PhiSpy.py` on multiple genomes and have the outputs in the same directory without overwriting each other.
+
+### gzip support
+
+`PhiSpy.py` natively supports both reading and writing files in `gzip` format. If you provide a `gzipped` input file, we will write a `gzipped` output file.
+
+### HMM Searches
 
 When also considering the signal from HMM profile search:
 ```bash
@@ -141,6 +164,16 @@ When `--color` flag is used, additional qualifier `/color` will be added in the 
 
 When running PhiSpy again on the same input data and with `--phmms` option you can skip the search step by `--skip_search` flag.
 
+Another database that maybe of interest is the [VOGdb](http://vogdb.org/) database. You can download all their VOGs, and the press them into a compiled format for `hmmer`:
+
+```bash
+curl -LO http://fileshare.csb.univie.ac.at/vog/latest/vog.hmm.tar.gz
+mkdir vog
+tar -C vog -xf vog.hmm.tar.gz
+cat vog/* > VOGs.hmms
+hmmpress VOGs.hmms
+```
+
 # Help
 
 For the help menu use the `-h` option:
@@ -150,17 +183,126 @@ python PhiSpy.py -h
 
 # Output Files
 
-There are 3 output files, located in output directory.
+`PhiSpy` has the option of creating multiple output files with the prophage data:
 
-1. prophage.tbl: This file has two columns separated by tabs [id, location]. 
-The id is in the format: pp_number, where number is a sequential number of the prophage (starting at 1). 
-Location is be in the format: contig_start_stop that encompasses the prophage.
+1. **prophage_coordinates.tsv** (code: 1)
+
+This is the coordinates of each prophage identified in the genome, and their _att_ sites (if found) in tab
+separated text format. 
+
+The columns of the file are:
+  - 1. Prophage number
+  - 2. The contig upon which the prophage resides
+  - 3. The start location of the prophage
+  - 4. The stop location of the prophage
+If we can detect the _att_ sites, the additional columns are:
+  - 11. start of _attL_;
+  - 12. end of _attL_;
+  - 13. start of _attR_;
+  - 14. end of _attR_;
+  - 15. sequence of _attL_;
+  - 16. sequence of _attR_;
+  - 17. The explanation of why this _att_ site was chosen for this prophage.
+
+2. **GenBank format output** (code: 2)
+
+We provide a duplicate GenBank record that is the same as the input record, but we have inserted the
+prophage information, including _att_ sites into the record.
+
+If the original GenBank file was provided in `gzip` format this file will also be created in gzip format.
+
+3. **prophage and bacterial sequences**  (code: 4)
+
+`PhiSpy` can automatically separate the DNA sequences into prophage and bacterial components. If this output is chosen, we generate both fasta and
+GenBank format outputs: 
+ - _GenBank files_: Two files are made, one for the bacteria and one for the phages. Each contains the appropriate fragments of the genome annotated as in the original.
+ - _fasta files_: Two files are made, the first contains the entire genome, but the prophage regions have been masked with `N`s. We explicitly chose this format for a
+few reasons: (i) it is trivial to convert this format into separate contigs without the Ns but it is more complex to go from separate contigs
+back to a single joined contig; (ii) when read mapping against the genome, understanding that reads map either side of a prophage maybe
+important; (iii) when looking at insertion points this allows you to visualize the where the prophage was lying.
+   
+4. **prophage_information.tsv**  (code: 8)
  
-2. prophage_tbl.tsv: This is a tab seperated file. The file contains all the genes of the genome. The tenth colum represents the status of a gene. If this column is 1 then the gene is a phage like gene; otherwise it is a bacterial gene. 
+ This is a tab separated file, and is the key file to assess prophages in genomes (see [assessing predictions](#assessing-predictions), below). The file contains all the genes of the genome, one per line.
+ The tenth colum represents the status of a gene. If this column is 0 then we consider this a bacterial gene. 
+ If it is non-zero it is probably a phage gene, and the higher the score the more likely we believe it is a phage
+  gene. This is the raw data that we use to identify the prophages in your genome.
 
-This file has 16 columns:(i) fig_no: the id of each gene; (ii) function: function of the gene;	(iii) contig; (iv) start: start location of the gene; (v) stop: end location of the gene; (vi) position: a sequential number of the gene (starting at 1); (vii)	rank: rank of each gene provided by random forest; (viii) my_status: status of each gene based on random forest; (ix) pp: classification of each gene based on their function; (x) Final_status: the status of each gene. For prophages, this column has the number of the prophage as listed in prophage.tbl above; If the column contains a 0 we believe that it is a bacterial gene. If we can detect the _att_ sites, the additional columns will be: (xi) start of _attL_; (xii) end of _attL_; (xiii) start of _attR_; (xiv) end of _attR_; (xv) sequence of _attL_; (xvi) sequence of _attR_.
+This file has 16 columns:
+  - 1. The id of each gene; 
+  - 2. function: function of the gene (or `product` from a GenBank file);
+  - 3. contig;
+  - 4. start: start location of the gene;
+  - 5. stop: end location of the gene; 
+  - 6. position: a sequential number of the gene (starting at 1);
+  - 7. rank: rank of each gene provided by random forest; 
+  - 8. my_status: status of each gene based on random forest;
+  - 9. pp: classification of each gene based on their function;
+  - 10. Final_status: the status of each gene. For prophages, this column has the number of the prophage as listed in prophage.tbl above; 
+   If the column contains a 0 we believe that it is a bacterial gene. Otherwise we believe that it is possibly a phage gene.
+   
+If we can detect the _att_ sites, the additional columns are:
+  - 11. start of _attL_;
+  - 12. end of _attL_;
+  - 13. start of _attR_;
+  - 14. end of _attR_;
+  - 15. sequence of _attL_;
+  - 16. sequence of _attR_;
 
-3. prophage_coordinates.tsv: This file has the prophage ID, contig, start, stop, and potential _att_ sites identified for the phages.
+
+5. **prophage.tsv**  (code: 16)
+
+This is a simpler version of the _prophage_coordinates.tsv_ file that only has prophage number, contig, start, and stop.
+
+6. **GFF3 format**  (code: 32)
+
+This is the prophage information suitable for insertion into a [GFF3](https://m.ensembl.org/info/website/upload/gff3.html). 
+This is a legacy file format, however, since GFF3 is no longer widely supported, this only has the prophage coordinates. 
+Please post an issue on GitHub if more complete GFF3 files are required.
+
+7. **prophage.tbl**  (code: 64)
+
+This file has two columns separated by tabs [prophage_number, location]. This is a also a 
+legacy file that is not generated by default. The prophage number is a sequential number of the 
+prophage (starting at 1), and the location is in the format: contig_start_stop that encompasses the prophage.
+
+8. **test data** (code: 128) 
+
+This file has the data used in the random forest. The columns are:
+ - Identifier
+ - Median ORF length
+ - Shannon slope
+ - Adjusted AT skew
+ - Adjusted GC skew
+ - The maxiumum number of ORFs in the same direction
+ - PHMM matches
+ - Status
+
+The numbers are averaged across a window of size specified by `--window_size`
+
+## Choosing which output files are created.
+
+We have provided the option (`--output_choice`) to choose which output files are created. Each file above has a code associated with it, 
+and to include that file add up the codes:
+
+Code | File
+--- | ---
+1 | prophage_coordinates.tsv 
+2 | GenBank format output 
+4 | prophage and bacterial sequences
+8 | prophage_information.tsv
+16 | prophage.tsv
+32 | GFF3 format
+64 | prophage.tbl 
+128 | test data used in the random forest
+
+
+So for example, if you want to get `GenBank format output` (2) and `prophage_information.tsv` (8), then 
+enter an `--output_choice` of 10.
+
+The default is 3: you will get both the `prophage_coordinates.tsv` and `GenBank format output` files.
+
+If you want _all_ files output, use `--output_choice 255`.
 
 # Example Data
 
@@ -169,7 +311,7 @@ This file has 16 columns:(i) fig_no: the id of each gene; (ii) function: functio
 To analyze this data, you can use:
 
 ```
-PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb
+PhiSpy.py -o output_directory -t data/trainSet_160490.61.txt tests/Streptococcus_pyogenes_M1_GAS.gb.gz 
 ```
 
 And you should get a prophage table that has this information (for example, take a look at `output_directory/prophage.tbl`).
@@ -181,10 +323,38 @@ pp_2 | NC_002737 | 778642 | 820599
 pp_3 | NC_002737 | 1192630 | 1222549
 pp_4 | NC_002737 | 1775862 | 1782822
 
+# Assessing predictions
+
+As with any software, it is critical that you assess the output from `phispy` to see if it actually makes sense! We start be ensuring we have the `prophage_information.tsv` file output (this is not output by default, and requires adding 8 to the `--output-choice` flag).
+
+That is a tab-separated text file that you can import into Microsoft Excel, LibreOffice Calc, Google Sheets, or your favorite spreadsheet viewing program. 
+
+There are a few columns that you should pay attention to:
+- _position_ (the 6<sup>th</sup> column) is the position of the gene in the genome. If you sort by this column you will always return the genome to the original order.
+- _Final status_ (the 10<sup>th</sup> column) is whether this region is predicted to be a prophage or not. The number is the prophage number. If the entry is 0 it is not a prophage.
+- _pp_ and _my status_ (the 8<sup>th</sup> and 9<sup>th</sup> columns) are interim indicators about whether this gene is potentially part of a phage.
+
+We recommend:
+1. Freeze the first row of the spreadsheet so you can see the column headers
+2. Sort the spreadsheet by the _my status_ column and color any row red where the value in this column is greater than 0
+3. Sort the spreadsheet by the _final status_ column and color those rows identified as a prophage green.
+4. Sort the spreadsheet by the _position_ column.
+
+Now all the prophages are colored green, while all the potential prophage genes that are not included as part of a prophage are colored red. You can easily review those non-prophage regions and determine whether _you_ think they should be included in prophages. Note that in most cases you can adjust the `phispy` parameters to include regions you think are prophages.
+
+**Note:** Ensure that while you are reviewing the results, you pay particular attention to the _contig_ column. In partial genomes, contig breaks are very often located in prophages. This is usual because prophages often contain sequences that are repeated around the genome. We have an [open issue](https://github.com/linsalrob/PhiSpy/issues/33) open issue to try and resolve this in a meaningful way.
+
+# Interactive PhiSpy
+
+We have created a [jupyter notebook](https://github.com/linsalrob/PhiSpy/blob/master/jupyter_notebooks/PhiSpy.ipynb) 
+example where you can run `PhiSpy` to test the effect of the different parameters
+on your prophage predictions. Change the name of the genbank file to point to your genome, and 
+change the values in `parameters` and see how the prophage predictions vary!
 
 # Tips, Tricks, and Errors
 
-If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install phispy` since python3-pip requires `build-essential` and `python3-dev`! 
+If you are feeling lazy, you actually only need to use `sudo apt install -y python3-pip; python3 -m pip install phispy` 
+since python3-pip requires `build-essential` and `python3-dev`! 
 
 If you try `PhiSpy.py -v` and get an error like this:
 
@@ -207,33 +377,44 @@ source ~/.bashrc
 PhiSpy.py -v
 ```
 
+# Exit (error) codes
+
+We use a few different error codes to signify things that we could not compute. So far, we have:
+
+Exit Code | Meaning | Suggested solution
+--- | --- | ---
+2 | No input file provided | We need a file to work with!
+3 | No output directory provided | We need somewhere to write the results to!
+10 | No training sets available | This should be in the default install. Please check your installation
+11 | The specific training set is not available | Check the argument passed to the `--training_set` parameter
+13 | No kmers file found | This should be in the default install. Please check your installation
+20 | IO Error | There was an error reading your input file.
+25 | Non nucleotide base found | Check for a non-standard base in your sequence
+26 | An ORF with no bases | This is probably a really short ORF and should be deleted.
+30 | No contigs | We filter contigs by length, and so try adjusting the `--min_contig_size` parameter, though the default is 5,000 bp and you will need some adjacent genes!
+40 | No ORFs in your genbank file | Please annotate your genome, e.g. using [RAST](http://rast.nmpdr.org/) or [PROKKA](https://github.com/tseemann/prokka)
+41 | Less than 100 ORFs are in your annotated genome. This is not enough to find a prophage | Please annotate your genome, e.g. using [RAST](http://rast.nmpdr.org/) or [PROKKA](https://github.com/tseemann/prokka)
+
 # Making your own training sets
 
 If within reference datasets, close relatives to bacteria of your interest are missing, you can make your own training sets by providing at least a single genome in which you indicate prophage proteins. This is done by adding a new qualifier GenBank annotation for each CDS feature within a prophage region: `/is_phage="1"`. This allows PhiSpy to distinguish the signal from bacterial/phage regions and make a training set to use afterwards during classification with random forest algorithm. 
 
-To make a training set out of your files use `make_training_sets.py` script:
+To make a training set out of your files use the `PhiSpy.py` option `-m`:
 
 ```bash
-python3 scripts/make_training_sets.py -d input_directory -o output_directory -k kmer_size -t kmers_type -g groups_file --retrain --phmms hmm_db --color --threads 4
+PhiSpy.py -o output_directory -k kmer_size -t kmers_type -g groups_file --retrain --phmms hmm_db --color --threads 4 genome.gb.gz
 ```
 where:
-- `input_directory`: a directory where GenBank files to use for training are stored.
 - `output_directory`: a directory where are temporary and final training sets will be written.
 - `kmer_size`: is the size of kmers that will be produces. By default it's 12. If changed, remember to also change that parameter while running PhiSpy with produced training sets.
 - `kmers_type`: type of generated kmers. By default 'all' means generating kmers by 1 nt. If changed, remember to also change that parameter while running PhiSpy with produced training sets.
 - `groups_file`: a file mapping GenBank file names with extension and the name of group they will make; each file can be assigned to more than one group - take a look at how the reference data grouping file was constructed: `tests/groups.txt`.
 Beside the flags that allow training with phmm signal, there's also a `--retrain` flag. When used, it overwrites all the training sets in the `output_directory` that will be produced while training. That includes: `phage_kmers_all_wohost.txt`, `trainSets_genericAll.txt` and `trainingGenome_list.txt`. The same will happen when `trainingGenome_list.txt` is missing in `output_directory`.
+- `genome.gb.gz` is a gzip compressed GenBank file that has the `/is_phage="1"` flags set.
 If `--retrain` is not set, the script extends the `trainingGenome_list.txt`, adds new files to `output_directory` (overwrites the ones with the same group name) and updates `phage_kmers_all_wohost.txt`. 
 
-The default reference data is trained by the following command:
-```bash
-python3 scripts/make_training_sets.py -d tests -o PhiSpyModules/data -g tests/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4
-```
-You can modify/update the `test` directory and `groups.txt` file for your needs.
-
-Within the `output_directory` you will find a `trainSets` directory with a single trainSet file for each genome and (if requested) with updated input GenBank files and temp files from the last hmmsearch.
 
 ## Preparing GenBank files
-- it is recommended to mark prophage proteins even from prophage remnants/disrupted regions composed of a few proteins with `is_phage="1"` to minimize the loss of good signal, kmers in particular,
+- it is recommended to mark prophage proteins even from prophage remnants/disrupted regions composed of a few proteins with `/is_phage="1"` to minimize the loss of good signal, kmers in particular,
 - don't use too many genomes (e.g. a 100) as you may end up with a small set of phage-specific kmers,
 - try to pick several genomes with different prophages to increase the diversity.

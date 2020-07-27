@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
-import subprocess
-import types
+import gzip
 from functools import reduce
 
 from Bio import SeqIO
@@ -19,36 +18,13 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         parse the options          #
     ######################################
     args_parser = PhiSpyModules.get_args()
-
-    ######################################
-    #   list the training sets and exit  #
-    ######################################
-    if args_parser.list:
-        PhiSpyModules.print_list()
-        exit(0)
-
-    if args_parser.version:
-        print("PhiSpy version: {}".format(PhiSpyModules.version.__version__))
-        sys.exit(0)
+    PhiSpyModules.log_and_message(f"Starting PhiSpy.py with the following arguments\n{args_parser}")
 
     # if we get here we need an input file
     if not args_parser.infile:
-        sys.stderr.write("ERROR: Please provide an input file. Use -h for more options\n")
-        sys.exit(-1)
-
-    # check whether output directory was provided
-    if not args_parser.output_dir:
-        sys.stderr.write("ERROR: Output directory (-o) is required\n")
-        sys.exit(-1)
-    os.makedirs(args_parser.output_dir, exist_ok=True)
-
-    ######################################
-    #       add HMM search signal        #
-    ######################################
-    # if phmm search is required
-    if args_parser.phmms:
-        print(f'Performing HMM search.')
-        args_parser.infile = PhiSpyModules.search_phmms(**vars(args_parser))
+        PhiSpyModules.log_and_message("ERROR: Please provide an input file. Use -h for more options", c="RED",
+                                      stderr=True, stdout=False)
+        sys.exit(2)
 
     ######################################
     #        process input file          #
@@ -56,58 +32,92 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     # in future support other types
     # added a filter to remove short contigs. These break everything and we can't predict them to be 
     # phages anyway
-    args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(args_parser.infile, "genbank")))
-    # args_parser.record = input_file
-    
+
+    # RAE: Add support for gzipped files
+    try:
+        if PhiSpyModules.is_gzip_file(args_parser.infile):
+            handle = gzip.open(args_parser.infile, 'rt')
+        else:
+            handle = open(args_parser.infile, 'r')
+    except IOError as e:
+        PhiSpyModules.log_and_message(f"There was an error reading {args_parser.infile}: {e}", c="RED",
+                                      stderr=True, stdout=False, quiet=args_parser.quiet)
+        sys.exit(20)
+
+    args_parser.record = PhiSpyModules.SeqioFilter(filter(lambda x: len(x.seq) > args_parser.min_contig_size, SeqIO.parse(handle, "genbank")))
+    handle.close()
+
     # do we have any records left. Yes, this bug caught me out
     ncontigs = reduce(lambda sum, element: sum + 1, args_parser.record, 0)
     if ncontigs == 0:
-        sys.stderr.write(f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n")
-        sys.stderr.write("There is no data to process\n")
-        sys.exit(20)
+        msg = f"Sorry, all of the contigs in {args_parser.infile} are less than {args_parser.min_contig_size}bp.\n"
+        msg += "There is no data to process"
+        PhiSpyModules.log_and_message(msg, c="RED", stderr=True, stdout=False, quiet=args_parser.quiet)
+        sys.exit(30)
 
-    sys.stderr.write(f"Processing {ncontigs} contigs \n")
+    PhiSpyModules.log_and_message(f"Processing {ncontigs} contigs", c="GREEN", stderr=True, stdout=False,
+                                  quiet=args_parser.quiet)
+
+    ######################################
+    #       add HMM search signal        #
+    ######################################
+    # if phmm search is required
+    if args_parser.phmms:
+        args_parser.record = PhiSpyModules.search_phmms(**vars(args_parser))
 
     ######################################
     #         make training set          #
     ######################################
     if args_parser.make_training_data:
-        print('Making Train Set...')
+        if not args_parser.quiet:
+            PhiSpyModules.log_and_message('Making Training Set...', c="GREEN", stderr=True, stdout=False,
+                                          quiet=args_parser.quiet)
         my_make_train_flag = PhiSpyModules.make_set_train(**vars(args_parser))
         exit()
 
     ######################################
     #         make testing set           #
     ######################################
-    print('Making Test Set...')
-    my_make_test_flag = PhiSpyModules.make_test_set(**vars(args_parser))
-    # check file im,plement later
-    #if (my_make_test_flag == 0):
-    #    print('The input organism is too small to predict prophages. Please consider large contig (having at least 40 genes) to use PhiSpy.')
-    #    return
+    PhiSpyModules.log_and_message('Making Testing Set...', c="GREEN", stderr=True, stdout=False,
+                                  quiet=args_parser.quiet)
+    args_parser.test_data = PhiSpyModules.measure_features(**vars(args_parser))
+    if len(args_parser.test_data) < 100:
+        m = f"Your genome only contains {len(args_parser.test_data)} ORFs. This is not enough to identify prophages.\n"
+        m += "You might consider reannotating your genome with PROKKA or RAST"
+        PhiSpyModules.log_and_message(m, c='RED', stderr=True, quiet=args_parser.quiet)
+        sys.exit(41)
 
     ######################################
     #         do classification          #
     ######################################
-    print('Start Classification Algorithm...')
-    PhiSpyModules.call_randomforest(**vars(args_parser))
-    PhiSpyModules.make_initial_tbl(**vars(args_parser))
+    PhiSpyModules.log_and_message('Start Classification Algorithm...', c="GREEN", stderr=True, stdout=False,
+                                  quiet=args_parser.quiet)
+    args_parser.rfdata = PhiSpyModules.call_randomforest(**vars(args_parser))
+    args_parser.initial_tbl = PhiSpyModules.make_initial_tbl(**vars(args_parser))
 
     ######################################
     #         i dont know what           #
     ######################################
     ###### added in this version 2.2 #####
     if (args_parser.training_set == 'data/trainSet_genericAll.txt'):
-        print('As training flag is zero, considering unknown functions')
-        PhiSpyModules.consider_unknown(args_parser.output_dir)
+        PhiSpyModules.log_and_message('As the training flag is zero, down-weighting unknown functions', c="RED",
+                                      stderr=True, stdout=False, quiet=args_parser.quiet)
+        args_parser.initial_tbl = PhiSpyModules.downweighting_unknown_functions(args_parser)
 
     ######################################
     #         do evaluation              #
     ######################################
-    print('Evaluating...')
-    PhiSpyModules.fixing_start_end(**vars(args_parser))
-    print('Done!!!')
+    PhiSpyModules.log_and_message('Evaluating...', c="GREEN", stderr=True, stdout=False, quiet=args_parser.quiet)
+    args_parser.pp = PhiSpyModules.fixing_start_end(**vars(args_parser))
 
+    ######################################
+    #         write outputs              #
+    ######################################
+    PhiSpyModules.write_all_outputs(**vars(args_parser))
+
+    # don't forget to close the log!
+    PhiSpyModules.log_and_message(f'Done!!! Output is in {args_parser.output_dir} and the log is in {args_parser.log}',
+                                  c="WHITE", stderr=True, stdout=False, quiet=args_parser.quiet)
 
 
 if __name__== "__main__":

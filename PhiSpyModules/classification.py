@@ -1,6 +1,5 @@
 import re
 import sys
-import string
 import os
 import pkg_resources
 from io import TextIOWrapper
@@ -9,33 +8,37 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from argparse import Namespace
 
-def find_training_genome(trainingFlag, INSTALLATION_DIR):
+from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func
+from .genbank_accessory_functions import feature_id
+from .log_and_message import log_and_message
+
+def find_training_genome(training_flag):
     try:
-        # f = open(os.path.join(INSTALLATION_DIR, 'data/trainingGenome_list.txt'), 'r')
         f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
-    except:
-        print('cannot open resource stream training genomes at data/trainingGenome_list.txt')
+    except IOError as e:
+        log_and_message(f"There was an error opening data/trainingGenome_list.txt: {e}\n", c="RED", stderr=True,
+                        loglevel="CRITICAL")
         return ''
 
     for line in f:
-        temp = re.split('\t',line.decode().strip())
-        if int(temp[0]) == trainingFlag:
+        temp = re.split('\t', line.decode().strip())
+        if int(temp[0]) == training_flag:
             f.close()
             return temp[1].strip()
     return ''
 
+
 def call_randomforest(**kwargs):
-    output_dir = kwargs['output_dir']
-    trainingFile = kwargs['training_set']
-    infile = os.path.join(output_dir, "testSet.txt")
-    outfile = os.path.join(output_dir, "classify.tsv")
-    #train_data = np.genfromtxt(fname=trainingFile, delimiter="\t", skip_header=1, filling_values=1) # why not fill missing values with 0?
-    # convert this to run from pip
-    if not pkg_resources.resource_exists('PhiSpyModules', trainingFile):
-        sys.stderr.write("FATAL: Can not find data file {}\n".format(trainingFile))
-        sys.exit(-1)
-    strm = pkg_resources.resource_stream('PhiSpyModules', trainingFile)
+    training_file = kwargs['training_set']
+    test_data = kwargs['test_data']
+
+    if not pkg_resources.resource_exists('PhiSpyModules', training_file):
+        log_and_message(f"FATAL: Can not find data file {training_file}\n", c="RED", stderr=True, loglevel="CRITICAL")
+        sys.exit(11)
+    strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
+    log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
+<<<<<<< HEAD
     test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
     if 'phmms' not in kwargs:
         train_data = np.delete(train_data, 5, 1)
@@ -48,260 +51,224 @@ def call_randomforest(**kwargs):
     clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'], n_jobs = kwargs['threads'])
     clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
     np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
+=======
+
+    all_metrics = ['orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
+    if kwargs['phmms']:
+        kwargs['metrics'].append('phmms')
+
+    if len(kwargs['metrics']) < len(all_metrics):
+        log_and_message(f"Using the following metric(s): {', '.join(sorted(kwargs['metrics']))}.", c='GREEN', stderr=True, quiet=kwargs['quiet'])
+        skip_metrics = [all_metrics.index(x) for x in set(all_metrics) - set(kwargs['metrics'])]
+        train_data = np.delete(train_data, skip_metrics, 1)
+        test_data = np.delete(test_data, skip_metrics, 1)
+    else:
+        log_and_message(f"Using all metrics: {', '.join(all_metrics)}.", c='GREEN', stderr=True, quiet=kwargs['quiet'])
+
+    """
+    Przemek's comment
+    by default 10 until version 0.22 where default is 100
+    number of estimators also implies the precision of probabilities, generally 1/n_estimators
+    in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
+    "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
+    """
+    log_and_message(f"Running the random forest classifier with {kwargs['randomforest_trees']} trees and {kwargs['threads']} threads", c='GREEN', stderr=True, quiet=kwargs['quiet'])
+    if train_data.shape[1] > 1:
+        clf = RandomForestClassifier(n_estimators=kwargs['randomforest_trees'], n_jobs=kwargs['threads'])
+        clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
+        return clf.predict_proba(test_data)[:,1]
+    else:
+        log_and_message("None of the metrics were requested and so we did not run the random forest. Results may be variable.", c='PINK', stderr=True, quiet=kwargs['quiet'])
+        return np.zeros(len(kwargs['test_data']))
+>>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 
 def my_sort(orf_list):
-     n = len(orf_list)
-     i = 1
-     while( i <= n ):
-          j = i + 1
-          while( j < n ):
-               flag = 0
-               #direction for both
-               if( orf_list[i]['start'] < orf_list[i]['stop'] ):
-                    dir_i = 1
-               else:
-                    dir_i = -1
-               if( orf_list[j]['start'] < orf_list[j]['stop'] ):
-                    dir_j = 1
-               else:
-                    dir_j = -1
+    n = len(orf_list)
+    i = 1
+    while i <= n:
+        j = i + 1
+        while j < n:
+            flag = 0
+            # direction for both
+            if orf_list[i]['start'] < orf_list[i]['stop']:
+                dir_i = 1
+            else:
+                dir_i = -1
+            if orf_list[j]['start'] < orf_list[j]['stop']:
+                dir_j = 1
+            else:
+                dir_j = -1
 
-               #check whether swap need or not
-               if dir_i == dir_j:
-                    if orf_list[i]['start']>orf_list[j]['start']:
-                         flag = 1
-               else:
-                    if dir_i == 1:
-                         if orf_list[i]['start']>orf_list[j]['stop']:
-                              flag = 1
-                    else:
-                         if orf_list[i]['stop']>orf_list[j]['start']:
-                              flag = 1
-               #swap
-               if flag == 1:
-                    temp = orf_list[i]
-                    orf_list[i] = orf_list[j]
-                    orf_list[j] = temp
-               j = j+1
-          i = i+1
-     return orf_list
+            # check whether swap need or not
+            if dir_i == dir_j:
+                if orf_list[i]['start'] > orf_list[j]['start']:
+                    flag = 1
+            else:
+                if dir_i == 1:
+                    if orf_list[i]['start'] > orf_list[j]['stop']:
+                        flag = 1
+                else:
+                    if orf_list[i]['stop'] > orf_list[j]['start']:
+                        flag = 1
+            # swap
+            if flag == 1:
+                temp = orf_list[i]
+                orf_list[i] = orf_list[j]
+                orf_list[j] = temp
+            j = j+1
+        i = i+1
+    return orf_list
+
 
 def find_mean(all_len):
-     sum = 0.0
-     for i in all_len:
-          sum = sum + i
-     return float(sum)/len(all_len)
+    s = 0.0
+    for i in all_len:
+        s = s + i
+    return float(s)/len(all_len)
+
 
 def calc_pp(func):
+    func = func.replace('-', ' ')
+    func = func.replace(',', ' ')
+    func = func.replace('/', ' ')
+    func = func.lower()
     x = 0
-    func = func.replace('-',' ')
-    func = func.replace(',',' ')
-    a = re.split(' ',func)
-    if (
-       'phage'         in a or
-       'lysin'         in a or
-       'endolysin'     in a or
-       'holin'         in a or
-       'capsid'        in a or
-       'tail'          in a or
-       'bacteriophage' in a or
-       'prophage'      in a or
-       'portal'        in a or
-       'terminase'     in a or
-       'tapemeasure'   in a or
-       'baseplate'     in a or 
-       'virion'        in a or
-       'antirepressor' in a or
-       'excisionase'   in a or
-       'mobile element protein' == func or
-       re.search(r"\b%s\b" % "tape measure", func) or
-       re.search(r"\b%s\b" % "Cro-like repressor", func) or
-       re.search(r"\b%s\b" % "CI-like repressor", func) or
-       re.search(r"\b%s\b" % "rIIA lysis", func) or
-       re.search(r"\b%s\b" % "rI lysis", func) or
-       re.search(r"\b%s\b" % "rIIB lysis", func) or
-       re.search(r"\b%s\b" % "base plate", func)
-       ):
-           x = 1
-    elif ('unknown' in func) or ('hypothetical' in func):
-           x = 0.5
-    else:
-           x = 0
+    if is_phage_func(func):
+        x = 1
+    elif is_unknown_func(func):
+        x = 0.5
+    elif is_not_phage_func(func):
+        x = 0
+
+    # a few special cases
     if 'recombinase' in func or 'integrase' in func:
-           x = 1.5
-    if ('phage' in func) and ('shock' in func):
-           x = 0
-    if "dna binding domain" in func:
-           x = 0
+        x = 1.5
+
     return x
 
-def calc_function_3files(organism):
-    my_func = {}
-    x = 0 #no need it for computation.. just a flag in "except"
-    try:
-        f_fun = open(organism+'/proposed_non_ff_functions','r')
-        for line in f_fun:
-            temp = re.split('\t',line.strip())
-            if len(temp)>=2:
-                my_func[temp[0]] = temp[1]
-        f_fun.close()
-    except:
-        x = x + 1
-    try:
-        f_fun = open(organism+'/proposed_functions','r')
-        for line in f_fun:
-            temp = re.split('\t',line.strip())
-            if len(temp)>=2:
-                my_func[temp[0]] = temp[1]
-        f_fun.close()
-    except:
-        x = x + 1
-    try:
-        f_fun = open(organism+'/assigned_functions','r')
-        for line in f_fun:
-            temp = re.split('\t',line.strip())
-            if len(temp)>=2:
-                my_func[temp[0]] = temp[1]
-        f_fun.close()
-    except:
-        x = x + 1
 
-    return my_func
+"""
+Artemis colour codes
 
-def input_bactpp(**kwargs):
-    print(kwargs)
-    exit()
-   
-    #bact_file = organism+'/Features/peg/tbl'
-    #try:
-    #    fh = open(bact_file,'r')
-    #except:
-    #    print('cant open file- assigned functions/tbl file:',organism)
-    #    return {}
-    #my_func = calc_function_3files(organism)
-    all_orf_list = {}
-    for i in fh:
-        temp = re.split('\t',i.strip())
-        temp1 = re.split('_',temp[1])
-        if ',' in temp[1]:
-            ttemp = re.split(',',temp[1])
-            temp[1] = ttemp[len(ttemp)-1]
-        temp1 = re.split('_',temp[1])
-        contig = temp[1][:temp[1][:temp[1].rfind('_')].rfind('_')]
-        start = int(temp1[len(temp1)-2])
-        stop = int(temp1[len(temp1)-1])
-        #save info for sorting orf
-        if contig in all_orf_list:
-            x = len(all_orf_list[contig]) + 1
-        else:
-            x = 1
-            all_orf_list[contig]={}
-        all_orf_list[contig][x]={}
-        all_orf_list[contig][x]['fig'] = temp[0]
-        all_orf_list[contig][x]['contig'] = str(contig)
-        all_orf_list[contig][x]['start'] = start
-        all_orf_list[contig][x]['stop'] = stop
-        if temp[0] in my_func:
-            all_orf_list[contig][x]['function'] = my_func[temp[0]]
-            all_orf_list[contig][x]['pp'] = calc_pp(my_func[temp[0]].lower(),INSTALLATION_DIR)
-        else:
-            all_orf_list[contig][x]['function'] = "-"
-            all_orf_list[contig][x]['pp'] = 0.5
-    fh.close()
-    all = {}
-    index = 1
-    for mycontig in all_orf_list:
-        orf_list = my_sort(all_orf_list[mycontig])
-        i = 1
-        while i <= len(orf_list):
-            all[index] = {}
-            all[index]['fig'] = orf_list[i]['fig']
-            all[index]['function'] = orf_list[i]['function']
-            all[index]['contig'] = orf_list[i]['contig']
-            all[index]['start'] = orf_list[i]['start']
-            all[index]['stop'] = orf_list[i]['stop']
-            all[index]['rank'] = 0.0
-            all[index]['status'] = 0
-            all[index]['pp'] = orf_list[i]['pp']
-            i = i+1
-            index = index+1
-    return all
+These come from the Setting Colours section of
+https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
 
-def make_initial_tbl(**kwargs): #organismPath, output_dir, window, INSTALLATION_DIR):
+0 white (RGB values: 255 255 255)
+1 dark grey (RGB values: 100 100 100)
+2 red (RGB values: 255 0 0)
+3 green (RGB values: 0 255 0)
+4 blue (RGB values: 0 0 255)
+5 cyan (RGB values: 0 255 255)
+6 magenta (RGB values: 255 0 255)
+7 yellow (RGB values: 255 255 0)
+8 pale green (RGB values: 152 251 152)
+9 light sky blue (RGB values: 135 206 250)
+10 orange (RGB values: 255 165 0)
+11 brown (RGB values: 200 150 100)
+12 pale pink (RGB values: 255 200 200)
+13 light grey (RGB values: 170 170 170)
+14 black (RGB values: 0 0 0)
+15 mid red: (RGB values: 255 63 63)
+16 light red (RGB values: 255 127 127)
+17 pink (RGB values: 255 191 191)
+
+"""
+
+
+def make_initial_tbl(**kwargs):
     self = Namespace(**kwargs)
+    data = []
     x = []
     for entry in self.record:
         for feature in entry.get_features('CDS'):
-            all = {}
-            all['fig'] = feature.id
-            all['function'] = feature.function
-            all['contig'] = entry.id
-            all['start'] = feature.start
-            all['stop'] = feature.stop
-            all['rank'] = 0.0
-            all['status'] = 0
-            all['pp'] = calc_pp(feature.function)
-            x.append(all)
-    try:
-        infile = open(os.path.join(self.output_dir, 'classify.tsv'), 'r')
-        outfile = open(os.path.join(self.output_dir, 'initial_tbl.tsv'), 'w')
-    except:
-        sys.exit('ERROR: Cannot open classify.tsv in make_initial_tbl')
-    #x = input_bactpp(**kwargs)
-    j = 0
+            pp_score = calc_pp(feature.function)
+            if self.color:
+                if pp_score > 1:
+                    feature.qualifiers['colour'] = 2 # red
+                elif 'mobile element protein' in feature.function.lower():
+                    feature.qualifiers['colour'] = 6 # pink
+                elif pp_score == 1:
+                    feature.qualifiers['colour'] = 4 # blue
+                elif is_unknown_func(feature.function):
+                    feature.qualifiers['colour'] = 13  # light grey
+                elif pp_score == 0.5:
+                    feature.qualifiers['colour'] = 9 # light blue
+            fid = feature_id(entry, feature)
+            ft = {
+                'fig': fid,
+                'function': feature.function,
+                'contig': entry.id,
+                'start': feature.start,
+                'stop': feature.stop,
+                'rank': 0.0,
+                'status': 0,
+                'pp': pp_score,
+            }
+
+
+            x.append(ft)
+
     ranks = [[] for n in range(len(x))]
-    for line in infile:
-        val = float(line.strip())
+    for j, val in enumerate(self.rfdata):
         for k in range(j-int(self.window_size/2), j+int(self.window_size/2)):
             if k < 0 or k >= len(x) or j >= len(x) or x[k]['contig'] != x[j]['contig']:
                 continue
             ranks[k].append(val)
-        j += 1
-    infile.close()
-    #calculate threshold
+
+
+    # calculate threshold
     y = []
     j = 0
     while j < len(x):
-        x[j]['rank'] = sum(ranks[j]) / len(ranks[j]) 
-        x[j]['extra'] =  ranks[j] 
+        x[j]['rank'] = sum(ranks[j]) / len(ranks[j])
+        x[j]['extra'] = ranks[j]
         y.append(x[j]['rank'])
-        #y.append([x[j]['rank']])
         j = j+1
-    #threshold = max(y)/2
+
     y2 = np.array(y).reshape(-1, 1)
-    km = KMeans(n_clusters = 2)
+    km = KMeans(n_clusters=2)
     km.fit(y2)
     centers = km.cluster_centers_
     threshold = max(centers[0][0], centers[1][0])
+    log_and_message(f"Rank threshold calculated as {threshold}")
     """
     Note added by Rob:
-    At this point we have the classifications for each ORF and we want to take a sliding window and decide where the phage should
-    start. We have two calculations for a threshold for the rank: either the kmeans centers and finding things above the larger center
-    or just a plain threshold.
-    
+    At this point we have the classifications for each ORF and we want to take a sliding window and decide where
+    the phage should start. We have two calculations for a threshold for the rank: either the kmeans centers and
+    finding things above the larger center or just a plain threshold.
+
     """
-    j = 0
-    outfile.write('fig_no\tfunction\tcontig\tstart\tstop\tposition\trank\tmy_status\tpp\tFinal_status\tstart of attL\tend of attL\tstart of attR\tend of attR\tsequence of attL\tsequence of attR\tReason for att site\n')
-    while j < len(x):
-        if x[j]['rank'] > threshold:
-            x[j]['status'] = 1
-        outfile.write(str(x[j]['fig']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['function']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['contig']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['start']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['stop']))
-        outfile.write('\t')
-        outfile.write(str(j))
-        outfile.write('\t')
-        outfile.write(str(x[j]['rank']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['status']))
-        outfile.write('\t')
-        outfile.write(str(x[j]['pp']))
-        outfile.write('\n')
-        j = j+1
-    outfile.close()
+
+    """
+    Eventually each row has:
+        0. gene id           6. rank                12. start of attR
+        1. function          7. my status           13. end of attR
+        2. contig            8. pp                  14. sequence of attL
+        3. start             9. final status        15. sequence of attR
+        4. stop             10. start of attL       16. Reason for att site choice
+        5. position         11. end of attL
+
+    However, at this point we only have  0 .. 8
+    """
+
+    for i in range(len(x)):
+        status = 1 if x[i]['rank'] > threshold else 0
+        # for regions that are absolutely not prophages (esp. ribosomal proteins)
+        # set the rank to 0. We should, perhaps, mark these as potentially mobile?
+        if is_not_phage_func(x[i]['function']):
+            x[i]['rank'] = 0
+            status = 0
+            x[i]['pp'] = 0
+        thisrow = [
+            x[i]['fig'],
+            x[i]['function'],
+            x[i]['contig'],
+            x[i]['start'],
+            x[i]['stop'],
+            i,
+            x[i]['rank'],
+            status,
+            x[i]['pp']
+        ]
+        data.append(thisrow)
+    return data

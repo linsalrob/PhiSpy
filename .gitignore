@@ -94,7 +94,9 @@ ENV/
 # Repeat Finder that we make
 source/repeatFinder
 bin/repeatFinder
+src/repeatFinder
 
 # Test organism data
 Test_Organism
+
 
