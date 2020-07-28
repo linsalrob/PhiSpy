@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 __author__ = 'Przemek Decewicz'
 
+import sys
+import pkg_resources
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
+from PhiSpyModules import log_and_message, is_gzip_file, SeqioFilter
 from glob import glob
 from os import makedirs, path
 from numpy import arange
 from subprocess import call
-from sys import argv
 
 
 def read_genbank(infile):
@@ -38,8 +40,8 @@ def read_genbank(infile):
                 except KeyError:
                     bact_orfs_list.append(dna)
 
-    print(f'  Bact CDSs: {len(bact_orfs_list)}')
-    print(f'  Phage CDSs: {len(phage_orfs_list)}')
+    log_and_message(f'  Bact CDSs: {len(bact_orfs_list)}', stderr=True)
+    log_and_message(f'  Phage CDSs: {len(phage_orfs_list)}', stderr=True)
 
     return bact_orfs_list, phage_orfs_list
 
@@ -64,7 +66,7 @@ def read_groups(infile, indir):
             except KeyError:
                 groups[line[1]] = set([infile])
 
-    print(f'  Read {len(infiles)} genomes assigned to {len(groups)} groups.')
+    log_and_message(f'  Read {len(infiles)} genomes assigned to {len(groups)} groups.', stderr=True)
 
     return groups, infiles
 
@@ -95,24 +97,26 @@ def read_kmers_list(infile):
     return kmers
 
 
-def read_training_genomes_list(infile):
+def read_training_genomes_list():
     """
-    Reads trainingGenome_list.txt in PhiSpy's data directory to check currently set groups and already trained genomes.
+    Read trainingGenome_list.txt in PhiSpy's data directory and check currently set
+    groups and already trained genomes.
+    :return: training groups and genomes
     """
 
-    print('  Reading trainingGenome_list.txt file.')
-    training_groups = {}
-    training_genomes = set()
-    with open(infile) as inf:
-        for line in inf:
-            n, group, genomes, genomes_number = line.strip().split('\t')
-            genomes = set(genomes.split(';')) if ';' in genomes else set([genomes])
-            training_groups[group] = genomes
-            training_genomes.update(genomes)
+    log_and_message(f"Reading trainingGenome_list.txt file.", stderr=True)
+    training_data = {'groups': {},
+                     'genomes': set()}
+    
+    for line in pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt'):
+        n, group, genomes, genomes_number = line.decode().strip().split('\t')
+        genomes = set(genomes.split(';')) if ';' in genomes else set([genomes])
+        training_data['groups'][group] = genomes
+        training_data['genomes'].update(genomes)
 
-    print(f'  Read {len(training_genomes)} genomes assigned to {len(training_groups)} groups.')
+    log_and_message(f"Read {len(training_data['genomes'])} genomes assigned to {len(training_data['groups'])} groups.", stderr=True)
 
-    return training_groups, training_genomes
+    return training_data
 
 
 def kmerize_orf(orf, k, t):
@@ -146,12 +150,12 @@ def prepare_taxa_groups(infiles, training_genomes):
     Reads all input files / genomes and creates a groups file based on their taxonomy.
     """
 
-    print(f'  Reading taxonomy information from {len(infiles)} input files.')
+    log_and_message(f'  Reading taxonomy information from {len(infiles)} input files.', stderr=True)
     taxa_groups = {}
     for i, infile in enumerate(infiles, 1):
         file_name = path.basename(infile)
         if file_name not in training_genomes:
-            print(f'   - Processing {i}/{len(infiles)}: {file_name}')
+            log_and_message(f'   - Processing {i}/{len(infiles)}: {file_name}')
             # pp_cnt = 0
             tax_checked = False
             records = SeqIO.parse(infile, 'genbank')
@@ -160,8 +164,8 @@ def prepare_taxa_groups(infiles, training_genomes):
                 # check the taxonomy in the first record
                 if not tax_checked:
                     if len(record.annotations['taxonomy']) == 0:
-                        print('     WARNING! information about taxonomy is missing !!!')
-                        print('              Assigning to Bacteria.')
+                        log_and_message('     WARNING! information about taxonomy is missing !!!', stderr=True)
+                        log_and_message('              Assigning to Bacteria.', stderr=True)
                         try:
                             taxa_groups['Bacteria'].add(infile)
                         except KeyError:
@@ -175,9 +179,9 @@ def prepare_taxa_groups(infiles, training_genomes):
                 else: 
                     break
         else:
-            print(f'   - Skipping {i}/{len(infiles)}: {file_name} (already analyzed)')
+            log_and_message(f'   - Skipping {i}/{len(infiles)}: {file_name} (already analyzed)', stderr=True)
 
-    print(f'  Processed {len(infiles)} files.')
+    log_and_message(f'  Processed {len(infiles)} files.', stderr=True)
 
     return taxa_groups
 
@@ -191,15 +195,15 @@ def update_training_genome_list(training_groups, new_training_groups):
     upt_groupt_cnt = 0
     for group, infiles in new_training_groups.items():
         try:
-            print(group, infiles)
+            log_and_message(group, infiles)
             training_groups[group].update(set(map(path.basename,infiles)))
             upt_groupt_cnt += 1
         except KeyError:
             training_groups[group] = set(map(path.basename, infiles))
             new_groups_cnt += 1
 
-    print(f'  Created {new_groups_cnt} new training groups.')
-    print(f'  Updated {upt_groupt_cnt} training groups.')
+    log_and_message(f'  Created {new_groups_cnt} new training groups.', stderr=True)
+    log_and_message(f'  Updated {upt_groupt_cnt} training groups.', stderr=True)
 
     return training_groups
 
@@ -209,7 +213,7 @@ def write_kmers_file(infile, trainsets_outdir, kmer_size, kmers_type):
     Calculates host/phage kmers from input file and writes phage-specific kmers to file.
     """
 
-    print('  Preparing kmers file.')
+    log_and_message('  Preparing kmers file.')
 
     MIN_RATIO = 1.0
     # host_kmers = set()
@@ -246,10 +250,10 @@ def write_kmers_file(infile, trainsets_outdir, kmer_size, kmers_type):
             kmers_total_count += 1
         # phage_kmers.update(kmerize_orf(i, kmer_size, kmers_type))
 
-    print(f'  Analyzed {kmers_total_count} kmers.')
-    print(f'  Identified {len(kmers_dict)} unique kmers.')
-    print(f'    - Bact unique {kmers_host_unique_count} ({kmers_host_unique_count / len(kmers_dict) * 100:.2f}%).')
-    print(f'    - Phage unique {kmers_phage_unique_count} ({kmers_phage_unique_count / len(kmers_dict) * 100:.2f}%).')
+    log_and_message(f'  Analyzed {kmers_total_count} kmers.', stderr=True)
+    log_and_message(f'  Identified {len(kmers_dict)} unique kmers.', stderr=True)
+    log_and_message(f'    - Bact unique {kmers_host_unique_count} ({kmers_host_unique_count / len(kmers_dict) * 100:.2f}%).', stderr=True)
+    log_and_message(f'    - Phage unique {kmers_phage_unique_count} ({kmers_phage_unique_count / len(kmers_dict) * 100:.2f}%).', stderr=True)
 
     ##################
     # the below part could be simplified if ratios will not be considered
@@ -276,14 +280,14 @@ def write_kmers_file(infile, trainsets_outdir, kmer_size, kmers_type):
             outf.write(f'{x}\t{kmers_ratios_stats[x]}\t{perc:.3f}%\t{tot_perc:.3f}%\n')
 
     # write unique phage kmers
-    print(f'  Writing kmers into {kmers_file}.')
+    log_and_message(f'  Writing kmers into {kmers_file}.', stderr=True)
     cnt = 0
     with open(kmers_file, 'w') as outf:
         for ratio, kmer in kmers_ratios.keys():
             if ratio >= MIN_RATIO:
                 cnt += 1
                 outf.write(f'{kmer}\n')
-    print(f'  Wrote {cnt} kmers with ratios >= {MIN_RATIO}.')
+    log_and_message(f'  Wrote {cnt} kmers with ratios >= {MIN_RATIO}.', stderr=True)
 
     return kmers_file
 
@@ -304,27 +308,27 @@ def write_training_genome_list(training_groups, training_genome_list_file):
 
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py', 
-                          description = 'Automates making new or extending current PhiSpy\'s training sets.',
-                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d tests -o data -g tests/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4',
+                          description = 'Automates making new or extending current PhiSpy\'s training sets. By default these will be created in PhiSpyModules/data directory so keep that in mind preparing groups file. ',
+                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d test_genbank_files -o PhiSpyModules/data -g test_genbank_files/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4',
                           formatter_class = RawDescriptionHelpFormatter)
 
-    args.add_argument('-i', '--infile',
-                      type = str,
-                      nargs = '*',
-                      help = 'Path to input GenBank file(s). Multiple paths can be provided.')
+    # args.add_argument('-i', '--infile',
+    #                   type = str,
+    #                   nargs = '*',
+    #                   help = 'Path to input GenBank file(s). Multiple paths can be provided.')
 
     args.add_argument('-d', '--indir',
                       type = str,
-                      help = 'Path to input directory with multiple GenBank files.')
+                      help = 'Path to input directory with multiple GenBank files provided in groups file.')
 
     args.add_argument('-g', '--groups',
                       type = str,
                       help = 'Path to file with path to input file and its group name in two tab-delimited columns. Otherwise each file will have its own training set.')
 
-    args.add_argument('-o', '--outdir',
-                      type = str,
-                      help = 'Path to output directory. For each kmer creation approach subdirectory will be created.',
-                      required = True)
+    # args.add_argument('-o', '--outdir',
+    #                   type = str,
+    #                   help = 'Path to output directory. For each kmer creation approach subdirectory will be created.',
+    #                   required = True)
 
     args.add_argument('-k', '--kmer_size',
                       type = int,
@@ -357,8 +361,8 @@ def main():
                       action = 'store_true',
                       help = 'If set, retrains original training sets, otherwise it extends what it finds in output directory.')
 
-    if len(argv[1:]) == 0:
-        args.print_help()
+    if len(sys.argv[1:]) == 0:
+        args.log_and_message_help()
         args.exit()
 
     try:
@@ -366,38 +370,39 @@ def main():
     except:
         args.exit()
 
-    if not args.infile and not args.indir: 
-        print('You have to provide input data by either --infile or --indir.')
-        exit(1)
+    if not args.indir: 
+        log_and_message(f"You have to provide input directory --indir.", c="RED",
+                        stderr=True, stdout=False)
+        sys.exit(2)
 
     # Create output directory
-    if not path.isdir(args.outdir): makedirs(args.outdir)
+    #if not path.isdir(args.outdir): makedirs(args.outdir)
 
 
     # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
-    print('Checking currently available training sets.')
-    training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
-    if path.isfile(training_genome_list_file):
-        training_groups, training_genomes = read_training_genomes_list(training_genome_list_file)
+    log_and_message("Checking currently available training sets.", c="GREEN", stderr=True, stdout=False)
+    #training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
+    if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
+        training_data = read_training_genomes_list()
     else:
-        print('WARNING! trainingGenome_list.txt file is missing.')
-        training_groups, training_genomes = {}, set()
+        log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
+        training_data = {'groups': {}, 'genomes': set()}
 
 
     # groups of resulting training sets
     if args.groups:
-        print('Checking groups file.')
+        log_and_message(f"Checking provided groups file: {args.groups}.", stderr=True)
         new_training_groups, infiles = read_groups(args.groups, args.indir)
     else:
-        print('Groups file not provided - grouping input files based on taxonomy.')
-        if args.indir:
-            infiles = glob(path.join(args.indir, r'*.gb'))
-            infiles += glob(path.join(args.indir, r'*.gb[kf]'))
-            infiles += glob(path.join(args.indir, r'*.gbff'))
-            infiles = set((infiles))
-        else:
-            infiles = set(args.infile)
-        new_training_groups = prepare_taxa_groups(infiles, training_genomes)
+        log_and_message(f"Groups file not provided - grouping input files based on taxonomy.", stderr=True)
+        infiles = glob(path.join(args.indir, r'*.gb'))
+        infiles += glob(path.join(args.indir, r'*.gb[kf]'))
+        infiles += glob(path.join(args.indir, r'*.gbff'))
+        infiles += glob(path.join(args.indir, r'*.gb\.gz'))
+        infiles += glob(path.join(args.indir, r'*.gb[kf]\.gz'))
+        infiles += glob(path.join(args.indir, r'*.gbff\.gz'))
+        infiles = set((infiles))
+        new_training_groups = prepare_taxa_groups(infiles, training_data)
 
 
     # check which genomes are new and make training sets for them unless retrained
@@ -409,17 +414,17 @@ def main():
             else:
                 new_infiles.add(infile)
         infiles = new_infiles
-        print(f'Making trainSets for {len(infiles)} new input files.')
+        log_and_message(f'Making trainSets for {len(infiles)} new input files.', stderr=True)
     else:
-        print(f'Making trainSets for all {len(infiles)} input files.')
+        log_and_message(f'Making trainSets for all {len(infiles)} input files.', stderr=True)
 
 
     # make sure all output directories are present
-    trainsets_outdir = path.join(args.outdir, 'trainSets')
+    trainsets_outdir = path.join('PhiSpyModules', 'data')
     if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
-    print()
+
     for infile in infiles:
-        print(f'Making trainSet for {path.basename(infile)}.')
+        log_and_message(f'Making trainSet for {path.basename(infile)}.', stderr=True)
 
         kmers_file = write_kmers_file(infile, trainsets_outdir, args.kmer_size, args.kmers_type)
 
@@ -427,22 +432,22 @@ def main():
         if args.phmms: cmd.extend(['--phmms', args.phmms, '-t', args.threads])
         if args.color: cmd.append('--color')
         if args.skip_search: cmd.append('--skip_search')
-        print(f'Calling PhiSpy to make a trainSet.')
-        print(f'Command: {" ".join(cmd)}')
-        print(f'{"PhiSpy start":=^30s}')
-        call(cmd)
-        print(f'{"PhiSpy stop":=^30s}\n')
+        log_and_message(f'Calling PhiSpy to make a trainSet.', stderr=True)
+        log_and_message(f'Command: {" ".join(cmd)}', stderr=True)
+        log_and_message(f'{"PhiSpy start":=^30s}', stderr=True)
+        log_and_message(cmd, stderr=True)
+        log_and_message(f'{"PhiSpy stop":=^30s}\n', stderr=True)
 
     # update trainingGenome_list file = this is a new groups file for genomes available in PhiSpy's data directory
-    print('Updating trainingGenome_list.')
+    log_and_message('Updating trainingGenome_list.', stderr=True)
     training_groups = update_training_genome_list(training_groups, new_training_groups)
 
 
     # write updated training groups
-    print('Writing updated trainingGenome_list.')
+    log_and_message('Writing updated trainingGenome_list.', stderr=True)
     write_training_genome_list(training_groups, training_genome_list_file)
 
-    print('Done!')
+    log_and_message('Done!', stderr=True)
 
 if __name__ == '__main__':
     main()
