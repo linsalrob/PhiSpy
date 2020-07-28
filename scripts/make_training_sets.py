@@ -70,25 +70,30 @@ def read_groups(infile, indir, training_data):
     :param indir: path to input directory with files indicated in group file
     :param training_data: dictionary with groups and infiles
     :return training_data: updated dictionary with genomes and infiles
+    :not_trained: files for training
     """
 
-    trained_genomes = len(training_data['genomes'])
     trained_groups = len(training_data['groups'])
+    not_trained = set()
 
     with open(infile) as inf:
         for line in inf:
             line = line.strip().split('\t')
             infile = path.realpath(path.join(indir, line[0]))
+            file_name = path.basename(infile)
+            if file_name not in training_data['genomes']:
+                not_trained.add(infile)
+
             training_data['genomes'].add(infile)
             try:
                 training_data['groups'][line[1]].add(infile)
             except KeyError:
                 training_data['groups'][line[1]] = set([infile])
 
-    log_and_message(f"Read {len(training_data['infiles']) - trained_genomes} new genomes assigned to {len(training_data['groups']) - trained_groups} new groups.", 
+    log_and_message(f"Read {len(not_trained)} new genomes assigned to {len(training_data['groups']) - trained_groups} new groups.", 
         stderr=True)
 
-    return training_data
+    return training_data, not_trained
 
 
 def read_kmers(infile):
@@ -124,15 +129,17 @@ def read_training_genomes_list():
     :return: training groups and genomes
     """
 
-    log_and_message(f"Reading trainingGenome_list.txt file.", stderr=True)
-    training_data = {'groups': {},
-                     'genomes': set()}
-    
-    for line in pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt'):
-        n, group, genomes, genomes_number = line.decode().strip().split('\t')
-        genomes = set(genomes.split(';')) if ';' in genomes else set([genomes])
-        training_data['groups'][group] = genomes
-        training_data['genomes'].update(genomes)
+    training_data = {
+        'groups': {},
+        'genomes': set(),
+        'taxonomy': {}
+    }
+    with open(path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data','trainingGenome_list.txt')) as infile:
+        for line in infile: #pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt'):
+            n, group, genomes, genomes_number = line.strip().split('\t') #decode().strip().split('\t')
+            genomes = set(genomes.split(';')) if ';' in genomes else set([genomes])
+            training_data['groups'][group] = genomes
+            training_data['genomes'].update(genomes)
 
     log_and_message(f"Read {len(training_data['genomes'])} genomes assigned to {len(training_data['groups'])} groups.", stderr=True)
 
@@ -165,7 +172,7 @@ def kmerize_orf(orf, k, t):
     return kmers
 
 
-def prepare_taxa_groups(infiles, training_data, retrain):
+def prepare_taxa_groups(infiles, training_data):
     """
     Reads all input files / genomes and creates a groups file based on all genomes taxonomy.
     :param infiles: all input files
@@ -173,27 +180,19 @@ def prepare_taxa_groups(infiles, training_data, retrain):
     :return training_data
     """
 
-    log_and_message(f'Reading taxonomy information from {len(infiles)} input files.', c="PINK", stderr=True)
+    current_groups = len(training_data['groups'])
+
+    log_and_message(f'Reading taxonomy information from {len(infiles)} input files.', stderr=True)
     for i, infile in enumerate(infiles, 1):
         file_name = path.basename(infile)
         if file_name not in training_data['genomes']:
-            log_and_message(f"Processing {i}/{len(infiles)}: {file_name} (NEW)", c="YELLOW", stderr=True)
-
-            infile_data = read_genbank(infile)
-            for tax in infile_data['taxonomy']:
+            for tax in training_data['taxonomy'][file_name]:
                 try:
                     training_data['groups'][tax].add(infile)
                 except KeyError:
                     training_data['groups'][tax] = set([infile])
-        else:
-            log_and_message(f"Skipping {i}/{len(infiles)}: {file_name} (already analyzed)", c="YELLOW", stderr=True)
 
-        if file_name not in training_data['genomes'] or retrain:
-            log_and_message(f"Preparing kmers files.")
-            write_kmers_file(file_name, infile_data['bact_cds'], infile_data['phage_cds'], 12, 'all')
-
-
-    log_and_message(f"Processed {len(infiles)} files.", c="PINK", stderr=True)
+    log_and_message(f"Processed {len(infiles)} files. Created {len(training_data['groups']) - current_groups} new groups.",stderr=True)
 
     return training_data
 
@@ -411,22 +410,41 @@ def main():
     else:
         log_and_message(f'Running in a retrain mode: recreating all trainSets.', c="GREEN", stderr=True)
 
+
     # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
     log_and_message("Checking currently available training sets.", c="GREEN", stderr=True, stdout=False)
     #training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
-    if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
+    # if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
+    if path.isfile(path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data','trainingGenome_list.txt')):
         training_data = read_training_genomes_list()
     else:
         log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
-        training_data = {'groups': {}, 'genomes': set()}
+        training_data = {'groups': {}, 'genomes': set(), 'taxonomy': {}}
 
 
+    not_trained = set()
     # groups of resulting training sets
     if args.groups:
         log_and_message(f"Reading provided groups file.", c="GREEN", stderr=True)
-        training_data = read_groups(args.groups, args.indir, args.retrain)
+        training_data, not_trained = read_groups(args.groups, args.indir, args.retrain, args.kmer_size, args.kmers_type)
 
 
+    # make kmers files if needed
+    log_and_message(f"Checking which genomes need to be retrained.", c="GREEN", stderr=True)
+    for i, infile in enumerate(training_data['genomes'], 1):
+        file_name = path.basename(infile)
+        if file_name in not_trained or args.retrain:
+            log_and_message(f"[{i}/{len(training_data['genomes'])}] Preparing kmers files for {file_name}.", stderr=True)
+            if not path.isfile(infile):
+                log_and_message(f"{infile} does not exist. Trying to find it in test_genbank_files directory.", c="RED", stderr=True)
+                infile = path.join(INSTALLATION_DIR, 'test_genbank_files', infile)
+            infile_data = read_genbank(infile)
+            training_data['taxonomy'][file_name] = infile_data['taxonomy']
+            write_kmers_file(file_name, infile_data['bact_cds'], infile_data['phage_cds'], args.kmer_size, args.kmers_type)
+        else:
+            log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping {file_name}. Already analyzed.", stderr=True)
+
+    # use taxonomy information to create/update groups
     if args.use_taxonomy:
         log_and_message(f"Using taxonomy from input files to create new or update current groups.", c="GREEN", stderr=True)
         infiles = glob(path.join(args.indir, r'*.gb'))
@@ -436,7 +454,7 @@ def main():
         infiles += glob(path.join(args.indir, r'*.gb[kf].gz'))
         infiles += glob(path.join(args.indir, r'*.gbff.gz'))
         infiles = set(infiles)
-        training_data = prepare_taxa_groups(infiles, training_data, args.retrain)
+        training_data = prepare_taxa_groups(infiles, training_data)
     exit()
 
 
