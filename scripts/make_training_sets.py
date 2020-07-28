@@ -188,7 +188,7 @@ def prepare_taxa_groups(infiles, training_data, retrain):
         else:
             log_and_message(f"Skipping {i}/{len(infiles)}: {file_name} (already analyzed)", c="YELLOW", stderr=True)
 
-        if file_name not in trainig_data['genomes'] or retrain:
+        if file_name not in training_data['genomes'] or retrain:
             log_and_message(f"Preparing kmers files.")
             write_kmers_file(file_name, infile_data['bact_cds'], infile_data['phage_cds'], 12, 'all')
 
@@ -225,8 +225,6 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     Calculates host/phage kmers from input file and writes phage-specific kmers to file.
     """
 
-    log_and_message('Preparing kmers file.', stderr=True)
-
     MIN_RATIO = 1.0
     test_sets_dir = path.join(INSTALLATION_DIR, 'PhiSpyModules/data/testSets')
     if not path.isdir(test_sets_dir): makedirs(test_sets_dir)
@@ -239,7 +237,8 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     kmers_ratios = {}
     kmers_ratios_stats = {round(x, 2): 0 for x in arange(0, 1.01, 0.01)}
     kmers_ratios_file = path.join(test_sets_dir, f'{file_name}.kmers_ratios.txt')
-    kmers_file = path.join(test_sets_dir, f'{file_name}.kmers')
+    kmers_phage_file = path.join(test_sets_dir, f'{file_name}.kmers_phage')
+    kmers_host_file = path.join(test_sets_dir, f'{file_name}.kmers_host')
 
     # kmrize CDSs
     for orf in bact_orfs_list:
@@ -261,10 +260,10 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
             kmers_total_count += 1
         # phage_kmers.update(kmerize_orf(i, kmer_size, kmers_type))
 
-    log_and_message(f'  Analyzed {kmers_total_count} kmers.', stderr=True)
-    log_and_message(f'  Identified {len(kmers_dict)} unique kmers.', stderr=True)
-    log_and_message(f'    - Bact unique {kmers_host_unique_count} ({kmers_host_unique_count / len(kmers_dict) * 100:.2f}%).', stderr=True)
-    log_and_message(f'    - Phage unique {kmers_phage_unique_count} ({kmers_phage_unique_count / len(kmers_dict) * 100:.2f}%).', stderr=True)
+    log_and_message(f"Analyzed {kmers_total_count} kmers.", stderr=True)
+    log_and_message(f"Identified {len(kmers_dict)} unique kmers.", stderr=True)
+    log_and_message(f"- Bact unique {kmers_host_unique_count} ({kmers_host_unique_count / len(kmers_dict) * 100:.2f}%).", stderr=True)
+    log_and_message(f"- Phage unique {kmers_phage_unique_count} ({kmers_phage_unique_count / len(kmers_dict) * 100:.2f}%).", stderr=True)
 
     ##################
     # the below part could be simplified if ratios will not be considered
@@ -279,8 +278,9 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     del kmers_dict
 
     # write ratios_stats
+    log_and_message(f"Writing kmers ratios stats.", stderr=True)
     with open(kmers_ratios_file, 'w') as outf:
-        outf.write('Ratio\tNumber of kmers\tPerc of such kmers\tCumulative perc\n')
+        outf.write("Ratio\tNumber of kmers\tPerc of such kmers\tCumulative perc\n")
         tot = 0
         tot_perc = 0
         for x in reversed(arange(0, 1.01, 0.01)):
@@ -288,19 +288,22 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
             tot += kmers_ratios_stats[x]
             perc = kmers_ratios_stats[x]/len(kmers_ratios) * 100
             tot_perc = tot / len(kmers_ratios) * 100
-            outf.write(f'{x}\t{kmers_ratios_stats[x]}\t{perc:.3f}%\t{tot_perc:.3f}%\n')
+            outf.write(f"{x}\t{kmers_ratios_stats[x]}\t{perc:.3f}%\t{tot_perc:.3f}%\n")
 
     # write unique phage kmers
-    log_and_message(f'  Writing kmers into {kmers_file}.', stderr=True)
+    log_and_message(f"Writing kmers into phage and host kmers files.", stderr=True)
     cnt = 0
-    with open(kmers_file, 'w') as outf:
-        for ratio, kmer in kmers_ratios.keys():
-            if ratio >= MIN_RATIO:
-                cnt += 1
-                outf.write(f'{kmer}\n')
-    log_and_message(f'  Wrote {cnt} kmers with ratios >= {MIN_RATIO}.', stderr=True)
+    with open(kmers_phage_file, 'w') as out_phage:
+        with open(kmers_host_file, 'w') as out_host:
+            for ratio, kmer in kmers_ratios.keys():
+                if ratio >= MIN_RATIO:
+                    cnt += 1
+                    out_phage.write(f"{kmer}\n")
+                else:
+                    out_host.write(f"{kmer}\n")
+    log_and_message(f"- Wrote {cnt} kmers with ratios >= {MIN_RATIO}.", stderr=True)
 
-    return kmers_file
+    return
 
 
 def write_training_genome_list(training_groups, training_genome_list_file):
