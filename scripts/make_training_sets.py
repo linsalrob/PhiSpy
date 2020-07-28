@@ -6,46 +6,58 @@ import sys
 import pkg_resources
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
-from PhiSpyModules import log_and_message, is_gzip_file, SeqioFilter
+from PhiSpyModules import log_and_message, is_gzip_file
 from compare_predictions_to_phages import genbank_seqio
 from glob import glob
 from os import makedirs, path
 from numpy import arange
 from subprocess import call
 
+INSTALLATION_DIR = path.dirname(path.dirname(path.realpath(__file__)))
 
-def read_genbank(records):
+def read_genbank(gbkfile):
 
     """
     Parses GenBank file's CDSs and groups them into host or phage groups based on the '/is_phage' qualifier.
     Return lists of sequences of both of these groups.
     """
 
-    bact_orfs_list = []
-    phage_orfs_list = []
+    log_and_message(f"Reading {gbkfile}.", stderr=True)
 
-    for record in SeqIO.parse(infile, 'genbank'):
+    infile_data = {
+        'taxonomy': [],
+        'bact_cds': [],
+        'phage_cds': []
+    }
+
+    tax_present = False
+    for record in genbank_seqio(gbkfile):
+        # check records until taxonomy information is provided
+        if not tax_present:
+            if len(record.annotations['taxonomy']) == 0:
+                infile_data['taxonomy'] = ['Bacteria']
+            else:
+                infile_data['taxonomy'] = record.annotations['taxonomy']
+                tax_present = True
+
+        # get bacteria and phage CDSs nucleotide sequences to make kmers
         for f in record.features:
             if f.type == 'CDS':
-                start = f.location.start
-                end = f.location.end
-                if f.location.strand == 1:
-                    dna = str(record.seq[start : end])
-                else:
-                    dna = str(record.seq[start : end].reverse_complement())
+                dna = str(f.extract(record).seq)
                 try:
                     status = f.qualifiers['is_phage'][0]
                     if status == '1':
-                        phage_orfs_list.append(dna)
+                        infile_data['phage_cds'].append(dna)
                     else:
-                        bact_orfs_list.append(dna)
+                        infile_data['bact_cds'].append(dna)
                 except KeyError:
-                    bact_orfs_list.append(dna)
+                    infile_data['bact_cds'].append(dna)
+    if not tax_present:
+        log_and_message(f"- WARNING! Taxonomy was missing!!! Assigning to Bacteria.", c="RED", stderr=True)
+    log_and_message(f"- Bact CDSs: {len(infile_data['bact_cds'])}", stderr=True)
+    log_and_message(f"- Phage CDSs: {len(infile_data['phage_cds'])}", stderr=True)
 
-    log_and_message(f'  Bact CDSs: {len(bact_orfs_list)}', stderr=True)
-    log_and_message(f'  Phage CDSs: {len(phage_orfs_list)}', stderr=True)
-
-    return bact_orfs_list, phage_orfs_list
+    return infile_data
 
 
 def read_groups(infile, indir, training_data):
@@ -153,7 +165,7 @@ def kmerize_orf(orf, k, t):
     return kmers
 
 
-def prepare_taxa_groups(infiles, training_data):
+def prepare_taxa_groups(infiles, training_data, retrain):
     """
     Reads all input files / genomes and creates a groups file based on all genomes taxonomy.
     :param infiles: all input files
@@ -165,27 +177,21 @@ def prepare_taxa_groups(infiles, training_data):
     for i, infile in enumerate(infiles, 1):
         file_name = path.basename(infile)
         if file_name not in training_data['genomes']:
-            log_and_message(f'Processing {i}/{len(infiles)}: {file_name}', stderr=True)
-            tax_checked = False
-            for record in genbank_seqio(infile):
-                # check records until taxonomy information is provided
-                if not tax_checked:
-                    if len(record.annotations['taxonomy']) == 0:
-                        log_and_message(f"WARNING! Taxonomy is missing in {file_name}!!! Assigning to Bacteria.", c="RED", stderr=True)
-                        try:
-                            training_data['groups']['Bacteria'].add(infile)
-                        except KeyError:
-                            training_data['groups']['Bacteria'] = set([infile])
-                    for tax in record.annotations['taxonomy']:
-                        try:
-                            training_data['groups'][tax].add(infile)
-                        except KeyError:
-                            training_data['groups'][tax] = set([infile])
-                    tax_checked = True
-                else: 
-                    break
+            log_and_message(f"Processing {i}/{len(infiles)}: {file_name} (NEW)", c="YELLOW", stderr=True)
+
+            infile_data = read_genbank(infile)
+            for tax in infile_data['taxonomy']:
+                try:
+                    training_data['groups'][tax].add(infile)
+                except KeyError:
+                    training_data['groups'][tax] = set([infile])
         else:
             log_and_message(f"Skipping {i}/{len(infiles)}: {file_name} (already analyzed)", c="YELLOW", stderr=True)
+
+        if file_name not in trainig_data['genomes'] or retrain:
+            log_and_message(f"Preparing kmers files.")
+            write_kmers_file(file_name, infile_data['bact_cds'], infile_data['phage_cds'], 12, 'all')
+
 
     log_and_message(f"Processed {len(infiles)} files.", c="PINK", stderr=True)
 
@@ -214,14 +220,16 @@ def update_training_genome_list(training_groups, new_training_groups):
     return training_groups
 
 
-def write_kmers_file(infile, trainsets_outdir, kmer_size, kmers_type):
+def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmers_type):
     """
     Calculates host/phage kmers from input file and writes phage-specific kmers to file.
     """
 
-    log_and_message('  Preparing kmers file.')
+    log_and_message('Preparing kmers file.', stderr=True)
 
     MIN_RATIO = 1.0
+    test_sets_dir = path.join(INSTALLATION_DIR, 'PhiSpyModules/data/testSets')
+    if not path.isdir(test_sets_dir): makedirs(test_sets_dir)
     # host_kmers = set()
     # phage_kmers = set()
     kmers_dict = {} # {kmer: [# in host, # in phage]}
@@ -230,11 +238,8 @@ def write_kmers_file(infile, trainsets_outdir, kmer_size, kmers_type):
     kmers_phage_unique_count = 0
     kmers_ratios = {}
     kmers_ratios_stats = {round(x, 2): 0 for x in arange(0, 1.01, 0.01)}
-    kmers_ratios_file = path.join(trainsets_outdir, f'{path.basename(infile)}.kmers_ratios.txt')
-    kmers_file = path.join(trainsets_outdir, f'{path.basename(infile)}.kmers')
-
-    # read host- and phage-specific CDSs
-    bact_orfs_list, phage_orfs_list = read_genbank(infile)
+    kmers_ratios_file = path.join(test_sets_dir, f'{file_name}.kmers_ratios.txt')
+    kmers_file = path.join(test_sets_dir, f'{file_name}.kmers')
 
     # kmrize CDSs
     for orf in bact_orfs_list:
@@ -389,6 +394,20 @@ def main():
     #if not path.isdir(args.outdir): makedirs(args.outdir)
 
 
+
+    # Retrain everything or just extend the reference sets
+    if not args.retrain:
+        # new_infiles = set()
+        # for infile in infiles:
+        #     if path.basename(infile) in training_genomes:
+        #         continue
+        #     else:
+        #         new_infiles.add(infile)
+        # infiles = new_infiles
+        log_and_message(f'Running in a regular mode: training sets will be extended.', c="GREEN", stderr=True)
+    else:
+        log_and_message(f'Running in a retrain mode: recreating all trainSets.', c="GREEN", stderr=True)
+
     # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
     log_and_message("Checking currently available training sets.", c="GREEN", stderr=True, stdout=False)
     #training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
@@ -402,7 +421,7 @@ def main():
     # groups of resulting training sets
     if args.groups:
         log_and_message(f"Reading provided groups file.", c="GREEN", stderr=True)
-        training_data = read_groups(args.groups, args.indir)
+        training_data = read_groups(args.groups, args.indir, args.retrain)
 
 
     if args.use_taxonomy:
@@ -414,21 +433,8 @@ def main():
         infiles += glob(path.join(args.indir, r'*.gb[kf].gz'))
         infiles += glob(path.join(args.indir, r'*.gbff.gz'))
         infiles = set(infiles)
-        training_data = prepare_taxa_groups(infiles, training_data)
+        training_data = prepare_taxa_groups(infiles, training_data, args.retrain)
     exit()
-
-    # check which genomes are new and make training sets for them unless retrained
-    if not args.retrain:
-        new_infiles = set()
-        for infile in infiles:
-            if path.basename(infile) in training_genomes:
-                continue
-            else:
-                new_infiles.add(infile)
-        infiles = new_infiles
-        log_and_message(f'Making trainSets for {len(infiles)} new input files.', c="PINK", stderr=True)
-    else:
-        log_and_message(f'Making trainSets for all {len(infiles)} input files.', c="PINK", stderr=True)
 
 
     # make sure all output directories are present
