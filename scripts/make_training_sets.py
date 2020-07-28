@@ -1,18 +1,20 @@
 #!/usr/bin/python3
 __author__ = 'Przemek Decewicz'
 
+import gzip
 import sys
 import pkg_resources
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
 from PhiSpyModules import log_and_message, is_gzip_file, SeqioFilter
+from compare_predictions_to_phages import genbank_seqio
 from glob import glob
 from os import makedirs, path
 from numpy import arange
 from subprocess import call
 
 
-def read_genbank(infile):
+def read_genbank(records):
 
     """
     Parses GenBank file's CDSs and groups them into host or phage groups based on the '/is_phage' qualifier.
@@ -46,29 +48,35 @@ def read_genbank(infile):
     return bact_orfs_list, phage_orfs_list
 
 
-def read_groups(infile, indir):
+def read_groups(infile, indir, training_data):
 
     """
-    Reads tab-delimited input file with the path to input file to use for training in the first column and the name of the group to put it afterwards while creating trainingGenome_list.txt. If --indir flag provided, then it also adds that path to input file name.
-    Returns a dict of groups and their input files.
+    Reads tab-delimited input file with the path to input file to use for training in the first column
+    (or just the file name if path provided with --indir) and the name of the group to put it afterwards
+    while creating trainingGenome_list.txt.
+    :param infile: path to the groups file
+    :param indir: path to input directory with files indicated in group file
+    :param training_data: dictionary with groups and infiles
+    :return training_data: updated dictionary with genomes and infiles
     """
 
-    if not indir: indir = ''
-    groups = {}
-    infiles = set()
+    trained_genomes = len(training_data['genomes'])
+    trained_groups = len(training_data['groups'])
+
     with open(infile) as inf:
         for line in inf:
             line = line.strip().split('\t')
             infile = path.realpath(path.join(indir, line[0]))
-            infiles.add(infile)
+            training_data['genomes'].add(infile)
             try:
-                groups[line[1]].add(infile)
+                training_data['groups'][line[1]].add(infile)
             except KeyError:
-                groups[line[1]] = set([infile])
+                training_data['groups'][line[1]] = set([infile])
 
-    log_and_message(f'  Read {len(infiles)} genomes assigned to {len(groups)} groups.', stderr=True)
+    log_and_message(f"Read {len(training_data['infiles']) - trained_genomes} new genomes assigned to {len(training_data['groups']) - trained_groups} new groups.", 
+        stderr=True)
 
-    return groups, infiles
+    return training_data
 
 
 def read_kmers(infile):
@@ -145,45 +153,43 @@ def kmerize_orf(orf, k, t):
     return kmers
 
 
-def prepare_taxa_groups(infiles, training_genomes):
+def prepare_taxa_groups(infiles, training_data):
     """
-    Reads all input files / genomes and creates a groups file based on their taxonomy.
+    Reads all input files / genomes and creates a groups file based on all genomes taxonomy.
+    :param infiles: all input files
+    :param training_data: currently trained genomes and set groups
+    :return training_data
     """
 
-    log_and_message(f'  Reading taxonomy information from {len(infiles)} input files.', stderr=True)
-    taxa_groups = {}
+    log_and_message(f'Reading taxonomy information from {len(infiles)} input files.', c="PINK", stderr=True)
     for i, infile in enumerate(infiles, 1):
         file_name = path.basename(infile)
-        if file_name not in training_genomes:
-            log_and_message(f'   - Processing {i}/{len(infiles)}: {file_name}')
-            # pp_cnt = 0
+        if file_name not in training_data['genomes']:
+            log_and_message(f'Processing {i}/{len(infiles)}: {file_name}', stderr=True)
             tax_checked = False
-            records = SeqIO.parse(infile, 'genbank')
-            # pp_records = []
-            for record in records:
-                # check the taxonomy in the first record
+            for record in genbank_seqio(infile):
+                # check records until taxonomy information is provided
                 if not tax_checked:
                     if len(record.annotations['taxonomy']) == 0:
-                        log_and_message('     WARNING! information about taxonomy is missing !!!', stderr=True)
-                        log_and_message('              Assigning to Bacteria.', stderr=True)
+                        log_and_message(f"WARNING! Taxonomy is missing in {file_name}!!! Assigning to Bacteria.", c="RED", stderr=True)
                         try:
-                            taxa_groups['Bacteria'].add(infile)
+                            training_data['groups']['Bacteria'].add(infile)
                         except KeyError:
-                            taxa_groups['Bacteria'] = set([infile])
+                            training_data['groups']['Bacteria'] = set([infile])
                     for tax in record.annotations['taxonomy']:
                         try:
-                            taxa_groups[tax].add(infile)
+                            training_data['groups'][tax].add(infile)
                         except KeyError:
-                            taxa_groups[tax] = set([infile])
+                            training_data['groups'][tax] = set([infile])
                     tax_checked = True
                 else: 
                     break
         else:
-            log_and_message(f'   - Skipping {i}/{len(infiles)}: {file_name} (already analyzed)', stderr=True)
+            log_and_message(f"Skipping {i}/{len(infiles)}: {file_name} (already analyzed)", c="YELLOW", stderr=True)
 
-    log_and_message(f'  Processed {len(infiles)} files.', stderr=True)
+    log_and_message(f"Processed {len(infiles)} files.", c="PINK", stderr=True)
 
-    return taxa_groups
+    return training_data
 
 
 def update_training_genome_list(training_groups, new_training_groups):
@@ -330,6 +336,10 @@ def main():
     #                   help = 'Path to output directory. For each kmer creation approach subdirectory will be created.',
     #                   required = True)
 
+    args.add_argument('--use_taxonomy',
+                      action = 'store_true',
+                      help = 'If set, taxonomy from input files will be used to update or create new groups. This is performed after reading groups file.')
+
     args.add_argument('-k', '--kmer_size',
                       type = int,
                       help = 'The size of required kmers. For codon approach use multiplicity of 3. [Default: 12]',
@@ -391,19 +401,21 @@ def main():
 
     # groups of resulting training sets
     if args.groups:
-        log_and_message(f"Checking provided groups file: {args.groups}.", stderr=True)
-        new_training_groups, infiles = read_groups(args.groups, args.indir)
-    else:
-        log_and_message(f"Groups file not provided - grouping input files based on taxonomy.", stderr=True)
+        log_and_message(f"Reading provided groups file.", c="GREEN", stderr=True)
+        training_data = read_groups(args.groups, args.indir)
+
+
+    if args.use_taxonomy:
+        log_and_message(f"Using taxonomy from input files to create new or update current groups.", c="GREEN", stderr=True)
         infiles = glob(path.join(args.indir, r'*.gb'))
         infiles += glob(path.join(args.indir, r'*.gb[kf]'))
         infiles += glob(path.join(args.indir, r'*.gbff'))
-        infiles += glob(path.join(args.indir, r'*.gb\.gz'))
-        infiles += glob(path.join(args.indir, r'*.gb[kf]\.gz'))
-        infiles += glob(path.join(args.indir, r'*.gbff\.gz'))
-        infiles = set((infiles))
-        new_training_groups = prepare_taxa_groups(infiles, training_data)
-
+        infiles += glob(path.join(args.indir, r'*.gb.gz'))
+        infiles += glob(path.join(args.indir, r'*.gb[kf].gz'))
+        infiles += glob(path.join(args.indir, r'*.gbff.gz'))
+        infiles = set(infiles)
+        training_data = prepare_taxa_groups(infiles, training_data)
+    exit()
 
     # check which genomes are new and make training sets for them unless retrained
     if not args.retrain:
@@ -414,9 +426,9 @@ def main():
             else:
                 new_infiles.add(infile)
         infiles = new_infiles
-        log_and_message(f'Making trainSets for {len(infiles)} new input files.', stderr=True)
+        log_and_message(f'Making trainSets for {len(infiles)} new input files.', c="PINK", stderr=True)
     else:
-        log_and_message(f'Making trainSets for all {len(infiles)} input files.', stderr=True)
+        log_and_message(f'Making trainSets for all {len(infiles)} input files.', c="PINK", stderr=True)
 
 
     # make sure all output directories are present
