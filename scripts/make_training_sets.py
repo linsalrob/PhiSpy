@@ -237,8 +237,8 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     kmers_ratios = {}
     kmers_ratios_stats = {round(x, 2): 0 for x in arange(0, 1.01, 0.01)}
     kmers_ratios_file = path.join(test_sets_dir, f'{file_name}.kmers_ratios.txt')
-    kmers_phage_file = path.join(test_sets_dir, f'{file_name}.kmers_phage')
-    kmers_host_file = path.join(test_sets_dir, f'{file_name}.kmers_host')
+    kmers_phage_file = path.join(test_sets_dir, f'{file_name}.kmers_phage.gz')
+    kmers_host_file = path.join(test_sets_dir, f'{file_name}.kmers_host.gz')
 
     # kmrize CDSs
     for orf in bact_orfs_list:
@@ -293,8 +293,8 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     # write unique phage kmers
     log_and_message(f"Writing kmers into phage and host kmers files.", stderr=True)
     cnt = 0
-    with open(kmers_phage_file, 'w') as out_phage:
-        with open(kmers_host_file, 'w') as out_host:
+    with gzip.open(kmers_phage_file, 'wt') as out_phage:
+        with gzip.open(kmers_host_file, 'wt') as out_host:
             for ratio, kmer in kmers_ratios.keys():
                 if ratio >= MIN_RATIO:
                     cnt += 1
