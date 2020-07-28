@@ -1,18 +1,11 @@
 """
 An alternative search phmms method that does not require a separate reading of the file. We parse
 the data record we already have.
-
 Need to adjust the location of the phmms call in PhiSpy.py
 """
 
-<<<<<<< HEAD
-    cmd = ['hmmsearch', '--cpu', str(threads), '-E', '1e-10', '--domE', '1e-5', '--noali', '--tblout', hstbl, '-o', hsout, phmms, searchfile]
-    # print(' '.join(cmd))
-    call(cmd)
-=======
 import os
 import sys
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 
 from io import StringIO
 import subprocess
@@ -28,7 +21,6 @@ def search_phmms(**kwargs):
     """
     This is an alternate implementation of the search phmms
     but we write to a temp file and then parse that.
-
     See hmms/run_hmmer.py in EdwardsLab git repo for timing tests
     of different ways of doing this!
     :param kwargs:

@@ -9,26 +9,12 @@ from .log_and_message import log_and_message
 from .errors import NoBasesCounted
 
 class ShannonScore:
-    def __init__(self, kmer_size, kmers_type, kmers_file):
+    def __init__(self, kmers_type):
         # Create a hash of the kmers that points to the index of an array that holds the value
         self._kmers = {}
         self._kmers_phage = []
         self._kmers_all = []
-        self._kmer_size = kmer_size
         self._kmers_type = kmers_type
-<<<<<<< HEAD
-        # kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
-        # if not pkg_resources.resource_exists:
-        #     sys.exit("ERROR: Kmers file {} not found".format(kmers_file))
-        # else:
-        print(f'Using kmer file: {kmers_file}')
-        with open(kmers_file) as inf:
-            for line in inf:
-                self._kmers[line.strip()] = ''
-        # for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
-        #     line = line.decode().strip()
-            # self._kmers[line] = ''
-=======
         kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
         if not pkg_resources.resource_exists:
             log_and_message(f"ERROR: Kmers file {kmers_file} not found", "RED", stderr=True, quiet=self.quiet)
@@ -37,17 +23,17 @@ class ShannonScore:
         for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
             line = line.decode().strip()
             self._kmers[line] = ''
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 
     def reset(self):
         self._kmers_phage = []
         self._kmers_all = []
 
     def addValue(self, seq):
+        mer = 12
         pos = 0
         self._kmers_phage.append([])
         self._kmers_all.append(0)
-        kmers = self.kmerize_orf(seq, self._kmer_size, self._kmers_type)
+        kmers = self.kmerize_orf(seq, mer, self._kmers_type)
         for kmer in kmers:
             self._kmers_all[-1] += 1
             try:
@@ -299,12 +285,8 @@ def measure_features(**kwargs):
     """
 
     self = Namespace(**kwargs)
-<<<<<<< HEAD
-    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type, self.kmers_file)
-=======
     data = []  # the array of arrays we will return
     my_shannon_scores = ShannonScore(self.kmers_type)
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
     all_orf_list = {}
     dna = {}
     window = self.window_size
@@ -427,125 +409,7 @@ def make_set_train(**kwargs):
     else:
         of = self.make_training_data
 
-<<<<<<< HEAD
-def make_set_train(**kwargs):
-    self = Namespace(**kwargs)
-    my_shannon_scores = ShannonScore(self.kmer_size, self.kmers_type, self.kmers_file)
-    all_orf_list = {}
-    dna = {}
-    window = 40
-    for entry in self.record:
-        dna[entry.id] = str(entry.seq)
-        for feature in entry.get_features('CDS'):
-            orf_list = all_orf_list.get(entry.id, [])
-            is_phage = int(feature.qualifiers['is_phage'][0]) if 'is_phage' in feature.qualifiers else 0
-            orf_list.append(
-                   {'start' : feature.start,
-                    'stop'  : feature.stop,
-                    'peg'   : 'peg',
-                    'phmm'  : sum([-math.log10(x) if x != 0 else 500 for x in feature.phmm])/100,
-                    'is_phage': is_phage
-                   }
-            )
-            all_orf_list[entry.id] = orf_list
-    try:
-        outfile = open(os.path.join(self.output_dir, self.make_training_data),'w')
-    except:
-        sys.exit('ERROR: Cannot open', os.path.join(self.output_dir, self.make_training_data), 'for writing.')
-    outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
-    for mycontig in all_orf_list:
-        # orf_list = my_sort(all_orf_list[mycontig]) #shouldn't that be deleted as well?
-        orf_list = all_orf_list[mycontig]
-        ######################
-
-        if not orf_list:
-            continue
-
-        all_median = find_all_median(orf_list)
-        lengths = []
-        directions = []
-        phmms = []
-        for i in orf_list:
-            lengths.append(abs(i['start'] - i['stop']) + 1) # find_all_median can be deleted now
-            directions.append(1 if i['start'] < i['stop'] else -1)
-            phmms.append(i['phmm'])
-            if i['start'] < i['stop']:
-                seq = dna[mycontig][i['start'] - 1 : i['stop']].upper()
-            else:
-                seq = reverse_complement(dna[mycontig][i['stop'] - 1 : i['start']].upper())
-            my_shannon_scores.addValue(seq)
-
-        ga_skew, gt_skew, gg_skew, gc_skew = find_avg_atgc_skew(orf_list, mycontig, dna)
-        a = sum(ga_skew) / len(ga_skew)
-        t = sum(gt_skew) / len(gt_skew)
-        g = sum(gg_skew) / len(gg_skew)
-        c = sum(gc_skew) / len(gc_skew)
-        avg_at_skew, avg_gc_skew = math.fabs(a - t), math.fabs(g - c)
-        #####################
-        i = 0
-        # while i<len(orf_list)-window +1:
-        while i < len(orf_list):
-            #initialize
-            j_start = i - int(window / 2)
-            j_stop = i + int(window / 2)
-            if j_start < 0:
-                j_start = 0
-            elif j_stop >= len(orf_list):
-                j_stop = len(orf_list)
-            # at and gc skews
-            ja_skew = ga_skew[j_start:j_stop]
-            jt_skew = gt_skew[j_start:j_stop]
-            jc_skew = gc_skew[j_start:j_stop]
-            jg_skew = gg_skew[j_start:j_stop]
-            ja = sum(ja_skew) / len(ja_skew)
-            jt = sum(jt_skew) / len(jt_skew)
-            jc = sum(jc_skew) / len(jc_skew)
-            jg = sum(jg_skew) / len(jg_skew)
-            jat = math.fabs(ja - jt) / avg_at_skew if avg_at_skew else 0
-            jgc = math.fabs(jg - jc) / avg_gc_skew if avg_gc_skew else 0
-            my_length = find_median(lengths[j_start:j_stop]) - all_median
-            # orf direction
-            orf = []
-            x = 0
-            flag = 0
-            for ii in directions[j_start:j_stop]:
-                if ii == 1:
-                    if flag == 0 :
-                        x += 1
-                    else:
-                        orf.append(x)
-                        x = 1
-                        flag = 0
-                else:
-                    if flag == 1:
-                        x += 1
-                    else:
-                        if flag < 1 and x > 0:
-                            orf.append(x)
-                        x = 1
-                        flag = 1
-            orf.append(x)
-            orf.sort()
-            outfile.write(str(my_length))
-            outfile.write('\t')
-            outfile.write(str(my_shannon_scores.getSlope(j_start, j_stop)))
-            outfile.write('\t')
-            outfile.write(str(jat))
-            outfile.write('\t')
-            outfile.write(str(jgc))
-            outfile.write('\t')
-            outfile.write(str(orf[len(orf) - 1]) if len(orf) == 1 else str(orf[len(orf) - 1] + orf[len(orf) - 2]))
-            outfile.write('\t')
-            outfile.write(str(sum(phmms[j_start:j_stop])))
-            outfile.write('\t')
-            outfile.write('1' if orf_list[i]['is_phage'] else '0')
-            outfile.write('\n')
-            i += 1
-        my_shannon_scores.reset()
-    outfile.close()
-=======
     with open(of,'w') as outfile:
         outfile.write('orf_length_med\tshannon_slope\tat_skew\tgc_skew\tmax_direction\tphmms\tstatus\n')
         for d in measure_features(**kwargs):
             outfile.write("\t".join(map(str, d)) + "\n")
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a

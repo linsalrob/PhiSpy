@@ -7,14 +7,12 @@ from Bio.SeqFeature import FeatureLocation, CompoundLocation
 
 class SeqioFilter( list ):
     """This class is to allow filtering of the Biopython SeqIO record
-
     SeqIO.parse returns a generator object so anytime you want to perform
     an action on it, you must iterate through the entire list. This
     class adds the ability to filter and return only a subset of the
     features. Those are split into separate features or joined based
     on the distance between the parts and then sorted based on the
     start to end location.
-
     Note:
         To use simply pass a SeqIO.parse object to it and then when
         the object is called a keyword is passed to it and only those
@@ -27,7 +25,6 @@ class SeqioFilter( list ):
         #now we can get only certain features
         for cds in record.get_features('CDS'):
             print(cds)
-
     """
 
     def __init__( self, content ):
@@ -185,7 +182,6 @@ class SeqioFilter( list ):
 
     def attach_methods(self, target):
         """This method allows attaching new methods to the SeqIO entry object
-
            Args:
                target: is the SeqIO object that will be attaching a method to
         """
@@ -220,8 +216,5 @@ class SeqioFilter( list ):
 
         def append_feature(target, feature):
             target.features.append(feature)
-<<<<<<< HEAD
-=======
 
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
         target.append_feature = types.MethodType(append_feature, target)

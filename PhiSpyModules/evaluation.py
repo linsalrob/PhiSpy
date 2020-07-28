@@ -3,16 +3,12 @@ import re
 import math
 import sys
 from argparse import Namespace
-<<<<<<< HEAD
-from .writers import write_gff3, write_genbank
-=======
 
 from Bio.SeqFeature import FeatureLocation, CompoundLocation, SeqFeature
 
 from .log_and_message import log_and_message
 import PhiSpyModules.version as version
 
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 import PhiSpyRepeatFinder
 
 
@@ -399,60 +395,3 @@ def fixing_start_end(**kwargs):
         if 'atts' not in pp[i]:
             pp[i]['atts'] = "No potential att site found"
     return pp
-
-
-
-
-
-<<<<<<< HEAD
-    # update input GenBank file and incorporate prophage regions
-    write_genbank(self.infile, self.record, self.output_dir, pp)
-
-def make_prophage_tbl(inputf, outputf):
-    try:
-        f = open(inputf, 'r')
-        fw = open(outputf, 'w')
-    except:
-        print('Cant open', inputf, ' or ', outputf)
-        return
-    pp = {}
-    ppindx = 0
-    prev_contig = None
-    inphage = False
-    header = f.readline()
-    for line in f:
-        temp = line.strip().split("\t")
-        if int(temp[9]) > 0:
-            newphage = False
-            if temp[2] != prev_contig:
-                newphage = True
-            if not inphage:
-                newphage = True
-            if newphage:
-                ppindx += 1
-                pp[ppindx] = {}
-                pp[ppindx]['contig'] = temp[2]
-                pp[ppindx]['start'] = min(int(temp[3]), int(temp[4]))
-                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
-            else:
-                pp[ppindx]['stop'] = max(int(temp[3]), int(temp[4]))
-            inphage = True
-            prev_contig = temp[2]
-        else:
-            inphage = False
-    for i in pp:
-        fw.write("pp_" + str(i) + "\t" + pp[i]['contig'] + "_" + str(pp[i]['start']) + "_" + str(pp[i]['stop']) + "\n")
-    f.close()
-    fw.close()
-
-################################################################################
-#def call_start_end_fix(output_dir, organismPath, INSTALLATION_DIR, threshold_for_FN, phageWindowSize):
-    # Make the prophage_tbl_temp.txt file.
-    #fixing_start_end(output_dir,organismPath,INSTALLATION_DIR)
-    #fixing_start_end(output_dir, organismPath, INSTALLATION_DIR, phageWindowSize)
-    #make_prophage_tbl(output_dir + 'prophage_tbl.tsv', output_dir + 'prophage.tbl')
-    #fixing_false_negative(output_dir, threshold_for_FN, phageWindowSize)
-    # Make the prophage_tbl_temp.txt file.
-    #make_prophage_tbl(output_dir+'prophage_tbl.txt',output_dir+'prophage.tbl')
-=======
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a

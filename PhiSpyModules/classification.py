@@ -38,20 +38,6 @@ def call_randomforest(**kwargs):
     strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
     log_and_message(f"Using training set in {training_file}")
     train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
-<<<<<<< HEAD
-    test_data = np.genfromtxt(fname=infile, delimiter="\t", skip_header=1, filling_values=1)
-    if 'phmms' not in kwargs:
-        train_data = np.delete(train_data, 5, 1)
-        test_data = np.delete(train_data, 5, 1)
-    # Przemek's comment
-    # by default 10 until version 0.22 where default is 100
-    # number of estimators also implies the precision of probabilities, generally 1/n_estimators
-    # in R's randomForest it's 500 and the usage note regarding number of trees to grow says:
-    # "This should not be set to too small a number, to ensure that every input row gets predicted at least a few times."
-    clf = RandomForestClassifier(n_estimators = kwargs['randomforest_trees'], n_jobs = kwargs['threads'])
-    clf.fit(train_data[:, :-1], train_data[:, -1].astype('int'))
-    np.savetxt(outfile, clf.predict_proba(test_data)[:,1])
-=======
 
     all_metrics = ['orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
     if kwargs['phmms']:
@@ -80,7 +66,6 @@ def call_randomforest(**kwargs):
     else:
         log_and_message("None of the metrics were requested and so we did not run the random forest. Results may be variable.", c='PINK', stderr=True, quiet=kwargs['quiet'])
         return np.zeros(len(kwargs['test_data']))
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 
 def my_sort(orf_list):
     n = len(orf_list)
@@ -149,10 +134,8 @@ def calc_pp(func):
 
 """
 Artemis colour codes
-
 These come from the Setting Colours section of
 https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
-
 0 white (RGB values: 255 255 255)
 1 dark grey (RGB values: 100 100 100)
 2 red (RGB values: 255 0 0)
@@ -171,7 +154,6 @@ https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
 15 mid red: (RGB values: 255 63 63)
 16 light red (RGB values: 255 127 127)
 17 pink (RGB values: 255 191 191)
-
 """
 
 
@@ -236,7 +218,6 @@ def make_initial_tbl(**kwargs):
     At this point we have the classifications for each ORF and we want to take a sliding window and decide where
     the phage should start. We have two calculations for a threshold for the rank: either the kmeans centers and
     finding things above the larger center or just a plain threshold.
-
     """
 
     """
@@ -247,7 +228,6 @@ def make_initial_tbl(**kwargs):
         3. start             9. final status        15. sequence of attR
         4. stop             10. start of attL       16. Reason for att site choice
         5. position         11. end of attL
-
     However, at this point we only have  0 .. 8
     """
 

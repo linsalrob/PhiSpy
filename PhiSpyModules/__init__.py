@@ -1,12 +1,7 @@
 # read and set the version
 
 from .seqio_filter import SeqioFilter
-<<<<<<< HEAD
-from .makeTest import make_set_train
-from .makeTest import make_test_set
-=======
 from .makeTest import make_set_train, measure_features
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 from .classification import call_randomforest, make_initial_tbl
 from .protein_functions import downweighting_unknown_functions, is_phage_func, is_unknown_func
 from .evaluation import fixing_start_end

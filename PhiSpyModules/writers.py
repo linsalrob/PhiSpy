@@ -3,13 +3,7 @@
 A module to write the output in different formats
 """
 
-from Bio import SeqIO
-from Bio.SeqFeature import SeqFeature, FeatureLocation
-from collections import OrderedDict
 import os
-<<<<<<< HEAD
-import PhiSpyModules.version as version
-=======
 import gzip
 
 from argparse import Namespace
@@ -23,7 +17,6 @@ from .helper_functions import is_gzip_file
 from .evaluation import check_pp
 
 
->>>>>>> 1b77c85e5f63d5d737fed37ec64bd4e109ed642a
 __author__ = 'Rob Edwards'
 
 
@@ -31,7 +24,6 @@ def write_gff3(self):
     """
     Write GFF3 code. This was adapted from code contribued by [Jose Francisco Sanchez-Herrero]
     (https://github.com/JFsanchezherrero/)
-
     :param self: the data object
     :return: None
     """
@@ -374,29 +366,3 @@ def write_all_outputs(**kwargs):
     if oc >= 1:
         # print the prophage coordinates:
         write_prophage_coordinates(self)
-
-def write_genbank(infile, record, output_directory, pp):
-    """
-    Write prophages and their potential attachment sites in updated input GenBank file.
-
-    :param infile: path to input file
-    :param record: SeqRecord generator of input file
-    :param output_dir: the location to write to
-    :param pp: the list of prophage objects
-    """
-
-    prophage_feature_type = 'misc_feature' # / prophage_region
-    outfile = os.path.join(output_directory, os.path.basename(infile))
-    for i in pp:
-        record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
-                    location = FeatureLocation(pp[i]['start'], pp[i]['stop']),
-                    type = prophage_feature_type,
-                    strand = 1,
-                    qualifiers = OrderedDict({'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'})))
-        record.get_entry(pp[i]['contig']).append_feature(SeqFeature(
-                    location = FeatureLocation(int(pp[i]['att'][0]), int(pp[i]['att'][1])) + FeatureLocation(int(pp[i]['att'][2]), int(pp[i]['att'][3])),
-                    type = 'repeat_region',
-                    strand = 1,
-                    qualifiers = OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
-
-    SeqIO.write(record, outfile, 'genbank')
