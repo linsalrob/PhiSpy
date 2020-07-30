@@ -126,6 +126,7 @@ def read_training_genomes_list(training_data):
     """
 
     with open(path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data','trainingGenome_list.txt')) as infile:
+        infile.readline() # skip the first line with Generic test set
         for line in infile: #pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt'):
             n, group, genomes, genomes_number = line.strip().split('\t') #decode().strip().split('\t')
             group = group.rsplit('.txt', 1)[0][9:] #remove .txt and trainSet_
@@ -164,27 +165,23 @@ def kmerize_orf(orf, k, t):
     return kmers
 
 
-def prepare_taxa_groups(infiles, training_data):
+def prepare_taxa_groups(training_data):
     """
     Reads all input files / genomes and creates a groups file based on all genomes taxonomy.
-    :param infiles: all input files
     :param training_data: currently trained genomes and set groups
     :return training_data
     """
 
     current_groups = len(training_data['groups'])
 
-    log_and_message(f'Reading taxonomy information from {len(infiles)} input files.', stderr=True)
-    for i, infile in enumerate(infiles, 1):
-        file_name = path.basename(infile)
-        if file_name not in training_data['genomes']:
-            for tax in training_data['taxonomy'][file_name]:
-                try:
-                    training_data['groups'][tax].add(infile)
-                except KeyError:
-                    training_data['groups'][tax] = set([infile])
+    for file_name in training_data['genomes']:
+        for tax in training_data['taxonomy'][file_name]:
+            try:
+                training_data['groups'][tax].add(file_name)
+            except KeyError:
+                training_data['groups'][tax] = set([file_name])
 
-    log_and_message(f"Processed {len(infiles)} files. Created {len(training_data['groups']) - current_groups} new groups.",stderr=True)
+    log_and_message(f"Created {len(training_data['groups']) - current_groups} new groups based on taxonomy.",stderr=True)
 
     return training_data
 
@@ -311,6 +308,18 @@ def write_training_genome_list(training_groups, training_genome_list_file):
     return
 
 
+def print_groups(groups):
+    """
+    Prints groups with their genomes.
+    :param groups: a dictionary with group name as key and genomes list as value
+    """
+
+    for group, genomes in groups.items():
+        gg = '\n- '.join(genomes)
+        log_and_message(f"{group}", c="PINK", stderr=True)
+        log_and_message(f"- {gg}", stderr=True)
+
+
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py',
                           description = 'Automates making new or extending current PhiSpy\'s training sets. By default these will be created in PhiSpyModules/data directory so keep that in mind preparing groups file. ',
@@ -410,7 +419,7 @@ def main():
     infiles += glob(path.join(args.indir, r'*.gb[kf].gz'))
     infiles += glob(path.join(args.indir, r'*.gbff.gz'))
     infiles = {path.basename(infile) for infile in infiles}
-    log_and_message(f"Read {len(infiles)} were read from input directory.", stderr=True)
+    log_and_message(f"Read {len(infiles)} GenBank files from input directory.", stderr=True)
 
     # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
     log_and_message("Checking currently available training sets.", c="GREEN", stderr=True, stdout=False)
@@ -427,20 +436,25 @@ def main():
     else:
         log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
 
-    log_and_message(f"Checking which genomes are NEW.", c="GREEN", stderr=True)
+    log_and_message("Groups based on trainingGenome_list file:", c="GREEN", stderr=True)
+    print_groups(training_data['groups'])
+
+    log_and_message(f"Checking which genomes are NEW from provided directory in comparison to trainingGenome_list.", c="GREEN", stderr=True)
     for infile in infiles:
         file_name = path.basename(infile)
         if file_name not in training_data['genomes']:
             not_trained.add(infile)
             training_data['genomes'].add(infile)
             log_and_message(f"- {file_name}", c="YELLOW", stderr=True)
-    log_and_message(f"In total There are {len(not_trained)} new genomes.", stderr=True)
+    log_and_message(f"In total there are {len(not_trained)} new genomes within.", stderr=True)
 
 
     # check what new groups were requested
     if args.groups:
         log_and_message(f"Reading provided groups file.", c="GREEN", stderr=True)
         training_data = read_groups(args.groups, training_data)
+        log_and_message("Currently considered groups:", c="GREEN", stderr=True)
+        print_groups(training_data['groups'])
 
 
     # make kmers files if needed
@@ -451,15 +465,15 @@ def main():
             log_and_message(f"[{i}/{len(training_data['genomes'])}] Reading {file_name}.", c="YELLOW", stderr=True)
             if file_name in infiles:
                 # if indicated within directory provided by user
-                log_and_message(f"Using user's input directory.", stderr=True)
+                log_and_message(f"File in user's input directory.", stderr=True)
                 infile = path.join(args.indir, file_name)
             else:
                 # should be present test_genbank_files directory
-                log_and_message(f"Using PhiSpy's test_genbank_files directory.", stderr=True)
+                log_and_message(f"File not present in user's input directory.\nTrying to use PhiSpy's test_genbank_files directory.", stderr=True)
                 infile = path.join(INSTALLATION_DIR, 'test_genbank_files', file_name)
                 if not path.isfile(infile):
-                    log_and_message(f"{infile} is missing !!", c="RED", stderr=True)
-                    continue
+                    log_and_message(f"Missing file: {infile}. Quiting.", c="RED", stderr=True)
+                    exit(2)
             infile_data = read_genbank(infile, full_analysis)
             training_data['taxonomy'][file_name] = infile_data['taxonomy']
             if file_name in not_trained or args.retrain:
@@ -470,7 +484,9 @@ def main():
     # use taxonomy information to create/update groups
     if args.use_taxonomy:
         log_and_message(f"Using taxonomy from input files to create new or update current groups.", c="GREEN", stderr=True)
-        training_data = prepare_taxa_groups(infiles, training_data)
+        training_data = prepare_taxa_groups(training_data)
+        log_and_message("All considered groups, including taxonomy-based ones:", c="GREEN", stderr=True)
+        print_groups(training_data['groups'])
     exit()
 
 
