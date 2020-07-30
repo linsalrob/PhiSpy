@@ -13,11 +13,9 @@ from PhiSpyModules import log_and_message
 from numpy import arange
 from subprocess import call
 
-INSTALLATION_DIR = path.dirname(path.dirname(path.realpath(__file__)))
-DATA_DIR = path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data')
-TEST_DIR = path.join(DATA_DIR, 'testSets')
+DATA_DIR = pkg_resources.resource_filename('PhiSpyModules', 'data')
+TEST_DIR = pkg_resources.resource_filename('PhiSpyModules', 'data/testSets')
 if not path.isdir(TEST_DIR): makedirs(TEST_DIR)
-TEST_GBK_DIR = path.join(INSTALLATION_DIR, 'test_genbank_files')
 
 def read_genbank(gbkfile, full_analysis=False):
     """
@@ -310,8 +308,7 @@ def print_groups(groups):
 
 def get_file_path(file_name, infiles, indir):
     """
-    Return path to input file. These are either in user's input directory (priority)
-    or within PhiSpy's
+    Return path to input file.
     :param file_name: GenBank file names
     :param infiles: list of input files from user's input directory
     :param indir: user's input directory
@@ -323,12 +320,8 @@ def get_file_path(file_name, infiles, indir):
         log_and_message(f"File in user's input directory.", stderr=True)
         infile = path.join(indir, file_name)
     else:
-        # should be present test_genbank_files directory
-        log_and_message(f"File not present in user's input directory.\nTrying to use PhiSpy's test_genbank_files directory.", stderr=True)
-        infile = path.join(TEST_GBK_DIR, file_name)
-        if not path.isfile(infile):
-            log_and_message(f"Missing file: {infile}. Quiting.", c="RED", stderr=True)
-            exit(2)
+        log_and_message(f"File {file_name} not present in user's input directory. If retraing with PhiSpy's default training genomes consider using its  test_genbank_files directory.\nQuiting.", c="RED", stderr=True)
+        exit(2)
 
     return infile
 
@@ -415,12 +408,10 @@ def main():
         'taxonomy': {}
     }
     not_trained = set()
-    #training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
-    # if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
-    if path.isfile(path.join(DATA_DIR,'trainingGenome_list.txt')):
+    if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
         training_data = read_training_genomes_list(training_data)
     else:
-        log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
+        log_and_message(f"trainingGenome_list.txt is missing.", c="RED", stderr=True)
     log_and_message(f"{len(training_data['groups'])} groups based on trainingGenome_list file:", c="GREEN", stderr=True)
     old_training_groups = training_data['groups'].copy()
     print_groups(training_data['groups'])
