@@ -6,10 +6,10 @@ import sys
 import pkg_resources
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
-from PhiSpyModules import log_and_message, is_gzip_file
 from compare_predictions_to_phages import genbank_seqio
 from glob import glob
 from os import makedirs, path
+from PhiSpyModules import log_and_message
 from numpy import arange
 from subprocess import call
 
@@ -20,7 +20,6 @@ if not path.isdir(TEST_DIR): makedirs(TEST_DIR)
 TEST_GBK_DIR = path.join(INSTALLATION_DIR, 'test_genbank_files')
 
 def read_genbank(gbkfile, full_analysis=False):
-
     """
     Parses GenBank file's CDSs and groups them into host or phage groups based on the '/is_phage' qualifier.
     :param gbkfile: path to GenBank file
@@ -69,7 +68,6 @@ def read_genbank(gbkfile, full_analysis=False):
 
 
 def read_groups(groups_file, training_data):
-
     """
     Reads tab-delimited input file with the path to input file to use for training in the first column
     or just the file name (if --indir provided, it will be later added to this file path)
@@ -131,10 +129,12 @@ def read_training_genomes_list(training_data):
 
 
 def kmerize_orf(orf, k, t):
-
     """
-    Creates kmers of size k and all, codon or simple type from a single input sequence.
-    Return a set of identified unique kmers.
+    Creates kmers of certain size and type from provided sequence.
+    :param orf: nucleotide sequence
+    :param k: size of a kmer
+    :param t: type of a kmer, i.e. 'simple', 'all' or 'codon'
+    :return kmers: list of kmers
     """
 
     kmers = []
@@ -175,28 +175,6 @@ def prepare_taxa_groups(training_data):
     log_and_message(f"Created {len(training_data['groups']) - current_groups} new groups based on taxonomy.",stderr=True)
 
     return training_data
-
-
-# def update_training_genome_list(training_groups, new_training_groups):
-#     """
-#     Combines currently available training groups with those provided by user.
-#     """
-#
-#     new_groups_cnt = 0
-#     upt_groupt_cnt = 0
-#     for group, infiles in new_training_groups.items():
-#         try:
-#             log_and_message(group, infiles)
-#             training_groups[group].update(set(map(path.basename,infiles)))
-#             upt_groupt_cnt += 1
-#         except KeyError:
-#             training_groups[group] = set(map(path.basename, infiles))
-#             new_groups_cnt += 1
-#
-#     log_and_message(f'  Created {new_groups_cnt} new training groups.', stderr=True)
-#     log_and_message(f'  Updated {upt_groupt_cnt} training groups.', stderr=True)
-#
-#     return training_groups
 
 
 def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmers_type):
@@ -358,13 +336,8 @@ def get_file_path(file_name, infiles, indir):
 def main():
     args = ArgumentParser(prog = 'make_training_sets.py',
                           description = 'Automates making new or extending current PhiSpy\'s training sets. By default these will be created in PhiSpyModules/data directory so keep that in mind preparing groups file. ',
-                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d test_genbank_files -o PhiSpyModules/data -g test_genbank_files/groups.txt --retrain --phmms pVOGs.hmm --color --threads 4',
+                          epilog = 'Example usage:\npython3 scripts/make_training_sets.py -d test_genbank_files -g test_genbank_files/groups.txt --retrain --use_taxonomy --phmms pVOGs.hmm --threads 4',
                           formatter_class = RawDescriptionHelpFormatter)
-
-    # args.add_argument('-i', '--infile',
-    #                   type = str,
-    #                   nargs = '*',
-    #                   help = 'Path to input GenBank file(s). Multiple paths can be provided.')
 
     args.add_argument('-d', '--indir',
                       type = str,
@@ -373,11 +346,6 @@ def main():
     args.add_argument('-g', '--groups',
                       type = str,
                       help = 'Path to file two tab-delimited columns: file name and group name. If not provided each file will have its own training set.')
-
-    # args.add_argument('-o', '--outdir',
-    #                   type = str,
-    #                   help = 'Path to output directory. For each kmer creation approach subdirectory will be created.',
-    #                   required = True)
 
     args.add_argument('--use_taxonomy',
                       action = 'store_true',
@@ -397,18 +365,10 @@ def main():
                       type = str,
                       help = 'Phage HMM profile database (like pVOGs) will be mapped against the genome of interest and used as additional feature to identify prophages.')
 
-    args.add_argument('--color',
-                      action = 'store_true',
-                      help = 'If set, within the output GenBank file CDSs with phmms hits will be colored (for viewing in Artemis).')
-
     args.add_argument('--threads',
                       type = str,
                       help = 'Number of threads to use while searching with phmms.',
                       default = '4')
-
-    args.add_argument('--skip_search',
-                      action = 'store_true',
-                      help = 'If set, the search part will be skipped and the program will assume the existance of updated GenBank files.')
 
     args.add_argument('--retrain',
                       action = 'store_true',
@@ -428,19 +388,9 @@ def main():
                         stderr=True, stdout=False)
         sys.exit(2)
 
-    # Create output directory
-    #if not path.isdir(args.outdir): makedirs(args.outdir)
-
 
     # Retrain everything or just extend the reference sets
     if not args.retrain:
-        # new_infiles = set()
-        # for infile in infiles:
-        #     if path.basename(infile) in training_genomes:
-        #         continue
-        #     else:
-        #         new_infiles.add(infile)
-        # infiles = new_infiles
         log_and_message(f'Running in a regular mode: training sets will be extended.', c="GREEN", stderr=True)
     else:
         log_and_message(f'Running in a retrain mode: recreating all trainSets.', c="GREEN", stderr=True)
@@ -525,9 +475,6 @@ def main():
         exit(1)
 
 
-    # # make sure all output directories are present
-    # trainsets_outdir = path.join('PhiSpyModules', 'data')
-    # if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
     log_and_message("Making phage unique kmers file from all considered genomes: phage_kmers_all_wohost.txt", c="GREEN", stderr=True)
     phage_kmers_all_wohost_file = path.join(DATA_DIR, 'phage_kmers_all_wohost.txt')
     phage_kmers = set()
