@@ -14,6 +14,10 @@ from numpy import arange
 from subprocess import call
 
 INSTALLATION_DIR = path.dirname(path.dirname(path.realpath(__file__)))
+DATA_DIR = path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data')
+TEST_DIR = path.join(DATA_DIR, 'testSets')
+if not path.isdir(TEST_DIR): makedirs(TEST_DIR)
+TEST_GBK_DIR = path.join(INSTALLATION_DIR, 'test_genbank_files')
 
 def read_genbank(gbkfile, full_analysis=False):
 
@@ -112,7 +116,7 @@ def read_training_genomes_list(training_data):
     :return training_data: updated dictionary
     """
 
-    with open(path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data','trainingGenome_list.txt')) as infile:
+    with open(path.join(DATA_DIR,'trainingGenome_list.txt')) as infile:
         infile.readline() # skip the first line with Generic test set
         for line in infile: #pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt'):
             n, group, genomes, genomes_number = line.strip().split('\t') #decode().strip().split('\t')
@@ -201,8 +205,6 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     """
 
     MIN_RATIO = 1.0
-    test_sets_dir = path.join(INSTALLATION_DIR, 'PhiSpyModules/data/testSets')
-    if not path.isdir(test_sets_dir): makedirs(test_sets_dir)
     # host_kmers = set()
     # phage_kmers = set()
     kmers_dict = {} # {kmer: [# in host, # in phage]}
@@ -211,9 +213,9 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     kmers_phage_unique_count = 0
     kmers_ratios = {}
     kmers_ratios_stats = {round(x, 2): 0 for x in arange(0, 1.01, 0.01)}
-    kmers_ratios_file = path.join(test_sets_dir, f'{file_name}.kmers_ratios.txt')
-    kmers_phage_file = path.join(test_sets_dir, f'{file_name}.kmers_phage.gz')
-    kmers_host_file = path.join(test_sets_dir, f'{file_name}.kmers_host.gz')
+    kmers_ratios_file = path.join(TEST_DIR, f'{file_name}.kmers_ratios.txt')
+    kmers_phage_file = path.join(TEST_DIR, f'{file_name}.kmers_phage.gz')
+    kmers_host_file = path.join(TEST_DIR, f'{file_name}.kmers_host.gz')
 
     # kmrize CDSs
     for orf in bact_orfs_list:
@@ -305,6 +307,31 @@ def print_groups(groups):
         gg = '\n- '.join(genomes)
         log_and_message(f"{group}", c="PINK", stderr=True)
         log_and_message(f"- {gg}", stderr=True)
+
+
+def get_file_path(file_name, infiles, indir):
+    """
+    Return path to input file. These are either in user's input directory (priority)
+    or within PhiSpy's
+    :param file_name: GenBank file names
+    :param infiles: list of input files from user's input directory
+    :param indir: user's input directory
+    :return infile: path to file of interest
+    """
+
+    if file_name in infiles:
+        # if indicated within directory provided by user
+        log_and_message(f"File in user's input directory.", stderr=True)
+        infile = path.join(indir, file_name)
+    else:
+        # should be present test_genbank_files directory
+        log_and_message(f"File not present in user's input directory.\nTrying to use PhiSpy's test_genbank_files directory.", stderr=True)
+        infile = path.join(TEST_GBK_DIR, file_name)
+        if not path.isfile(infile):
+            log_and_message(f"Missing file: {infile}. Quiting.", c="RED", stderr=True)
+            exit(2)
+
+    return infile
 
 
 def main():
@@ -418,7 +445,7 @@ def main():
     not_trained = set()
     #training_genome_list_file = path.join(args.outdir, 'trainingGenome_list.txt')
     # if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
-    if path.isfile(path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data','trainingGenome_list.txt')):
+    if path.isfile(path.join(DATA_DIR,'trainingGenome_list.txt')):
         training_data = read_training_genomes_list(training_data)
     else:
         log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
@@ -450,17 +477,7 @@ def main():
         full_analysis = file_name in not_trained or args.retrain
         if full_analysis or args.use_taxonomy:
             log_and_message(f"[{i}/{len(training_data['genomes'])}] Reading {file_name}.", c="YELLOW", stderr=True)
-            if file_name in infiles:
-                # if indicated within directory provided by user
-                log_and_message(f"File in user's input directory.", stderr=True)
-                infile = path.join(args.indir, file_name)
-            else:
-                # should be present test_genbank_files directory
-                log_and_message(f"File not present in user's input directory.\nTrying to use PhiSpy's test_genbank_files directory.", stderr=True)
-                infile = path.join(INSTALLATION_DIR, 'test_genbank_files', file_name)
-                if not path.isfile(infile):
-                    log_and_message(f"Missing file: {infile}. Quiting.", c="RED", stderr=True)
-                    exit(2)
+            infile = get_file_path(file_name, infiles, args.indir)
             infile_data = read_genbank(infile, full_analysis)
             training_data['taxonomy'][file_name] = infile_data['taxonomy']
             if file_name in not_trained or args.retrain:
@@ -481,33 +498,34 @@ def main():
     # if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
 
     log_and_message("Making phage unique kmers file from all considered genomes: phage_kmers_all_wohost.txt", c="GREEN", stderr=True)
-    phage_kmers_all_wohost_file = path.join(INSTALLATION_DIR,'PhiSpyModules', 'data', 'phage_kmers_all_wohost.txt')
+    phage_kmers_all_wohost_file = path.join(DATA_DIR, 'phage_kmers_all_wohost.txt')
     phage_kmers = set()
     for i, file_name in enumerate(sorted(training_data['genomes']), 1):
         log_and_message(f"[{i}/{len(training_data['genomes'])}] Reading kmers from {file_name}.", c="YELLOW", stderr=True)
-        kmers_file = path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data', 'testSets', file_name)
+        kmers_file = path.join(TEST_DIR, file_name)
         phage_kmers.update(read_kmers(kmers_file + '.kmers_phage.gz'))
         phage_kmers.difference_update(read_kmers(kmers_file + '.kmers_host.gz'))
     log_and_message(f"Writing {len(phage_kmers)} into {phage_kmers_all_wohost_file}.", stderr=True)
     with open(phage_kmers_all_wohost_file, 'w') as outf:
         outf.write("\n".join(phage_kmers))
 
+    log_and_message("Making tranSets for all genomes using new kmers file.")
+    for i, file_name in enumerate(sorted(training_data['genomes']), 1):
+        log_and_message(f"[{i}/{len(training_data['genomes'])}] Making testSet for {file_name}.", c="YELLOW", stderr=True)
+        infile = get_file_path(file_name, infiles, args.indir)
+
+        cmd = ['PhiSpy.py', infile,
+            '-o', TEST_DIR,
+            '-m', file_name + '.testSet',
+            # '--kmer_size', str(args.kmer_size), # not supported by PhiSpy yet
+            '--kmers_type', args.kmers_type]
+        if args.phmms: cmd.extend(['--phmms', args.phmms, '--threads', args.threads])
+        log_and_message(f"PhiSpy command: {' '.join(cmd)}", stderr=True)
+        log_and_message(f"{'PhiSpy start':=^30s}", c="PINK", stderr=True)
+        call(cmd)
+        log_and_message(f"{'PhiSpy stop':=^30s}", c="PINK", stderr=True)
+
     exit()
-    for infile in infiles:
-        log_and_message(f'Making trainSet for {path.basename(infile)}.', stderr=True)
-
-        kmers_file = write_kmers_file(infile, trainsets_outdir, args.kmer_size, args.kmers_type)
-
-        cmd = ['PhiSpy.py', infile, '-o', trainsets_outdir, '-m', path.basename(infile) + '.trainSet', '--kmer_size', str(args.kmer_size), '--kmers_type', args.kmers_type, '--kmers_file', kmers_file]
-        if args.phmms: cmd.extend(['--phmms', args.phmms, '-t', args.threads])
-        if args.color: cmd.append('--color')
-        if args.skip_search: cmd.append('--skip_search')
-        log_and_message(f'Calling PhiSpy to make a trainSet.', stderr=True)
-        log_and_message(f'Command: {" ".join(cmd)}', stderr=True)
-        log_and_message(f'{"PhiSpy start":=^30s}', stderr=True)
-        log_and_message(cmd, stderr=True)
-        log_and_message(f'{"PhiSpy stop":=^30s}\n', stderr=True)
-
     # update trainingGenome_list file = this is a new groups file for genomes available in PhiSpy's data directory
     log_and_message('Updating trainingGenome_list.', stderr=True)
     training_groups = update_training_genome_list(training_groups, new_training_groups)
