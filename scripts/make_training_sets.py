@@ -177,26 +177,26 @@ def prepare_taxa_groups(training_data):
     return training_data
 
 
-def update_training_genome_list(training_groups, new_training_groups):
-    """
-    Combines currently available training groups with those provided by user.
-    """
-
-    new_groups_cnt = 0
-    upt_groupt_cnt = 0
-    for group, infiles in new_training_groups.items():
-        try:
-            log_and_message(group, infiles)
-            training_groups[group].update(set(map(path.basename,infiles)))
-            upt_groupt_cnt += 1
-        except KeyError:
-            training_groups[group] = set(map(path.basename, infiles))
-            new_groups_cnt += 1
-
-    log_and_message(f'  Created {new_groups_cnt} new training groups.', stderr=True)
-    log_and_message(f'  Updated {upt_groupt_cnt} training groups.', stderr=True)
-
-    return training_groups
+# def update_training_genome_list(training_groups, new_training_groups):
+#     """
+#     Combines currently available training groups with those provided by user.
+#     """
+#
+#     new_groups_cnt = 0
+#     upt_groupt_cnt = 0
+#     for group, infiles in new_training_groups.items():
+#         try:
+#             log_and_message(group, infiles)
+#             training_groups[group].update(set(map(path.basename,infiles)))
+#             upt_groupt_cnt += 1
+#         except KeyError:
+#             training_groups[group] = set(map(path.basename, infiles))
+#             new_groups_cnt += 1
+#
+#     log_and_message(f'  Created {new_groups_cnt} new training groups.', stderr=True)
+#     log_and_message(f'  Updated {upt_groupt_cnt} training groups.', stderr=True)
+#
+#     return training_groups
 
 
 def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmers_type):
@@ -283,18 +283,39 @@ def write_kmers_file(file_name, bact_orfs_list, phage_orfs_list, kmer_size, kmer
     return
 
 
-def write_training_genome_list(training_groups, training_genome_list_file):
+def write_training_sets(training_data):
+    """
+    Writes trainSets based on provided groups.
+    :param training_data: dictionary with genomes and groups used for making trainging sets
+    """
+
+    training_data['groups']['genericAll'] = training_data['genomes']
+    for i, group in enumerate(sorted(training_data['groups']), 1):
+        header = False
+        log_and_message(f"[{i}/{len(training_data['groups'])}] Writing trainSet for {group} ({len(training_data['groups'][group])} genome(s).", c="PINK", stderr=True)
+        with open(path.join(DATA_DIR, f"trainSet_{group}.txt"), 'w') as outf:
+            for genome in training_data['groups'][group]:
+                with open(path.join(TEST_DIR, f"{genome}.testSet")) as inf:
+                    if header: inf.readline()
+                    outf.write(inf.read())
+                    header = True
+    training_data['groups'].remove('genericAll')
+
+
+def write_training_genome_list(training_data):
     """
     Writes trainingGenome_list.txt file with currently available training sets.
+    :param training_data: dictionary with genomes and groups used for making trainging sets
     """
 
-    group_cnt = 0
-    with open(training_genome_list_file, 'w') as outf:
-        for group, infiles in sorted(training_groups.items()):
-            group_cnt += 1
-            outf.write(f'{group_cnt}\t{group}\t{";".join(infiles)}\t{len(infiles)}\n')
-
-    return
+    with open(path.join(DATA_DIR, 'trainingGenome_list.txt'), 'w') as outf:
+        outf.write(f"0\ttestSet_genericAll.txt\tGeneric Test Set\t")
+        outf.write(f"{len(training_data['genomes'])}\t{';'.join(training_data['genomes'])}\n")
+        for i, group in enumerate(sorted(training_data['groups']), 1):
+            outf.write(f"{i}\t")
+            outf.write(f"trainSet_{group}\t")
+            outf.write(f"{';'.join(training_data['groups'][group])}\t")
+            outf.write(f"{len(training_data['groups'][group])}\n")
 
 
 def print_groups(groups):
@@ -411,7 +432,6 @@ def main():
     #if not path.isdir(args.outdir): makedirs(args.outdir)
 
 
-
     # Retrain everything or just extend the reference sets
     if not args.retrain:
         # new_infiles = set()
@@ -425,6 +445,7 @@ def main():
     else:
         log_and_message(f'Running in a retrain mode: recreating all trainSets.', c="GREEN", stderr=True)
 
+
     log_and_message("Reading input directory", c="GREEN", stderr=True)
     infiles = glob(path.join(args.indir, r'*.gb'))
     infiles += glob(path.join(args.indir, r'*.gb[kf]'))
@@ -434,6 +455,7 @@ def main():
     infiles += glob(path.join(args.indir, r'*.gbff.gz'))
     infiles = {path.basename(infile) for infile in infiles}
     log_and_message(f"Read {len(infiles)} GenBank files from input directory.", stderr=True)
+
 
     # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
     log_and_message("Checking currently available training sets.", c="GREEN", stderr=True, stdout=False)
@@ -449,9 +471,9 @@ def main():
         training_data = read_training_genomes_list(training_data)
     else:
         log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
-
-    log_and_message("Groups based on trainingGenome_list file:", c="GREEN", stderr=True)
+    log_and_message(f"{len(training_data['groups'])} groups based on trainingGenome_list file:", c="GREEN", stderr=True)
     print_groups(training_data['groups'])
+
 
     log_and_message(f"Checking which genomes are NEW from provided directory in comparison to trainingGenome_list.", c="GREEN", stderr=True)
     for infile in infiles:
@@ -467,7 +489,7 @@ def main():
     if args.groups:
         log_and_message(f"Reading provided groups file.", c="GREEN", stderr=True)
         training_data = read_groups(args.groups, training_data)
-        log_and_message("Currently considered groups:", c="GREEN", stderr=True)
+        log_and_message(f"{len(training_data['groups'])} currently considered groups:", c="GREEN", stderr=True)
         print_groups(training_data['groups'])
 
 
@@ -485,18 +507,18 @@ def main():
         else:
             log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping {file_name}. Already analyzed.", c="YELLOW", stderr=True)
 
+
     # use taxonomy information to create/update groups
     if args.use_taxonomy:
         log_and_message(f"Using taxonomy from input files to create new or update current groups.", c="GREEN", stderr=True)
         training_data = prepare_taxa_groups(training_data)
-        log_and_message("All considered groups, including taxonomy-based ones:", c="GREEN", stderr=True)
+        log_and_message(f"{len(training_data['groups'])} considered groups, including taxonomy-based ones:", c="GREEN", stderr=True)
         print_groups(training_data['groups'])
 
 
     # # make sure all output directories are present
     # trainsets_outdir = path.join('PhiSpyModules', 'data')
     # if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
-
     log_and_message("Making phage unique kmers file from all considered genomes: phage_kmers_all_wohost.txt", c="GREEN", stderr=True)
     phage_kmers_all_wohost_file = path.join(DATA_DIR, 'phage_kmers_all_wohost.txt')
     phage_kmers = set()
@@ -509,7 +531,8 @@ def main():
     with open(phage_kmers_all_wohost_file, 'w') as outf:
         outf.write("\n".join(phage_kmers))
 
-    log_and_message("Making tranSets for all genomes using new kmers file.")
+
+    log_and_message("Making testSets for all genomes using new kmers file.", c="GREEN", stderr=True)
     for i, file_name in enumerate(sorted(training_data['genomes']), 1):
         log_and_message(f"[{i}/{len(training_data['genomes'])}] Making testSet for {file_name}.", c="YELLOW", stderr=True)
         infile = get_file_path(file_name, infiles, args.indir)
@@ -525,17 +548,17 @@ def main():
         call(cmd)
         log_and_message(f"{'PhiSpy stop':=^30s}", c="PINK", stderr=True)
 
-    exit()
-    # update trainingGenome_list file = this is a new groups file for genomes available in PhiSpy's data directory
-    log_and_message('Updating trainingGenome_list.', stderr=True)
-    training_groups = update_training_genome_list(training_groups, new_training_groups)
 
+    log_and_message("Updating training sets based on new groups.", c="GREEN", stderr=True)
+    write_training_sets(training_data)
+    print_groups(training_data['groups'])
 
-    # write updated training groups
-    log_and_message('Writing updated trainingGenome_list.', stderr=True)
-    write_training_genome_list(training_groups, training_genome_list_file)
+    # update trainingGenome_list file - this will act as a new groups file
+    # for genomes available in PhiSpy's data directory
+    log_and_message("Writing updated trainingGenome_list.", c="GREEN", stderr=True)
+    write_training_genome_list(training_data)
 
-    log_and_message('Done!', stderr=True)
+    log_and_message("Done!", c="GREEN", stderr=True)
 
 if __name__ == '__main__':
     main()
