@@ -270,7 +270,7 @@ def write_training_sets(training_data):
     training_data['groups']['genericAll'] = training_data['genomes']
     for i, group in enumerate(sorted(training_data['groups']), 1):
         header = False
-        log_and_message(f"[{i}/{len(training_data['groups'])}] Writing trainSet for {group} ({len(training_data['groups'][group])} genome(s).", c="PINK", stderr=True)
+        log_and_message(f"[{i}/{len(training_data['groups'])}] Writing trainSet for {group} ({len(training_data['groups'][group])} genome(s)).", c="PINK", stderr=True)
         with open(path.join(DATA_DIR, f"trainSet_{group}.txt"), 'w') as outf:
             for genome in training_data['groups'][group]:
                 with open(path.join(TEST_DIR, f"{genome}.testSet")) as inf:
