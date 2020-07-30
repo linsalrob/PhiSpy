@@ -324,11 +324,11 @@ def main():
 
     args.add_argument('-d', '--indir',
                       type = str,
-                      help = 'Path to input directory with multiple GenBank files provided in groups file.')
+                      help = 'Path to input directory with GenBank file(s) for training. This path will be added to file names in groups file.')
 
     args.add_argument('-g', '--groups',
                       type = str,
-                      help = 'Path to file with path to input file and its group name in two tab-delimited columns. Otherwise each file will have its own training set.')
+                      help = 'Path to file two tab-delimited columns: file name and group name. If not provided each file will have its own training set.')
 
     # args.add_argument('-o', '--outdir',
     #                   type = str,
