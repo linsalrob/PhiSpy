@@ -8,7 +8,6 @@ Caulobacter_crescentus_CB15.gb.gz	190650.21
 Clostridium_perfringens_str._13.gb.gz	195102.53
 Clostridium_tetani_E88.gb.gz	212717.31
 Deinococcus_radiodurans_R1.gb.gz	243230.96
-Enterococcus_faecalis_V583.gb.gz	226185.9
 Enterococcus_faecalis_strain_V583.gb.gz	1351.557
 Escherichia_coli_CFT073.gb.gz	199310.168
 Escherichia_coli_K12.gb.gz	83333.998
@@ -50,7 +49,6 @@ Escherichia_coli_CFT073.gb.gz	Ecoli
 Escherichia_coli_K12.gb.gz	Ecoli
 Escherichia_coli_O157-H7.gb.gz	Ecoli
 Escherichia_coli_O157-H7_EDL933.gb.gz	Ecoli
-Enterococcus_faecalis_V583.gb.gz	Efec
 Enterococcus_faecalis_strain_V583.gb.gz	Efec
 Listeria_innocua_Clip11262.gb.gz	Listeria
 Listeria_monocytogenes_EGD-e.gb.gz	Listeria
