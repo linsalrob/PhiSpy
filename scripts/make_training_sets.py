@@ -91,28 +91,15 @@ def read_groups(groups_file, training_data):
     return training_data
 
 
-def read_kmers(infile):
-
+def read_kmers(kmerfile):
     """
-    Simply reads input file with kmers and returns set of read kmers.
-    """
-
-    kmers = []
-    with open(infile) as inf:
-        kmers = [x.strip() for x in inf.readlines()]
-
-    return set(kmers)
-
-
-def read_kmers_list(infile):
-
-    """
-    Simply reads input file with kmers and returns set of read kmers.
+    Simply reads input file with kmers, ony by line.
+    :param kmerfile: path to file with kmers to read
+    :return kmers: set of kmers
     """
 
-    kmers = []
-    with open(infile) as inf:
-        kmers = [x.strip() for x in inf.readlines()]
+    with gzip.open(kmerfile, 'rt') as inf:
+        kmers = {x.strip() for x in inf}
 
     return kmers
 
@@ -487,13 +474,25 @@ def main():
         training_data = prepare_taxa_groups(training_data)
         log_and_message("All considered groups, including taxonomy-based ones:", c="GREEN", stderr=True)
         print_groups(training_data['groups'])
+
+
+    # # make sure all output directories are present
+    # trainsets_outdir = path.join('PhiSpyModules', 'data')
+    # if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
+
+    log_and_message("Making phage unique kmers file from all considered genomes: phage_kmers_all_wohost.txt", c="GREEN", stderr=True)
+    phage_kmers_all_wohost_file = path.join(INSTALLATION_DIR,'PhiSpyModules', 'data', 'phage_kmers_all_wohost.txt')
+    phage_kmers = set()
+    for i, file_name in enumerate(sorted(training_data['genomes']), 1):
+        log_and_message(f"[{i}/{len(training_data['genomes'])}] Reading kmers from {file_name}.", c="YELLOW", stderr=True)
+        kmers_file = path.join(INSTALLATION_DIR, 'PhiSpyModules', 'data', 'testSets', file_name)
+        phage_kmers.update(read_kmers(kmers_file + '.kmers_phage.gz'))
+        phage_kmers.difference_update(read_kmers(kmers_file + '.kmers_host.gz'))
+    log_and_message(f"Writing {len(phage_kmers)} into {phage_kmers_all_wohost_file}.", stderr=True)
+    with open(phage_kmers_all_wohost_file, 'w') as outf:
+        outf.write("\n".join(phage_kmers))
+
     exit()
-
-
-    # make sure all output directories are present
-    trainsets_outdir = path.join('PhiSpyModules', 'data')
-    if not path.isdir(trainsets_outdir): makedirs(trainsets_outdir)
-
     for infile in infiles:
         log_and_message(f'Making trainSet for {path.basename(infile)}.', stderr=True)
 
