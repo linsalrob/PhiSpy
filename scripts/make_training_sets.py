@@ -299,7 +299,7 @@ def write_training_sets(training_data):
                     if header: inf.readline()
                     outf.write(inf.read())
                     header = True
-    training_data['groups'].remove('genericAll')
+    training_data['groups'].pop('genericAll')
 
 
 def write_training_genome_list(training_data):
@@ -310,10 +310,10 @@ def write_training_genome_list(training_data):
 
     with open(path.join(DATA_DIR, 'trainingGenome_list.txt'), 'w') as outf:
         outf.write(f"0\ttestSet_genericAll.txt\tGeneric Test Set\t")
-        outf.write(f"{len(training_data['genomes'])}\t{';'.join(training_data['genomes'])}\n")
+        outf.write(f"{';'.join(training_data['genomes'])}\t{len(training_data['genomes'])}\n")
         for i, group in enumerate(sorted(training_data['groups']), 1):
             outf.write(f"{i}\t")
-            outf.write(f"trainSet_{group}\t")
+            outf.write(f"trainSet_{group}.txt\t")
             outf.write(f"{';'.join(training_data['groups'][group])}\t")
             outf.write(f"{len(training_data['groups'][group])}\n")
 
@@ -472,6 +472,7 @@ def main():
     else:
         log_and_message(f"{training_genome_list_file} is missing.", c="RED", stderr=True)
     log_and_message(f"{len(training_data['groups'])} groups based on trainingGenome_list file:", c="GREEN", stderr=True)
+    old_training_groups = training_data['groups'].copy()
     print_groups(training_data['groups'])
 
 
@@ -504,6 +505,8 @@ def main():
             training_data['taxonomy'][file_name] = infile_data['taxonomy']
             if file_name in not_trained or args.retrain:
                 write_kmers_file(file_name, infile_data['bact_cds'], infile_data['phage_cds'], args.kmer_size, args.kmers_type)
+            else:
+                log_and_message("No need to write kmers files.", stderr=True)
         else:
             log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping {file_name}. Already analyzed.", c="YELLOW", stderr=True)
 
@@ -514,6 +517,12 @@ def main():
         training_data = prepare_taxa_groups(training_data)
         log_and_message(f"{len(training_data['groups'])} considered groups, including taxonomy-based ones:", c="GREEN", stderr=True)
         print_groups(training_data['groups'])
+
+
+    # Check wether there's a point to go further
+    if len(not_trained) == 0 and training_data['groups'] == old_training_groups:
+        log_and_message(f"There are 0 new genomes and groups. Quiting.", c="GREEN", stderr=True)
+        exit(1)
 
 
     # # make sure all output directories are present
@@ -534,24 +543,27 @@ def main():
 
     log_and_message("Making testSets for all genomes using new kmers file.", c="GREEN", stderr=True)
     for i, file_name in enumerate(sorted(training_data['genomes']), 1):
-        log_and_message(f"[{i}/{len(training_data['genomes'])}] Making testSet for {file_name}.", c="YELLOW", stderr=True)
-        infile = get_file_path(file_name, infiles, args.indir)
+        if file_name in not_trained or args.retrain:
+            log_and_message(f"[{i}/{len(training_data['genomes'])}] Making testSet for {file_name}.", c="YELLOW", stderr=True)
+            infile = get_file_path(file_name, infiles, args.indir)
 
-        cmd = ['PhiSpy.py', infile,
-            '-o', TEST_DIR,
-            '-m', file_name + '.testSet',
-            # '--kmer_size', str(args.kmer_size), # not supported by PhiSpy yet
-            '--kmers_type', args.kmers_type]
-        if args.phmms: cmd.extend(['--phmms', args.phmms, '--threads', args.threads])
-        log_and_message(f"PhiSpy command: {' '.join(cmd)}", stderr=True)
-        log_and_message(f"{'PhiSpy start':=^30s}", c="PINK", stderr=True)
-        call(cmd)
-        log_and_message(f"{'PhiSpy stop':=^30s}", c="PINK", stderr=True)
+            cmd = ['PhiSpy.py', infile,
+                '-o', TEST_DIR,
+                '-m', file_name + '.testSet',
+                # '--kmer_size', str(args.kmer_size), # not supported by PhiSpy yet
+                '--kmers_type', args.kmers_type]
+            if args.phmms: cmd.extend(['--phmms', args.phmms, '--threads', args.threads])
+            log_and_message(f"PhiSpy command: {' '.join(cmd)}", stderr=True)
+            log_and_message(f"{'PhiSpy start':=^30s}", c="PINK", stderr=True)
+            call(cmd)
+            log_and_message(f"{'PhiSpy stop':=^30s}", c="PINK", stderr=True)
+        else:
+            log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping {file_name}. Already analyzed and not retraining.", c="YELLOW", stderr=True)
 
 
     log_and_message("Updating training sets based on new groups.", c="GREEN", stderr=True)
     write_training_sets(training_data)
-    print_groups(training_data['groups'])
+
 
     # update trainingGenome_list file - this will act as a new groups file
     # for genomes available in PhiSpy's data directory
