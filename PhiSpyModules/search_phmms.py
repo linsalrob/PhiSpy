@@ -52,7 +52,7 @@ def search_phmms(**kwargs):
     aaout.close()
 
     try:
-        search = subprocess.Popen(["hmmsearch", '--cpu', '6', '-E', '1e-10', '--domE', '1e-5', '--noali', self.phmms, aaout.name], stdout=subprocess.PIPE)
+        search = subprocess.Popen(["hmmsearch", '--cpu', str(self.threads), '-E', '1e-10', '--domE', '1e-5', '--noali', self.phmms, aaout.name], stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         sys.stderr.write(f"Error running hmmscan:\n{e}\n")
         sys.exit(-1)
