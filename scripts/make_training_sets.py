@@ -285,8 +285,7 @@ def write_training_genome_list(training_data):
     """
 
     with open(path.join(DATA_DIR, 'trainingGenome_list.txt'), 'w') as outf:
-        outf.write(f"0\ttestSet_genericAll.txt\tGeneric Test Set\t")
-        outf.write(f"{';'.join(training_data['genomes'])}\t{len(training_data['genomes'])}\n")
+        outf.write(f"0\ttestSet_genericAll.txt\tGeneric Test Set\t{len(training_data['genomes'])}\n")
         for i, group in enumerate(sorted(training_data['groups']), 1):
             outf.write(f"{i}\t")
             outf.write(f"trainSet_{group}.txt\t")
