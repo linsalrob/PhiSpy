@@ -47,7 +47,7 @@ if __name__ == '__main__':
             p = l.strip().split("\t")
             if p[1] not in phages:
                 phages[p[1]] = []
-            phages[p[1]].append([p[2], p[3], p[0]])
+            phages[p[1]].append([int(p[2]), int(p[3]), p[0]])
 
 
     try:
@@ -74,11 +74,15 @@ if __name__ == '__main__':
                 for p in phages[seq.id]:
                     bactend = p[0]
                     if args.b:
-                        bactout.write(f">{seq.id}_{start}_{bactend}\n{seq.seq[start:bactend]}")
+                        if args.v:
+                            PhiSpyModules.message(f"Writing bateria from {start} to {bactend}\n", "BLUE", "stderr")
+                        bactout.write(f">{seq.id}_{start}_{bactend}\n{seq.seq[start:bactend]}\n")
                     if args.p:
-                        phageout.write(f">{seq.id}_{p[0]}_{p[1]} [prophage {p[2]}]\n{seq.seq[p[0]:p[1]]}")
-                    start = p[1]+1
-                bactout.write(f">{seq.id}_{start}_{len(seq.seq)}\n{seq.seq[start:]}")
+                        if args.v:
+                            PhiSpyModules.message(f"Writing phage from {p[0]} to {p[1]}\n", "YELLOW", "stderr")
+                        phageout.write(f">{seq.id}_{p[0]}_{p[1]} [prophage {p[2]}]\n{seq.seq[p[0]:p[1]]}\n")
+                    start = p[1]
+                bactout.write(f">{seq.id}_{start}_{len(seq.seq)}\n{seq.seq[start:]}\n")
             else:
                 bactout.write(f">{seq.id}\n{seq.seq}\n")
 
