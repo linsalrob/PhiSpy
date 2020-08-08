@@ -71,20 +71,21 @@ if __name__ == '__main__':
         for seq in s:
             if seq.id in phages:
                 start = 0
+                genome = ""
                 for p in phages[seq.id]:
                     bactend = p[0]
-                    if args.b:
-                        if args.v:
-                            PhiSpyModules.message(f"Writing bateria from {start} to {bactend}\n", "BLUE", "stderr")
-                        bactout.write(f">{seq.id}_{start}_{bactend}\n{seq.seq[start:bactend]}\n")
+                    genome += seq.seq[start:bactend] + ("N" * (p[1]- p[0]))
                     if args.p:
                         if args.v:
                             PhiSpyModules.message(f"Writing phage from {p[0]} to {p[1]}\n", "YELLOW", "stderr")
                         phageout.write(f">{seq.id}_{p[0]}_{p[1]} [prophage {p[2]}]\n{seq.seq[p[0]:p[1]]}\n")
                     start = p[1]
-                bactout.write(f">{seq.id}_{start}_{len(seq.seq)}\n{seq.seq[start:]}\n")
+                genome += seq.seq[start:]
+                if args.b:
+                    bactout.write(f">{seq.id}_phagemasked\n{genome}\n")
             else:
-                bactout.write(f">{seq.id}\n{seq.seq}\n")
+                if args.b:
+                    bactout.write(f">{seq.id}\n{seq.seq}\n")
 
 
     handle.close()
