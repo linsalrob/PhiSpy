@@ -2,6 +2,7 @@
 import os
 import sys
 import gzip
+import pkg_resources
 from functools import reduce
 
 from Bio import SeqIO
@@ -11,13 +12,13 @@ sys.path.append(INSTALLATION_DIR)
 
 import PhiSpyModules
 
-
 def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, evaluateOnly, threshold_for_FN, phageWindowSize, quietMode, keep):
 
     ######################################
     #         parse the options          #
     ######################################
     args_parser = PhiSpyModules.get_args()
+    PhiSpyModules.log_and_message(f"Welcome to PhiSpy.py version {PhiSpyModules.__version__}\n")
     PhiSpyModules.log_and_message(f"Starting PhiSpy.py with the following arguments\n{args_parser}")
 
     # if we get here we need an input file

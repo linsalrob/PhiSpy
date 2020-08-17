@@ -8,11 +8,7 @@ import binascii
 import logging
 
 from .log_and_message import message
-
-try:
-    __version__ = pkg_resources.get_distribution('phispy').version
-except Exception:
-    __version__ = 'unknown'
+from .version import __version__
 
 def print_list():
     f = None
