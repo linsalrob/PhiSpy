@@ -44,12 +44,19 @@ def search_phmms(**kwargs):
                 feat.qualifiers['translation'] = [aa]
             myid = feature_id(seq, feat)
             if myid in all_features:
-                log_and_message(f"FATAL: {myid} is not a unique id. We need unique protein IDs to run hmmsearch\n", c="RED",
-                                stderr=True, quiet=False)
-                sys.exit(-1)
+                log_and_message(f"WARNING: {myid} is not a unique id. We need unique protein IDs to run hmmsearch.\nThis feature will be skipped during the search.\n",
+                    c="RED", stderr=True, quiet=False)
+                continue
             aaout.write(f">{myid}\n{aa}\n")
             all_features[myid] = feat
     aaout.close()
+
+    if len(all_features) == 0:
+        log_and_message(f"FATAL: none of protein features had protein ID - can't run hmmsearch.", 
+            c="RED", stderr=True, quiet=False)
+        sys.exit(-1)
+    else:
+        log_and_message(f"Searching {len(all_features)} proteins with hmmsearch.", c="GREEN", stderr=True, quiet=False)
 
     try:
         search = subprocess.Popen(["hmmsearch", '--cpu', str(self.threads), '-E', '1e-10', '--domE', '1e-5', '--noali', self.phmms, aaout.name], stdout=subprocess.PIPE)
