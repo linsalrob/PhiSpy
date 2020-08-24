@@ -339,7 +339,7 @@ def get_file_path(file_name, infiles, indir):
         log_and_message(f"File in user's input directory.", stderr=True)
         infile = path.join(indir, file_name)
     else:
-        log_and_message(f"File {file_name} not present in user's input directory. If retraing with PhiSpy's default training genomes consider using its  test_genbank_files directory.\nQuiting.", c="RED", stderr=True)
+        log_and_message(f"File {file_name} not present in user's input directory. If retraing with PhiSpy's default training genomes consider using its test_genbank_files directory.\nQuiting.", c="RED", stderr=True)
         exit(2)
 
     return infile
@@ -386,6 +386,10 @@ def main():
                       action = 'store_true',
                       help = 'If set, retrains original training sets, otherwise it extends what it finds in output directory.')
 
+    args.add_argument('--absolute_retrain',
+                      action = 'store_true',
+                      help = 'If set, ignores trainingGenome_list file and PhiSpy\'s default reference genomes. This option allows to train PhiSpy with only files provided by the user.')
+
     if len(sys.argv[1:]) == 0:
         args.print_usage()
         args.exit()
@@ -427,7 +431,11 @@ def main():
         'taxonomy': {}
     }
     not_trained = set()
-    if pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
+    if args.absolute_retrain:
+        log_and_message(f"Ignoring PhiSpy's trainingGenome_list.txt file and default test GenBank files.\n\
+        Files provided with --indir and/or --groups will overwrite current reference sets.", c="GREEN", stderr=True)
+        args.retrain = True
+    elif pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
         training_data = read_training_genomes_list(training_data)
     else:
         log_and_message(f"trainingGenome_list.txt is missing.", c="RED", stderr=True)
