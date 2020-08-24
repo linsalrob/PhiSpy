@@ -432,8 +432,7 @@ def main():
     }
     not_trained = set()
     if args.absolute_retrain:
-        log_and_message(f"Ignoring PhiSpy's trainingGenome_list.txt file and default test GenBank files.\n\
-        Files provided with --indir and/or --groups will overwrite current reference sets.", c="GREEN", stderr=True)
+        log_and_message(f"Ignoring PhiSpy's trainingGenome_list.txt file and default test GenBank files.Files provided with --indir and/or --groups will overwrite current reference sets.", stderr=True)
         args.retrain = True
     elif pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
         training_data = read_training_genomes_list(training_data)
@@ -462,21 +461,38 @@ def main():
         print_groups(training_data['groups'])
 
 
-    # make kmers files if needed
+    # make kmers files or read taxonomy information from input file if needed
+    # Comment:
+    # In general, all files need to be retrained if:
+    # (i) there's at least one new reference file or
+    # (ii) annotation of CDSs with is_phage qualifier has changed in any file
+    # The change in CDSs marked as phage CDSs triggers the change of phage-specific
+    # kmers set and therefore changed the Shannon Score statistics.
     log_and_message(f"Checking which genomes need to be read/retrained.", c="GREEN", stderr=True)
     for i, file_name in enumerate(sorted(training_data['genomes']), 1):
-        full_analysis = file_name in not_trained or args.retrain
+        if file_name in not_trained:
+            log_and_message(f"This file was not trained yet: {file_name}", c="RED", stderr=True)
+            full_analysis = True
+        elif args.retrain:
+            log_and_message(f"Retraining file upon user's request.", c="PINK", stderr=True)
+            full_analysis = True
+        elif not pkg_resources.resource_exists('PhiSpyModules',  f"data/testSets/{file_name}.kmers_phage.gz") or \
+             not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.kmers_host.gz") or \
+             not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.testSet"):
+            log_and_message(f"Training files missing for: {file_name}", c="RED", stderr=True)
+            full_analysis = True
+        # full_analysis = file_name in not_trained or args.retrain
         if full_analysis or args.use_taxonomy:
             log_and_message(f"[{i}/{len(training_data['genomes'])}] Reading {file_name}.", c="YELLOW", stderr=True)
             infile = get_file_path(file_name, infiles, args.indir)
             infile_data = read_genbank(infile, full_analysis)
             training_data['taxonomy'][file_name] = infile_data['taxonomy']
-            if file_name in not_trained or args.retrain:
+            if full_analysis:
                 write_kmers_file(file_name, infile_data['bact_cds'], infile_data['phage_cds'], args.kmer_size, args.kmers_type)
             else:
                 log_and_message("No need to write kmers files.", stderr=True)
         else:
-            log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping {file_name}. Already analyzed.", c="YELLOW", stderr=True)
+            log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping. {file_name} already analyzed.", c="YELLOW", stderr=True)
 
 
     # use taxonomy information to create/update groups
