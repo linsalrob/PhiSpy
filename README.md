@@ -175,6 +175,22 @@ cat vog/* > VOGs.hmms
 hmmpress VOGs.hmms
 ```
 
+### Metrics
+
+We use several different metrics to predict regions that are prophages, and there are some optional metrics you can add. The default set of metrics are:
+
+ - `orf_length_med`: median ORF length
+ - `shannon_slope`: the slope of Shannon's diversity of _k_-mers across the window under consideration. You can also expand this with the `--expand_slope` option.
+ - `at_skew`: the normalized AT skew across the window under consideration
+ - `gc_skew`: the normalized GC skew across the window under consideration
+ - `max_direction`: The maximum number of genes in the same direction
+
+You can also add
+
+ - `phmms`: The [phmm](#HMM-Searches) search results
+ - `phage_genes`: The number of genes that must be annotated as phage in the region
+ - `nonprophage_genegaps` : The maximum number of non-phage genes between two phage-like regions that will enable them to be merged
+
 # Help
 
 For the help menu use the `-h` option:
