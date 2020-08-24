@@ -197,10 +197,16 @@ or
 PhiSpy.py --metrics gc_skew
 ```
 
-If you wish to specify more than one metric, please use one `--metrics` flag and list your options, e.g.
+If you wish to specify more than one metric, you can either use one `--metrics` flag and list your options, e.g.
 
 ```
 PhiSpy.py --metrics shannon_slope gc_skew
+```
+
+or provide each one, e.g.:
+
+```
+PhiSpy.py --metrics shannon_slope --metrics gc_skew
 ```
 
 The default is all of these, and so ommitting a `--metrics` flag is equivalent to 
