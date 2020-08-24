@@ -339,7 +339,7 @@ def get_file_path(file_name, infiles, indir):
         log_and_message(f"File in user's input directory.", stderr=True)
         infile = path.join(indir, file_name)
     else:
-        log_and_message(f"File {file_name} not present in user's input directory. If retraing with PhiSpy's default training genomes consider using its test_genbank_files directory.\nQuiting.", c="RED", stderr=True)
+        log_and_message(f"File {file_name} not present in user's input directory. If retraing with PhiSpy's default training genomes consider using its test_genbank_files directory.\nIf you want to use just your own data, run the script with --absolute_retrain flag.\nQuiting.", c="RED", stderr=True)
         exit(2)
 
     return infile
@@ -458,7 +458,6 @@ def main():
         log_and_message(f"Reading provided groups file.", c="GREEN", stderr=True)
         training_data = read_groups(args.groups, training_data)
         log_and_message(f"{len(training_data['groups'])} currently considered groups:", c="GREEN", stderr=True)
-        print_groups(training_data['groups'])
 
 
     # make kmers files or read taxonomy information from input file if needed
