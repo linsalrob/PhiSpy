@@ -10,6 +10,7 @@ from compare_predictions_to_phages import genbank_seqio
 from glob import glob
 from os import makedirs, path
 from PhiSpyModules import log_and_message
+from re import sub
 from numpy import arange
 from subprocess import call
 
@@ -40,7 +41,7 @@ def read_genbank(gbkfile, full_analysis=False):
             if len(record.annotations['taxonomy']) == 0:
                 infile_data['taxonomy'] = ['Bacteria']
             else:
-                infile_data['taxonomy'] = record.annotations['taxonomy']
+                infile_data['taxonomy'] = check_taxa_names(record.annotations['taxonomy'])
                 tax_present = True
 
         # get bacteria and phage CDSs nucleotide sequences to make kmers
@@ -63,6 +64,25 @@ def read_genbank(gbkfile, full_analysis=False):
         log_and_message(f"- Phage CDSs: {len(infile_data['phage_cds'])}", stderr=True)
 
     return infile_data
+
+
+def check_taxa_names(taxonomy):
+    """
+    Checks wether taxa names contain any illegal characters.
+    :param taxonomy: list of taxonomic levels names
+    :return taxonomy: corrected Taxonomy
+    """
+
+    ILLEGAL_CHARACTERS = {
+        " ": "-", # e.g. Mycobacteium tuberculosis comples
+        "/": "-and-", # e.g. Rhizobium/Agrobacterium group
+    }
+
+    for i in range(len(taxonomy)):
+        for ic, lc in ILLEGAL_CHARACTERS.items():
+            taxonomy[i] = sub(ic, lc, taxonomy[i])
+
+    return taxonomy
 
 
 def read_groups(groups_file, training_data):
