@@ -185,7 +185,34 @@ We use several different metrics to predict regions that are prophages, and ther
  - `gc_skew`: the normalized GC skew across the window under consideration
  - `max_direction`: The maximum number of genes in the same direction
 
-You can also add
+You can specify each of these options with the `--metrics` flag, for example:
+
+```
+PhiSpy.py --metrics shannon_slope
+```
+
+or
+
+```
+PhiSpy.py --metrics gc_skew
+```
+
+If you wish to specify more than one metric, please use one `--metrics` flag and list your options, e.g.
+
+```
+PhiSpy.py --metrics shannon_slope gc_skew
+```
+
+The default is all of these, and so ommitting a `--metrics` flag is equivalent to 
+
+```
+PhiSpy.py --metrics orf_length_med shannon_slope at_skew gc_skew max_direction
+```
+
+The choice(s) you provide are recorded in the log file.
+
+
+You can also add  a few other options
 
  - `phmms`: The [phmm](#HMM-Searches) search results
  - `phage_genes`: The number of genes that must be annotated as phage in the region
