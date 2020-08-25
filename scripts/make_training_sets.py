@@ -319,7 +319,7 @@ def print_groups(groups):
     :param groups: a dictionary with group name as key and genomes list as value
     """
 
-    for group, genomes in groups.items():
+    for group, genomes in sorted(groups.items()):
         gg = '\n- '.join(genomes)
         log_and_message(f"{group}", c="PINK", stderr=True)
         log_and_message(f"- {gg}", stderr=True)
@@ -384,7 +384,7 @@ def main():
 
     args.add_argument('--retrain',
                       action = 'store_true',
-                      help = 'If set, retrains original training sets, otherwise it extends what it finds in output directory.')
+                      help = 'Set if any of reference files previously used for training has changed, e.g. prophage protein features indication was corrected.')
 
     args.add_argument('--absolute_retrain',
                       action = 'store_true',
@@ -405,13 +405,6 @@ def main():
         sys.exit(2)
 
 
-    # Retrain everything or just extend the reference sets
-    if not args.retrain:
-        log_and_message(f'Running in a regular mode: training sets will be extended.', c="GREEN", stderr=True)
-    else:
-        log_and_message(f'Running in a retrain mode: recreating all trainSets.', c="GREEN", stderr=True)
-
-
     log_and_message("Reading input directory", c="GREEN", stderr=True)
     infiles = glob(path.join(args.indir, r'*.gb'))
     infiles += glob(path.join(args.indir, r'*.gb[kf]'))
@@ -423,7 +416,7 @@ def main():
     log_and_message(f"Read {len(infiles)} GenBank files from input directory.", stderr=True)
 
 
-    # read currently available genomes - either by reading trainingGenome_list.txt or trainSets directory
+    # read currently available genomes - either by reading trainingGenome_list.txt
     log_and_message("Checking currently available training sets.", c="GREEN", stderr=True, stdout=False)
     training_data = {
         'groups': {},
@@ -443,14 +436,14 @@ def main():
     print_groups(training_data['groups'])
 
 
-    log_and_message(f"Checking which genomes are NEW from provided directory in comparison to trainingGenome_list.", c="GREEN", stderr=True)
+    log_and_message(f"Checking which genomes are considered as new.", c="GREEN", stderr=True)
     for infile in infiles:
         file_name = path.basename(infile)
         if file_name not in training_data['genomes']:
             not_trained.add(infile)
             training_data['genomes'].add(infile)
             log_and_message(f"- {file_name}", c="YELLOW", stderr=True)
-    log_and_message(f"In total there are {len(not_trained)} new genomes within.", stderr=True)
+    log_and_message(f"In total there are {len(not_trained)} new genomes.", stderr=True)
 
 
     # check what new groups were requested
@@ -469,8 +462,9 @@ def main():
     # kmers set and therefore changed the Shannon Score statistics.
     log_and_message(f"Checking which genomes need to be read/retrained.", c="GREEN", stderr=True)
     for i, file_name in enumerate(sorted(training_data['genomes']), 1):
+        full_analysis = False
         if file_name in not_trained:
-            log_and_message(f"This file was not trained yet: {file_name}", c="RED", stderr=True)
+            log_and_message(f"This file has not been used for training yet: {file_name}", c="RED", stderr=True)
             full_analysis = True
         elif args.retrain:
             log_and_message(f"Retraining file upon user's request.", c="PINK", stderr=True)
@@ -521,24 +515,31 @@ def main():
         outf.write("\n".join(phage_kmers))
 
 
-    log_and_message("Making testSets for all genomes using new kmers file.", c="GREEN", stderr=True)
-    for i, file_name in enumerate(sorted(training_data['genomes']), 1):
-        if file_name in not_trained or args.retrain:
+    retrain_all = False
+    if len(not_trained) > 0:
+        log_and_message(f"{len(not_trained)} file{' has' if len(not_trained) == 1 else 's have'} not been analyzed.\nMaking testSets for all genomes using new kmers file.", c="GREEN", stderr=True)
+        retrain_all = True
+    elif args.retrain:
+        log_and_message(f"Making testSets for all genomes upon user's request.", c="GREEN", stderr=True)
+        retrain_all = True
+    else:
+        log_and_message(f"There's no need to make testSets for any genome.", c="GREEN", stderr=True)
+
+    if retrain_all:
+        for i, file_name in enumerate(sorted(training_data['genomes']), 1):
             log_and_message(f"[{i}/{len(training_data['genomes'])}] Making testSet for {file_name}.", c="YELLOW", stderr=True)
             infile = get_file_path(file_name, infiles, args.indir)
 
             cmd = ['PhiSpy.py', infile,
                 '-o', TEST_DIR,
                 '-m', file_name + '.testSet',
-                # '--kmer_size', str(args.kmer_size), # not supported by PhiSpy yet
+                # '--kmer_size', str(args.kmer_size), # TODO not supported by PhiSpy yet
                 '--kmers_type', args.kmers_type]
             if args.phmms: cmd.extend(['--phmms', args.phmms, '--threads', args.threads])
             log_and_message(f"PhiSpy command: {' '.join(cmd)}", stderr=True)
             log_and_message(f"{'PhiSpy start':=^30s}", c="PINK", stderr=True)
             call(cmd)
             log_and_message(f"{'PhiSpy stop':=^30s}", c="PINK", stderr=True)
-        else:
-            log_and_message(f"[{i}/{len(training_data['genomes'])}] Skipping {file_name}. Already analyzed and not retraining.", c="YELLOW", stderr=True)
 
 
     log_and_message("Updating training sets based on new groups.", c="GREEN", stderr=True)
