@@ -33,7 +33,7 @@ def main():
         author_email="raedwards@gmail.com",
         url='https://github.com/linsalrob/PhiSpy',
         license='The MIT License (MIT)',
-        scripts=['PhiSpy.py', 'scripts/make_training_sets.py', 'scripts/plot_stats.py', 'scripts/compare_predictions_to_phages.py'],
+        scripts=['PhiSpy.py', 'scripts/make_training_sets.py', 'scripts/plot_stats.py', 'scripts/compare_predictions_to_phages.py', 'scripts/mark_prophage_features.py'],
         packages=setuptools.find_packages(),
         ext_modules=[Extension("PhiSpyRepeatFinder", sources=["src/repeatFinder.cpp"], language='c++')],
         include_package_data=True,
