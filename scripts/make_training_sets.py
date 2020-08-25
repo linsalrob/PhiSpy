@@ -384,11 +384,11 @@ def main():
 
     args.add_argument('--retrain',
                       action = 'store_true',
-                      help = 'Set if any of reference files previously used for training has changed, e.g. prophage protein features indication was corrected.')
+                      help = 'Set if any of reference files previously used for training has changed, e.g. prophage protein features indication was modified.')
 
     args.add_argument('--absolute_retrain',
                       action = 'store_true',
-                      help = 'If set, ignores trainingGenome_list file and PhiSpy\'s default reference genomes. This option allows to train PhiSpy with only files provided by the user.')
+                      help = 'If set, ignores trainingGenome_list file and PhiSpy\'s default reference genomes. This option allows to train PhiSpy with files provided just by the user.')
 
     if len(sys.argv[1:]) == 0:
         args.print_usage()
@@ -469,7 +469,7 @@ def main():
         elif args.retrain:
             log_and_message(f"Retraining file upon user's request.", c="PINK", stderr=True)
             full_analysis = True
-        elif not pkg_resources.resource_exists('PhiSpyModules',  f"data/testSets/{file_name}.kmers_phage.gz") or \
+        elif not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.kmers_phage.gz") or \
              not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.kmers_host.gz") or \
              not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.testSet"):
             log_and_message(f"Training files missing for: {file_name}", c="RED", stderr=True)
