@@ -1,5 +1,8 @@
 """
-Summarize the output from the snakefile that compares all metrics to each other
+Summarize the output from the snakefile that compares all metrics to each other.
+
+This will make a table with "codes" for each combination of metrics, as well
+as output the results table.
 
 """
 
