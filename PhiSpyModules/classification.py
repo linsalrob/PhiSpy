@@ -167,7 +167,10 @@ def make_initial_tbl(**kwargs):
     x = []
     for entry in self.record:
         for feature in entry.get_features('CDS'):
-            pp_score = calc_pp(feature.function)
+            if self.include_annotations:
+                pp_score = calc_pp(feature.function)
+            else:
+                pp_score = 0
             if self.color:
                 if pp_score > 1:
                     feature.qualifiers['colour'] = 2 # red

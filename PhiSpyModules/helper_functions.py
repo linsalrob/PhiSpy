@@ -104,6 +104,11 @@ def get_args():
                         help='Phage HMM profile database (like pVOGs) will be mapped against the genome of ' +
                             'interest and used as additional feature to identify prophages.\nNote that this ' +
                             'is experimental at the moment')
+    incl_ann_group = parser.add_mutually_exclusive_group()
+    incl_ann_group.add_argument('--include_annotations', action='store_true',
+                        help='Include the annotations in the GenBank file (default)')
+    incl_ann_group.add_argument('--ignore_annotations', action='store_true',
+                                help='Ignore the annotations in the GenBank file')
     parser.add_argument('--color', action='store_true',
                         help='If set, within the output GenBank file CDSs with phmms hits will be ' +
                              'colored (for viewing in Artemis).')
@@ -156,6 +161,12 @@ def get_args():
         # flatten the list of lists caused by append. Note we should use extend but that is only python >=3.8
         m = [i for ml in args.metrics for i in ml]
         args.metrics = m
-    
+
+    # do we include the annotations?
+    if args.ignore_annotations:
+        args.include_annotations = False
+    else:
+        args.include_annotations = True
+
     args.logger = create_logger(args)
     return args
