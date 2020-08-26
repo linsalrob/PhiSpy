@@ -106,9 +106,9 @@ def get_args():
                             'is experimental at the moment')
     incl_ann_group = parser.add_mutually_exclusive_group()
     incl_ann_group.add_argument('--include_annotations', action='store_true',
-                        help='Include the annotations in the GenBank file (default)')
+                        help='Use the annotations in the GenBank file in the phage predictions (default)')
     incl_ann_group.add_argument('--ignore_annotations', action='store_true',
-                                help='Ignore the annotations in the GenBank file')
+                                help='Ignore the annotations in the GenBank file during predictions')
     parser.add_argument('--color', action='store_true',
                         help='If set, within the output GenBank file CDSs with phmms hits will be ' +
                              'colored (for viewing in Artemis).')
