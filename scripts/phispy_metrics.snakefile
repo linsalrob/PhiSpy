@@ -23,12 +23,16 @@ phispydir = "/home3/redwards/GitHubs/PhiSpy/"
 # What is the output directory
 outdir = 'phispy_metrics'
 
+# NOTE:
+# If you are running on a cluster, you should probably use something like this
+# snakemake -s phispy_metrics.snakefile --cluster 'qsub -cwd -o sge_out -e sge_err -V -q smallmem,default,important' \
+# --local-cores 6 -j 600 --latency-wait 60 --jobname="phispy.{name}.{jobid}"
 
 import os
 import sys
 from itertools import combinations 
 
-metrics = ['none', 'pg0', 'orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
+metrics = ['none', 'noannotation', 'pg0', 'orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
 
 def all_metrics():
     all_metrics = []
@@ -45,6 +49,8 @@ def get_params(wildcards):
             r.append(' --phmms /home3/redwards/VOGs/VOGs.hmm ')
         elif m == "pg0":
             r.append(' --phage_genes 0 ')
+        elif m == "noannotation":
+            r.append(' --ignore_annotations')
         else:
             r.append(f" --metrics {m} ")
     return " ".join(r)
