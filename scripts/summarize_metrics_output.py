@@ -1,4 +1,5 @@
 """
+Summarize the output from the snakefile that compares all metrics to each other
 
 """
 
@@ -11,7 +12,7 @@ __author__ = 'Rob Edwards'
 
 
 def all_metrics():
-    metrics = ['none', 'pg0', 'orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
+    metrics = ['none', 'noannotation', 'pg0', 'orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
     all_metrics = []
     for i in range(1,len(metrics)+1):
         for p in combinations(metrics, i):
