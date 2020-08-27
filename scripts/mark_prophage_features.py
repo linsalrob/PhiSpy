@@ -118,6 +118,7 @@ def mark_prophage_features(prophages, outdir):
                     pp = feature_within_prophage(feature, pps[record.id])
                     if pp:
                         feature.qualifiers['is_phage'] = ['1']
+                        feature.qualifiers['color'] = ['6']
                         try:
                             feature.qualifiers['note'].append(pp)
                         except KeyError:
