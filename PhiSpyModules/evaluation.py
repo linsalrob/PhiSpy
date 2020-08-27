@@ -395,8 +395,3 @@ def fixing_start_end(**kwargs):
         if 'atts' not in pp[i]:
             pp[i]['atts'] = "No potential att site found"
     return pp
-
-
-
-
-

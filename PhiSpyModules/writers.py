@@ -24,7 +24,6 @@ def write_gff3(self):
     """
     Write GFF3 code. This was adapted from code contribued by [Jose Francisco Sanchez-Herrero]
     (https://github.com/JFsanchezherrero/)
-
     :param self: the data object
     :return: None
     """
@@ -367,4 +366,3 @@ def write_all_outputs(**kwargs):
     if oc >= 1:
         # print the prophage coordinates:
         write_prophage_coordinates(self)
-

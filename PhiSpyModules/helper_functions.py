@@ -10,7 +10,7 @@ import logging
 from .log_and_message import message
 from .version import __version__
 
-def print_list():
+def print_list(list_type):
     f = None
     try:
         # with pip we use resource streams that may be files or from archives
@@ -18,11 +18,22 @@ def print_list():
     except:
         message('Cannot find the list of training sets. It should be in data/trainingGenome_list.txt', "RED", 'stderr')
         sys.exit(10)
-    for line in f:
-        line = line.decode().strip()
-        temp = re.split('\t', line)
-        if int(temp[3]) == 1:
-            print("{}\t{}".format(temp[2], 'data/' + temp[1]))
+    if list_type == 'short':
+        message("Training Set\t# of genomes used\t1st genome", "GREEN", "stderr")
+        for line in f:
+            line = line.decode().strip()
+            temp = re.split('\t', line)
+            genomes = temp[2].split(';') if ';' in temp[2] else [temp[2]]
+            message(f"data/{temp[1]}\t{temp[3]}\t{genomes[0]}", "PINK", "stderr")
+    elif list_type == 'long':
+        message("Training Set\t# of genomes used", "GREEN", "stderr")
+        for line in f:
+            line = line.decode().strip()
+            temp = re.split('\t', line)
+            genomes = temp[2].split(';') if ';' in temp[2] else [temp[2]]
+            message(f"data/{temp[1]}\t{temp[3]}", "PINK", "stderr")
+            for genome in genomes:
+                message(f"- {genome}", "YELLOW", "stderr")
     f.close()
 
 
@@ -36,7 +47,6 @@ def is_gzip_file(f):
     """
     This is an elegant solution to test whether a file is gzipped by reading the first two characters.
     I also use a version of this in fastq_pair if you want a C version :)
-
     See https://stackoverflow.com/questions/3703276/how-to-tell-if-a-file-is-gzip-compressed for inspiration
     :param f: the file to test
     :return: True if the file is gzip compressed else false
@@ -73,8 +83,8 @@ def get_args():
                              'qualifier in prophage\'s CDSs')
     parser.add_argument('-t', '--training_set', action='store', default='data/trainSet_genericAll.txt',
                         help='Choose the most closely related set to your genome. [Default %(default)s]')
-    parser.add_argument('-l', '--list', action='store_true', default=False,
-                        help='List the available training sets and exit')
+    parser.add_argument('-l', '--list', choices=['short', 'long'], default=False,
+                        help='List the available training sets in one of the formats [%(choices)s] and exit.')
     parser.add_argument('-p', '--file_prefix', default="",
                         help='An optional prefix to prepend to all of the output files')
     parser.add_argument('-e', '--evaluate', type=bool, default=False, const=True, nargs='?',
@@ -137,7 +147,7 @@ def get_args():
     #   list the training sets and exit  #
     ######################################
     if args.list:
-        print_list()
+        print_list(args.list)
         exit(0)
 
     if args.file_prefix != "":

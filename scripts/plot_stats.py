@@ -2,6 +2,7 @@
 __author__ = 'Przemek Decewicz'
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from glob import glob
 from os import makedirs, path
 from sys import argv
 import matplotlib.pyplot as plt
@@ -64,7 +65,7 @@ def plot_stats(infile, outfile):
 
 
 def main():
-    args = ArgumentParser(prog = 'plot_trainSets_stats.py', 
+    args = ArgumentParser(prog = 'plot_trainSets_stats.py',
                           description = 'Plots PhiSpy\'s training/test sets statistics.',
                           epilog = 'Example usage:\npython3 scripts/plot_trainSets_stats.py -d PhiSpyModules/data -o PhiSpyModules/data/trainSets_stats ',
                           formatter_class = RawDescriptionHelpFormatter)
@@ -77,9 +78,13 @@ def main():
                       type = str,
                       help = 'Path to input directory with multiple GenBank files.')
 
+    args.add_argument('-s', '--suffix',
+                      type = str,
+                      help = 'Suffix that will be added to input file name.')
+
     args.add_argument('-o', '--outdir',
                       type = str,
-                      help = 'Path to output directory. For each kmer creation approach subdirectory will be created.',
+                      help = 'Path to output directory.',
                       required = True)
 
     if len(argv[1:]) == 0:
@@ -91,7 +96,7 @@ def main():
     except:
         args.exit()
 
-    if not args.infile and not args.indir: 
+    if not args.infile and not args.indir:
         print('You have to provide input data by either --infile or --indir.')
         exit(1)
     elif args.indir:
@@ -104,11 +109,10 @@ def main():
 
     # Process all input files
     for infile in infiles:
-        plot_file_name = path.basename(infile).rsplit('.', 1)[0] + '_plots.png'
+        plot_file_name = f'{path.basename(infile).rsplit(".", 1)[0]}.{args.suffix}.png'
         plot_file = path.join(args.outdir, plot_file_name)
         plot_stats(infile, plot_file)
-
-    print(f'Done with plot: {plot_file}')
+        print(f'Done with plot: {plot_file}')
 
 if __name__ == '__main__':
     main()

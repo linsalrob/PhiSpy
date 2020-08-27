@@ -135,10 +135,8 @@ def calc_pp(func):
 
 """
 Artemis colour codes
-
 These come from the Setting Colours section of
 https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
-
 0 white (RGB values: 255 255 255)
 1 dark grey (RGB values: 100 100 100)
 2 red (RGB values: 255 0 0)
@@ -157,7 +155,6 @@ https://sanger-pathogens.github.io/Artemis/Artemis/artemis-manual.pdf
 15 mid red: (RGB values: 255 63 63)
 16 light red (RGB values: 255 127 127)
 17 pink (RGB values: 255 191 191)
-
 """
 
 
@@ -225,7 +222,6 @@ def make_initial_tbl(**kwargs):
     At this point we have the classifications for each ORF and we want to take a sliding window and decide where
     the phage should start. We have two calculations for a threshold for the rank: either the kmeans centers and
     finding things above the larger center or just a plain threshold.
-
     """
 
     """
@@ -236,7 +232,6 @@ def make_initial_tbl(**kwargs):
         3. start             9. final status        15. sequence of attR
         4. stop             10. start of attL       16. Reason for att site choice
         5. position         11. end of attL
-
     However, at this point we only have  0 .. 8
     """
 
