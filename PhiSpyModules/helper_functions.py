@@ -14,7 +14,7 @@ try:
 except Exception:
     __version__ = 'unknown'
 
-def print_list(print_format):
+def print_list(list_type):
     f = None
     try:
         # with pip we use resource streams that may be files or from archives
@@ -22,14 +22,14 @@ def print_list(print_format):
     except:
         message('Cannot find the list of training sets. It should be in data/trainingGenome_list.txt', "RED", 'stderr')
         sys.exit(10)
-    if print_format == 'short':
+    if list_type == 'short':
         message("Training Set\t# of genomes used\t1st genome", "GREEN", "stderr")
         for line in f:
             line = line.decode().strip()
             temp = re.split('\t', line)
             genomes = temp[2].split(';') if ';' in temp[2] else [temp[2]]
             message(f"data/{temp[1]}\t{temp[3]}\t{genomes[0]}", "PINK", "stderr")
-    elif print_format == 'long':
+    elif list_type == 'long':
         message("Training Set\t# of genomes used", "GREEN", "stderr")
         for line in f:
             line = line.decode().strip()
