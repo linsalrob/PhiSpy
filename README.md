@@ -1,3 +1,4 @@
+[![Edwards Lab](https://img.shields.io/badge/Bioinformatics-EdwardsLab-03A9F4)](https://edwards.sdsu.edu/research)
 [![DOI](https://www.zenodo.org/badge/60999054.svg)](https://www.zenodo.org/badge/latestdoi/60999054)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![GitHub language count](https://img.shields.io/github/languages/count/linsalrob/PhiSpy)
@@ -173,6 +174,55 @@ tar -C vog -xf vog.hmm.tar.gz
 cat vog/* > VOGs.hmms
 hmmpress VOGs.hmms
 ```
+
+### Metrics
+
+We use several different metrics to predict regions that are prophages, and there are some optional metrics you can add. The default set of metrics are:
+
+ - `orf_length_med`: median ORF length
+ - `shannon_slope`: the slope of Shannon's diversity of _k_-mers across the window under consideration. You can also expand this with the `--expand_slope` option.
+ - `at_skew`: the normalized AT skew across the window under consideration
+ - `gc_skew`: the normalized GC skew across the window under consideration
+ - `max_direction`: The maximum number of genes in the same direction
+
+You can specify each of these options with the `--metrics` flag, for example:
+
+```
+PhiSpy.py --metrics shannon_slope
+```
+
+or
+
+```
+PhiSpy.py --metrics gc_skew
+```
+
+If you wish to specify more than one metric, you can either use one `--metrics` flag and list your options, e.g.
+
+```
+PhiSpy.py --metrics shannon_slope gc_skew
+```
+
+or provide each one, e.g.:
+
+```
+PhiSpy.py --metrics shannon_slope --metrics gc_skew
+```
+
+The default is all of these, and so ommitting a `--metrics` flag is equivalent to 
+
+```
+PhiSpy.py --metrics orf_length_med shannon_slope at_skew gc_skew max_direction
+```
+
+The choice(s) you provide are recorded in the log file.
+
+
+You can also add  a few other options
+
+ - `phmms`: The [phmm](#HMM-Searches) search results
+ - `phage_genes`: The number of genes that must be annotated as phage in the region
+ - `nonprophage_genegaps` : The maximum number of non-phage genes between two phage-like regions that will enable them to be merged
 
 # Help
 

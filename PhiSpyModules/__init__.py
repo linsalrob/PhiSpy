@@ -12,7 +12,6 @@ from .writers import prophage_measurements_to_tbl, write_all_outputs, write_prop
 from .search_phmms import search_phmms
 from .log_and_message import log_and_message, message
 from .errors import ColorNotFoundError, NoBasesCounted
-
 from .version import __version__
 
 __all__ = ['SeqioFilter',
@@ -26,5 +25,6 @@ __all__ = ['SeqioFilter',
            'prophage_measurements_to_tbl', 'write_all_outputs', 'write_prophage_information', 'log_and_message',
            'search_phmms',
            'message',
-            'ColorNotFoundError', 'NoBasesCounted'
+            'ColorNotFoundError', 'NoBasesCounted',
+            '__version__'
            ]

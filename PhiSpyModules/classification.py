@@ -44,8 +44,9 @@ def call_randomforest(**kwargs):
         kwargs['metrics'].append('phmms')
 
     if len(kwargs['metrics']) < len(all_metrics):
-        log_and_message(f"Using the following metric(s): {', '.join(sorted(kwargs['metrics']))}.", c='GREEN', stderr=True, quiet=kwargs['quiet'])
-        skip_metrics = [all_metrics.index(x) for x in set(all_metrics) - set(kwargs['metrics'])]
+        used = b=set(kwargs['metrics']) & set(all_metrics)
+        log_and_message(f"Using the following metric(s): {used}.", c='GREEN', stderr=True, quiet=kwargs['quiet'])
+        skip_metrics = [all_metrics.index(x) for x in set(all_metrics) - used]
         train_data = np.delete(train_data, skip_metrics, 1)
         test_data = np.delete(test_data, skip_metrics, 1)
     else:
@@ -163,7 +164,10 @@ def make_initial_tbl(**kwargs):
     x = []
     for entry in self.record:
         for feature in entry.get_features('CDS'):
-            pp_score = calc_pp(feature.function)
+            if self.include_annotations:
+                pp_score = calc_pp(feature.function)
+            else:
+                pp_score = 0
             if self.color:
                 if pp_score > 1:
                     feature.qualifiers['colour'] = 2 # red

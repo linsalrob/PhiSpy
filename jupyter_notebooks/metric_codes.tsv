@@ -1,0 +1,511 @@
+0	none
+1	noannotation
+2	pg0
+3	orf_length_med
+4	shannon_slope
+5	at_skew
+6	gc_skew
+7	max_direction
+8	phmms
+9	none noannotation
+10	none pg0
+11	none orf_length_med
+12	none shannon_slope
+13	none at_skew
+14	none gc_skew
+15	none max_direction
+16	none phmms
+17	noannotation pg0
+18	noannotation orf_length_med
+19	noannotation shannon_slope
+20	noannotation at_skew
+21	noannotation gc_skew
+22	noannotation max_direction
+23	noannotation phmms
+24	pg0 orf_length_med
+25	pg0 shannon_slope
+26	pg0 at_skew
+27	pg0 gc_skew
+28	pg0 max_direction
+29	pg0 phmms
+30	orf_length_med shannon_slope
+31	orf_length_med at_skew
+32	orf_length_med gc_skew
+33	orf_length_med max_direction
+34	orf_length_med phmms
+35	shannon_slope at_skew
+36	shannon_slope gc_skew
+37	shannon_slope max_direction
+38	shannon_slope phmms
+39	at_skew gc_skew
+40	at_skew max_direction
+41	at_skew phmms
+42	gc_skew max_direction
+43	gc_skew phmms
+44	max_direction phmms
+45	none noannotation pg0
+46	none noannotation orf_length_med
+47	none noannotation shannon_slope
+48	none noannotation at_skew
+49	none noannotation gc_skew
+50	none noannotation max_direction
+51	none noannotation phmms
+52	none pg0 orf_length_med
+53	none pg0 shannon_slope
+54	none pg0 at_skew
+55	none pg0 gc_skew
+56	none pg0 max_direction
+57	none pg0 phmms
+58	none orf_length_med shannon_slope
+59	none orf_length_med at_skew
+60	none orf_length_med gc_skew
+61	none orf_length_med max_direction
+62	none orf_length_med phmms
+63	none shannon_slope at_skew
+64	none shannon_slope gc_skew
+65	none shannon_slope max_direction
+66	none shannon_slope phmms
+67	none at_skew gc_skew
+68	none at_skew max_direction
+69	none at_skew phmms
+70	none gc_skew max_direction
+71	none gc_skew phmms
+72	none max_direction phmms
+73	noannotation pg0 orf_length_med
+74	noannotation pg0 shannon_slope
+75	noannotation pg0 at_skew
+76	noannotation pg0 gc_skew
+77	noannotation pg0 max_direction
+78	noannotation pg0 phmms
+79	noannotation orf_length_med shannon_slope
+80	noannotation orf_length_med at_skew
+81	noannotation orf_length_med gc_skew
+82	noannotation orf_length_med max_direction
+83	noannotation orf_length_med phmms
+84	noannotation shannon_slope at_skew
+85	noannotation shannon_slope gc_skew
+86	noannotation shannon_slope max_direction
+87	noannotation shannon_slope phmms
+88	noannotation at_skew gc_skew
+89	noannotation at_skew max_direction
+90	noannotation at_skew phmms
+91	noannotation gc_skew max_direction
+92	noannotation gc_skew phmms
+93	noannotation max_direction phmms
+94	pg0 orf_length_med shannon_slope
+95	pg0 orf_length_med at_skew
+96	pg0 orf_length_med gc_skew
+97	pg0 orf_length_med max_direction
+98	pg0 orf_length_med phmms
+99	pg0 shannon_slope at_skew
+100	pg0 shannon_slope gc_skew
+101	pg0 shannon_slope max_direction
+102	pg0 shannon_slope phmms
+103	pg0 at_skew gc_skew
+104	pg0 at_skew max_direction
+105	pg0 at_skew phmms
+106	pg0 gc_skew max_direction
+107	pg0 gc_skew phmms
+108	pg0 max_direction phmms
+109	orf_length_med shannon_slope at_skew
+110	orf_length_med shannon_slope gc_skew
+111	orf_length_med shannon_slope max_direction
+112	orf_length_med shannon_slope phmms
+113	orf_length_med at_skew gc_skew
+114	orf_length_med at_skew max_direction
+115	orf_length_med at_skew phmms
+116	orf_length_med gc_skew max_direction
+117	orf_length_med gc_skew phmms
+118	orf_length_med max_direction phmms
+119	shannon_slope at_skew gc_skew
+120	shannon_slope at_skew max_direction
+121	shannon_slope at_skew phmms
+122	shannon_slope gc_skew max_direction
+123	shannon_slope gc_skew phmms
+124	shannon_slope max_direction phmms
+125	at_skew gc_skew max_direction
+126	at_skew gc_skew phmms
+127	at_skew max_direction phmms
+128	gc_skew max_direction phmms
+129	none noannotation pg0 orf_length_med
+130	none noannotation pg0 shannon_slope
+131	none noannotation pg0 at_skew
+132	none noannotation pg0 gc_skew
+133	none noannotation pg0 max_direction
+134	none noannotation pg0 phmms
+135	none noannotation orf_length_med shannon_slope
+136	none noannotation orf_length_med at_skew
+137	none noannotation orf_length_med gc_skew
+138	none noannotation orf_length_med max_direction
+139	none noannotation orf_length_med phmms
+140	none noannotation shannon_slope at_skew
+141	none noannotation shannon_slope gc_skew
+142	none noannotation shannon_slope max_direction
+143	none noannotation shannon_slope phmms
+144	none noannotation at_skew gc_skew
+145	none noannotation at_skew max_direction
+146	none noannotation at_skew phmms
+147	none noannotation gc_skew max_direction
+148	none noannotation gc_skew phmms
+149	none noannotation max_direction phmms
+150	none pg0 orf_length_med shannon_slope
+151	none pg0 orf_length_med at_skew
+152	none pg0 orf_length_med gc_skew
+153	none pg0 orf_length_med max_direction
+154	none pg0 orf_length_med phmms
+155	none pg0 shannon_slope at_skew
+156	none pg0 shannon_slope gc_skew
+157	none pg0 shannon_slope max_direction
+158	none pg0 shannon_slope phmms
+159	none pg0 at_skew gc_skew
+160	none pg0 at_skew max_direction
+161	none pg0 at_skew phmms
+162	none pg0 gc_skew max_direction
+163	none pg0 gc_skew phmms
+164	none pg0 max_direction phmms
+165	none orf_length_med shannon_slope at_skew
+166	none orf_length_med shannon_slope gc_skew
+167	none orf_length_med shannon_slope max_direction
+168	none orf_length_med shannon_slope phmms
+169	none orf_length_med at_skew gc_skew
+170	none orf_length_med at_skew max_direction
+171	none orf_length_med at_skew phmms
+172	none orf_length_med gc_skew max_direction
+173	none orf_length_med gc_skew phmms
+174	none orf_length_med max_direction phmms
+175	none shannon_slope at_skew gc_skew
+176	none shannon_slope at_skew max_direction
+177	none shannon_slope at_skew phmms
+178	none shannon_slope gc_skew max_direction
+179	none shannon_slope gc_skew phmms
+180	none shannon_slope max_direction phmms
+181	none at_skew gc_skew max_direction
+182	none at_skew gc_skew phmms
+183	none at_skew max_direction phmms
+184	none gc_skew max_direction phmms
+185	noannotation pg0 orf_length_med shannon_slope
+186	noannotation pg0 orf_length_med at_skew
+187	noannotation pg0 orf_length_med gc_skew
+188	noannotation pg0 orf_length_med max_direction
+189	noannotation pg0 orf_length_med phmms
+190	noannotation pg0 shannon_slope at_skew
+191	noannotation pg0 shannon_slope gc_skew
+192	noannotation pg0 shannon_slope max_direction
+193	noannotation pg0 shannon_slope phmms
+194	noannotation pg0 at_skew gc_skew
+195	noannotation pg0 at_skew max_direction
+196	noannotation pg0 at_skew phmms
+197	noannotation pg0 gc_skew max_direction
+198	noannotation pg0 gc_skew phmms
+199	noannotation pg0 max_direction phmms
+200	noannotation orf_length_med shannon_slope at_skew
+201	noannotation orf_length_med shannon_slope gc_skew
+202	noannotation orf_length_med shannon_slope max_direction
+203	noannotation orf_length_med shannon_slope phmms
+204	noannotation orf_length_med at_skew gc_skew
+205	noannotation orf_length_med at_skew max_direction
+206	noannotation orf_length_med at_skew phmms
+207	noannotation orf_length_med gc_skew max_direction
+208	noannotation orf_length_med gc_skew phmms
+209	noannotation orf_length_med max_direction phmms
+210	noannotation shannon_slope at_skew gc_skew
+211	noannotation shannon_slope at_skew max_direction
+212	noannotation shannon_slope at_skew phmms
+213	noannotation shannon_slope gc_skew max_direction
+214	noannotation shannon_slope gc_skew phmms
+215	noannotation shannon_slope max_direction phmms
+216	noannotation at_skew gc_skew max_direction
+217	noannotation at_skew gc_skew phmms
+218	noannotation at_skew max_direction phmms
+219	noannotation gc_skew max_direction phmms
+220	pg0 orf_length_med shannon_slope at_skew
+221	pg0 orf_length_med shannon_slope gc_skew
+222	pg0 orf_length_med shannon_slope max_direction
+223	pg0 orf_length_med shannon_slope phmms
+224	pg0 orf_length_med at_skew gc_skew
+225	pg0 orf_length_med at_skew max_direction
+226	pg0 orf_length_med at_skew phmms
+227	pg0 orf_length_med gc_skew max_direction
+228	pg0 orf_length_med gc_skew phmms
+229	pg0 orf_length_med max_direction phmms
+230	pg0 shannon_slope at_skew gc_skew
+231	pg0 shannon_slope at_skew max_direction
+232	pg0 shannon_slope at_skew phmms
+233	pg0 shannon_slope gc_skew max_direction
+234	pg0 shannon_slope gc_skew phmms
+235	pg0 shannon_slope max_direction phmms
+236	pg0 at_skew gc_skew max_direction
+237	pg0 at_skew gc_skew phmms
+238	pg0 at_skew max_direction phmms
+239	pg0 gc_skew max_direction phmms
+240	orf_length_med shannon_slope at_skew gc_skew
+241	orf_length_med shannon_slope at_skew max_direction
+242	orf_length_med shannon_slope at_skew phmms
+243	orf_length_med shannon_slope gc_skew max_direction
+244	orf_length_med shannon_slope gc_skew phmms
+245	orf_length_med shannon_slope max_direction phmms
+246	orf_length_med at_skew gc_skew max_direction
+247	orf_length_med at_skew gc_skew phmms
+248	orf_length_med at_skew max_direction phmms
+249	orf_length_med gc_skew max_direction phmms
+250	shannon_slope at_skew gc_skew max_direction
+251	shannon_slope at_skew gc_skew phmms
+252	shannon_slope at_skew max_direction phmms
+253	shannon_slope gc_skew max_direction phmms
+254	at_skew gc_skew max_direction phmms
+255	none noannotation pg0 orf_length_med shannon_slope
+256	none noannotation pg0 orf_length_med at_skew
+257	none noannotation pg0 orf_length_med gc_skew
+258	none noannotation pg0 orf_length_med max_direction
+259	none noannotation pg0 orf_length_med phmms
+260	none noannotation pg0 shannon_slope at_skew
+261	none noannotation pg0 shannon_slope gc_skew
+262	none noannotation pg0 shannon_slope max_direction
+263	none noannotation pg0 shannon_slope phmms
+264	none noannotation pg0 at_skew gc_skew
+265	none noannotation pg0 at_skew max_direction
+266	none noannotation pg0 at_skew phmms
+267	none noannotation pg0 gc_skew max_direction
+268	none noannotation pg0 gc_skew phmms
+269	none noannotation pg0 max_direction phmms
+270	none noannotation orf_length_med shannon_slope at_skew
+271	none noannotation orf_length_med shannon_slope gc_skew
+272	none noannotation orf_length_med shannon_slope max_direction
+273	none noannotation orf_length_med shannon_slope phmms
+274	none noannotation orf_length_med at_skew gc_skew
+275	none noannotation orf_length_med at_skew max_direction
+276	none noannotation orf_length_med at_skew phmms
+277	none noannotation orf_length_med gc_skew max_direction
+278	none noannotation orf_length_med gc_skew phmms
+279	none noannotation orf_length_med max_direction phmms
+280	none noannotation shannon_slope at_skew gc_skew
+281	none noannotation shannon_slope at_skew max_direction
+282	none noannotation shannon_slope at_skew phmms
+283	none noannotation shannon_slope gc_skew max_direction
+284	none noannotation shannon_slope gc_skew phmms
+285	none noannotation shannon_slope max_direction phmms
+286	none noannotation at_skew gc_skew max_direction
+287	none noannotation at_skew gc_skew phmms
+288	none noannotation at_skew max_direction phmms
+289	none noannotation gc_skew max_direction phmms
+290	none pg0 orf_length_med shannon_slope at_skew
+291	none pg0 orf_length_med shannon_slope gc_skew
+292	none pg0 orf_length_med shannon_slope max_direction
+293	none pg0 orf_length_med shannon_slope phmms
+294	none pg0 orf_length_med at_skew gc_skew
+295	none pg0 orf_length_med at_skew max_direction
+296	none pg0 orf_length_med at_skew phmms
+297	none pg0 orf_length_med gc_skew max_direction
+298	none pg0 orf_length_med gc_skew phmms
+299	none pg0 orf_length_med max_direction phmms
+300	none pg0 shannon_slope at_skew gc_skew
+301	none pg0 shannon_slope at_skew max_direction
+302	none pg0 shannon_slope at_skew phmms
+303	none pg0 shannon_slope gc_skew max_direction
+304	none pg0 shannon_slope gc_skew phmms
+305	none pg0 shannon_slope max_direction phmms
+306	none pg0 at_skew gc_skew max_direction
+307	none pg0 at_skew gc_skew phmms
+308	none pg0 at_skew max_direction phmms
+309	none pg0 gc_skew max_direction phmms
+310	none orf_length_med shannon_slope at_skew gc_skew
+311	none orf_length_med shannon_slope at_skew max_direction
+312	none orf_length_med shannon_slope at_skew phmms
+313	none orf_length_med shannon_slope gc_skew max_direction
+314	none orf_length_med shannon_slope gc_skew phmms
+315	none orf_length_med shannon_slope max_direction phmms
+316	none orf_length_med at_skew gc_skew max_direction
+317	none orf_length_med at_skew gc_skew phmms
+318	none orf_length_med at_skew max_direction phmms
+319	none orf_length_med gc_skew max_direction phmms
+320	none shannon_slope at_skew gc_skew max_direction
+321	none shannon_slope at_skew gc_skew phmms
+322	none shannon_slope at_skew max_direction phmms
+323	none shannon_slope gc_skew max_direction phmms
+324	none at_skew gc_skew max_direction phmms
+325	noannotation pg0 orf_length_med shannon_slope at_skew
+326	noannotation pg0 orf_length_med shannon_slope gc_skew
+327	noannotation pg0 orf_length_med shannon_slope max_direction
+328	noannotation pg0 orf_length_med shannon_slope phmms
+329	noannotation pg0 orf_length_med at_skew gc_skew
+330	noannotation pg0 orf_length_med at_skew max_direction
+331	noannotation pg0 orf_length_med at_skew phmms
+332	noannotation pg0 orf_length_med gc_skew max_direction
+333	noannotation pg0 orf_length_med gc_skew phmms
+334	noannotation pg0 orf_length_med max_direction phmms
+335	noannotation pg0 shannon_slope at_skew gc_skew
+336	noannotation pg0 shannon_slope at_skew max_direction
+337	noannotation pg0 shannon_slope at_skew phmms
+338	noannotation pg0 shannon_slope gc_skew max_direction
+339	noannotation pg0 shannon_slope gc_skew phmms
+340	noannotation pg0 shannon_slope max_direction phmms
+341	noannotation pg0 at_skew gc_skew max_direction
+342	noannotation pg0 at_skew gc_skew phmms
+343	noannotation pg0 at_skew max_direction phmms
+344	noannotation pg0 gc_skew max_direction phmms
+345	noannotation orf_length_med shannon_slope at_skew gc_skew
+346	noannotation orf_length_med shannon_slope at_skew max_direction
+347	noannotation orf_length_med shannon_slope at_skew phmms
+348	noannotation orf_length_med shannon_slope gc_skew max_direction
+349	noannotation orf_length_med shannon_slope gc_skew phmms
+350	noannotation orf_length_med shannon_slope max_direction phmms
+351	noannotation orf_length_med at_skew gc_skew max_direction
+352	noannotation orf_length_med at_skew gc_skew phmms
+353	noannotation orf_length_med at_skew max_direction phmms
+354	noannotation orf_length_med gc_skew max_direction phmms
+355	noannotation shannon_slope at_skew gc_skew max_direction
+356	noannotation shannon_slope at_skew gc_skew phmms
+357	noannotation shannon_slope at_skew max_direction phmms
+358	noannotation shannon_slope gc_skew max_direction phmms
+359	noannotation at_skew gc_skew max_direction phmms
+360	pg0 orf_length_med shannon_slope at_skew gc_skew
+361	pg0 orf_length_med shannon_slope at_skew max_direction
+362	pg0 orf_length_med shannon_slope at_skew phmms
+363	pg0 orf_length_med shannon_slope gc_skew max_direction
+364	pg0 orf_length_med shannon_slope gc_skew phmms
+365	pg0 orf_length_med shannon_slope max_direction phmms
+366	pg0 orf_length_med at_skew gc_skew max_direction
+367	pg0 orf_length_med at_skew gc_skew phmms
+368	pg0 orf_length_med at_skew max_direction phmms
+369	pg0 orf_length_med gc_skew max_direction phmms
+370	pg0 shannon_slope at_skew gc_skew max_direction
+371	pg0 shannon_slope at_skew gc_skew phmms
+372	pg0 shannon_slope at_skew max_direction phmms
+373	pg0 shannon_slope gc_skew max_direction phmms
+374	pg0 at_skew gc_skew max_direction phmms
+375	orf_length_med shannon_slope at_skew gc_skew max_direction
+376	orf_length_med shannon_slope at_skew gc_skew phmms
+377	orf_length_med shannon_slope at_skew max_direction phmms
+378	orf_length_med shannon_slope gc_skew max_direction phmms
+379	orf_length_med at_skew gc_skew max_direction phmms
+380	shannon_slope at_skew gc_skew max_direction phmms
+381	none noannotation pg0 orf_length_med shannon_slope at_skew
+382	none noannotation pg0 orf_length_med shannon_slope gc_skew
+383	none noannotation pg0 orf_length_med shannon_slope max_direction
+384	none noannotation pg0 orf_length_med shannon_slope phmms
+385	none noannotation pg0 orf_length_med at_skew gc_skew
+386	none noannotation pg0 orf_length_med at_skew max_direction
+387	none noannotation pg0 orf_length_med at_skew phmms
+388	none noannotation pg0 orf_length_med gc_skew max_direction
+389	none noannotation pg0 orf_length_med gc_skew phmms
+390	none noannotation pg0 orf_length_med max_direction phmms
+391	none noannotation pg0 shannon_slope at_skew gc_skew
+392	none noannotation pg0 shannon_slope at_skew max_direction
+393	none noannotation pg0 shannon_slope at_skew phmms
+394	none noannotation pg0 shannon_slope gc_skew max_direction
+395	none noannotation pg0 shannon_slope gc_skew phmms
+396	none noannotation pg0 shannon_slope max_direction phmms
+397	none noannotation pg0 at_skew gc_skew max_direction
+398	none noannotation pg0 at_skew gc_skew phmms
+399	none noannotation pg0 at_skew max_direction phmms
+400	none noannotation pg0 gc_skew max_direction phmms
+401	none noannotation orf_length_med shannon_slope at_skew gc_skew
+402	none noannotation orf_length_med shannon_slope at_skew max_direction
+403	none noannotation orf_length_med shannon_slope at_skew phmms
+404	none noannotation orf_length_med shannon_slope gc_skew max_direction
+405	none noannotation orf_length_med shannon_slope gc_skew phmms
+406	none noannotation orf_length_med shannon_slope max_direction phmms
+407	none noannotation orf_length_med at_skew gc_skew max_direction
+408	none noannotation orf_length_med at_skew gc_skew phmms
+409	none noannotation orf_length_med at_skew max_direction phmms
+410	none noannotation orf_length_med gc_skew max_direction phmms
+411	none noannotation shannon_slope at_skew gc_skew max_direction
+412	none noannotation shannon_slope at_skew gc_skew phmms
+413	none noannotation shannon_slope at_skew max_direction phmms
+414	none noannotation shannon_slope gc_skew max_direction phmms
+415	none noannotation at_skew gc_skew max_direction phmms
+416	none pg0 orf_length_med shannon_slope at_skew gc_skew
+417	none pg0 orf_length_med shannon_slope at_skew max_direction
+418	none pg0 orf_length_med shannon_slope at_skew phmms
+419	none pg0 orf_length_med shannon_slope gc_skew max_direction
+420	none pg0 orf_length_med shannon_slope gc_skew phmms
+421	none pg0 orf_length_med shannon_slope max_direction phmms
+422	none pg0 orf_length_med at_skew gc_skew max_direction
+423	none pg0 orf_length_med at_skew gc_skew phmms
+424	none pg0 orf_length_med at_skew max_direction phmms
+425	none pg0 orf_length_med gc_skew max_direction phmms
+426	none pg0 shannon_slope at_skew gc_skew max_direction
+427	none pg0 shannon_slope at_skew gc_skew phmms
+428	none pg0 shannon_slope at_skew max_direction phmms
+429	none pg0 shannon_slope gc_skew max_direction phmms
+430	none pg0 at_skew gc_skew max_direction phmms
+431	none orf_length_med shannon_slope at_skew gc_skew max_direction
+432	none orf_length_med shannon_slope at_skew gc_skew phmms
+433	none orf_length_med shannon_slope at_skew max_direction phmms
+434	none orf_length_med shannon_slope gc_skew max_direction phmms
+435	none orf_length_med at_skew gc_skew max_direction phmms
+436	none shannon_slope at_skew gc_skew max_direction phmms
+437	noannotation pg0 orf_length_med shannon_slope at_skew gc_skew
+438	noannotation pg0 orf_length_med shannon_slope at_skew max_direction
+439	noannotation pg0 orf_length_med shannon_slope at_skew phmms
+440	noannotation pg0 orf_length_med shannon_slope gc_skew max_direction
+441	noannotation pg0 orf_length_med shannon_slope gc_skew phmms
+442	noannotation pg0 orf_length_med shannon_slope max_direction phmms
+443	noannotation pg0 orf_length_med at_skew gc_skew max_direction
+444	noannotation pg0 orf_length_med at_skew gc_skew phmms
+445	noannotation pg0 orf_length_med at_skew max_direction phmms
+446	noannotation pg0 orf_length_med gc_skew max_direction phmms
+447	noannotation pg0 shannon_slope at_skew gc_skew max_direction
+448	noannotation pg0 shannon_slope at_skew gc_skew phmms
+449	noannotation pg0 shannon_slope at_skew max_direction phmms
+450	noannotation pg0 shannon_slope gc_skew max_direction phmms
+451	noannotation pg0 at_skew gc_skew max_direction phmms
+452	noannotation orf_length_med shannon_slope at_skew gc_skew max_direction
+453	noannotation orf_length_med shannon_slope at_skew gc_skew phmms
+454	noannotation orf_length_med shannon_slope at_skew max_direction phmms
+455	noannotation orf_length_med shannon_slope gc_skew max_direction phmms
+456	noannotation orf_length_med at_skew gc_skew max_direction phmms
+457	noannotation shannon_slope at_skew gc_skew max_direction phmms
+458	pg0 orf_length_med shannon_slope at_skew gc_skew max_direction
+459	pg0 orf_length_med shannon_slope at_skew gc_skew phmms
+460	pg0 orf_length_med shannon_slope at_skew max_direction phmms
+461	pg0 orf_length_med shannon_slope gc_skew max_direction phmms
+462	pg0 orf_length_med at_skew gc_skew max_direction phmms
+463	pg0 shannon_slope at_skew gc_skew max_direction phmms
+464	orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+465	none noannotation pg0 orf_length_med shannon_slope at_skew gc_skew
+466	none noannotation pg0 orf_length_med shannon_slope at_skew max_direction
+467	none noannotation pg0 orf_length_med shannon_slope at_skew phmms
+468	none noannotation pg0 orf_length_med shannon_slope gc_skew max_direction
+469	none noannotation pg0 orf_length_med shannon_slope gc_skew phmms
+470	none noannotation pg0 orf_length_med shannon_slope max_direction phmms
+471	none noannotation pg0 orf_length_med at_skew gc_skew max_direction
+472	none noannotation pg0 orf_length_med at_skew gc_skew phmms
+473	none noannotation pg0 orf_length_med at_skew max_direction phmms
+474	none noannotation pg0 orf_length_med gc_skew max_direction phmms
+475	none noannotation pg0 shannon_slope at_skew gc_skew max_direction
+476	none noannotation pg0 shannon_slope at_skew gc_skew phmms
+477	none noannotation pg0 shannon_slope at_skew max_direction phmms
+478	none noannotation pg0 shannon_slope gc_skew max_direction phmms
+479	none noannotation pg0 at_skew gc_skew max_direction phmms
+480	none noannotation orf_length_med shannon_slope at_skew gc_skew max_direction
+481	none noannotation orf_length_med shannon_slope at_skew gc_skew phmms
+482	none noannotation orf_length_med shannon_slope at_skew max_direction phmms
+483	none noannotation orf_length_med shannon_slope gc_skew max_direction phmms
+484	none noannotation orf_length_med at_skew gc_skew max_direction phmms
+485	none noannotation shannon_slope at_skew gc_skew max_direction phmms
+486	none pg0 orf_length_med shannon_slope at_skew gc_skew max_direction
+487	none pg0 orf_length_med shannon_slope at_skew gc_skew phmms
+488	none pg0 orf_length_med shannon_slope at_skew max_direction phmms
+489	none pg0 orf_length_med shannon_slope gc_skew max_direction phmms
+490	none pg0 orf_length_med at_skew gc_skew max_direction phmms
+491	none pg0 shannon_slope at_skew gc_skew max_direction phmms
+492	none orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+493	noannotation pg0 orf_length_med shannon_slope at_skew gc_skew max_direction
+494	noannotation pg0 orf_length_med shannon_slope at_skew gc_skew phmms
+495	noannotation pg0 orf_length_med shannon_slope at_skew max_direction phmms
+496	noannotation pg0 orf_length_med shannon_slope gc_skew max_direction phmms
+497	noannotation pg0 orf_length_med at_skew gc_skew max_direction phmms
+498	noannotation pg0 shannon_slope at_skew gc_skew max_direction phmms
+499	noannotation orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+500	pg0 orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+501	none noannotation pg0 orf_length_med shannon_slope at_skew gc_skew max_direction
+502	none noannotation pg0 orf_length_med shannon_slope at_skew gc_skew phmms
+503	none noannotation pg0 orf_length_med shannon_slope at_skew max_direction phmms
+504	none noannotation pg0 orf_length_med shannon_slope gc_skew max_direction phmms
+505	none noannotation pg0 orf_length_med at_skew gc_skew max_direction phmms
+506	none noannotation pg0 shannon_slope at_skew gc_skew max_direction phmms
+507	none noannotation orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+508	none pg0 orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+509	noannotation pg0 orf_length_med shannon_slope at_skew gc_skew max_direction phmms
+510	none noannotation pg0 orf_length_med shannon_slope at_skew gc_skew max_direction phmms
