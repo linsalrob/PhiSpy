@@ -8,7 +8,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
 from compare_predictions_to_phages import genbank_seqio
 from os import makedirs, path
-from PhiSpyModules import log_and_message
+from PhiSpyModules import log_and_message, is_gzip_file
 
 from argparse import ArgumentParser
 from os import makedirs, path
@@ -44,7 +44,7 @@ def read_prophage_table(infile):
     2 - replicon id,
     3 - prophage start coordinate,
     4 - prophage end coordinate,
-    5 (optional) - prophage name (if not provided pp1, pp2, etc. 
+    5 (optional) - prophage name (if not provided pp1, pp2, etc.
     will be assigned for each file)
     :param infile: path to the file
     :return prophages: dictionary of GenBank file(s) paths, replicons and prophages coordinates
@@ -66,7 +66,7 @@ def read_prophage_table(infile):
 
             if file_path in prophages:
                 pp_cnt = len(prophages[file_path]) + 1
-            else: 
+            else:
                 pp_cnt = 1
 
             pp = line[4] if len(line) == 5 else  f"pp{pp_cnt}"
@@ -83,7 +83,7 @@ def read_prophage_table(infile):
 
 def feature_within_prophage(feature, pps):
     """
-    Checks wether a feature is located within any of prophage regions.
+    Checks whether a feature is located within any of prophage regions.
     :param feature: SeqFeature object
     :param pps: dictionary of prophage coordinates tuples
     :return pp: prophage name
@@ -99,11 +99,13 @@ def feature_within_prophage(feature, pps):
     return None
 
 
-def mark_prophage_features(prophages, outdir):
+def mark_prophage_features(prophages, outdir, gzip_files, ungzip_files):
     """
     Marks features within prophage regions with "is_phage='1'" qualifier.
     :param prophages: dictionary of GenBank file(s) paths, replicons and prophages coordinates
     :param outdir: output directory to write updated GenBank file(s)
+    :param gzip_files: gzip all processed input files
+    :param ungzip_files: ungzip all processed input files
     :return:
     """
 
@@ -128,7 +130,23 @@ def mark_prophage_features(prophages, outdir):
                         if feature.type == 'CDS': cnt_cds += 1
 
         log_and_message(f"-- Marked {cnt_all} features, including {cnt_cds} CDSs, with 'is_phage' qualifier.", stderr=True)
-        SeqIO.write(records, path.join(outdir, path.basename(gbkf)), 'genbank')
+
+        outfile = path.join(outdir, path.basename(gbkf))
+        if gzip_files:
+            if not outfile.endswith('.gz'):
+                outfile += '.gz'
+            handle = gzip.open(outfile, 'wt')
+        elif ungzip_files:
+            if outfile.endswith('.gz'):
+                outfile = outfile[:-3]
+            handle = open(outfile, 'w')
+        elif is_gzip_file(gbkf):
+            handle = gzip.open(outfile, 'wt')
+        else:
+            handle = open(outfile, 'w')
+
+        log_and_message(f"Writing {outfile}", c="GREEN", stderr=True)
+        SeqIO.write(records, handle, 'genbank')
 
 
 def main():
@@ -153,6 +171,16 @@ def main():
     args.add_argument('-t', '--table',
                       type = str,
                       help = 'Path to tab-delimited file with confirmed prophage regions to mark. The file has to have the following columns: 1 - path to GenBank file, 2 - replicon id, 3 - prophage start coordinate, 4 - prophage end coordinate, 5 (optional) - prophage name (if not provided pp1, pp2, etc. will be assigned for each file)')
+
+    args.add_argument('--gzip_files',
+                      action = 'store_true',
+                      default = False,
+                      help = 'Gzip all output files. \'.gz\' extension will be added if missing. [Default: %(default)s]')
+
+    args.add_argument('--ungzip_files',
+                      action = 'store_true',
+                      default = False,
+                      help = 'Ungzip all output files. \'.gz\' extension will be removed if present. [Default: %(default)s]')
 
     if len(argv[1:]) == 0:
         args.print_help()
@@ -179,7 +207,7 @@ def main():
         log_and_message(f"Incorrect input data.", c="RED", stderr=True)
         log_and_message(f"Use --genbank, --outdir and --ppcords or --table and --outdir.", c="PINK", stderr=True)
 
-    mark_prophage_features(prophages, args.outdir)
+    mark_prophage_features(prophages, args.outdir, args.gzip_files, args.ungzip_files)
 
     log_and_message(f"Done. You can now use output file(s) for training PhiSpy.", c="GREEN", stderr=True)
 
