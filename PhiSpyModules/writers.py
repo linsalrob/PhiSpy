@@ -351,7 +351,7 @@ def write_all_outputs(**kwargs):
         # write a tsv file of this data
         write_prophage_tsv(self)
         oc -= 16
-    if oc > 8:
+    if oc >= 8:
         # write prophage_information.tsv
         write_prophage_information(self)
         oc -= 8
