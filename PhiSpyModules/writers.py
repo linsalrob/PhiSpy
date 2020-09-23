@@ -33,7 +33,7 @@ def write_gff3(self):
     out_gff = open(os.path.join(self.output_dir, self.file_prefix + "prophage.gff3"), "w")
     out_gff.write("##gff-version 3")
     out_gff.write("\n")
-    
+
     # loop through pp results
     for i in self.pp:
         # GFF
@@ -63,7 +63,7 @@ def write_gff3(self):
                           str(self.pp[i]['att'][3]) + '\t.\t.' +
                           ' \t.\tID=pp' + str(i))
             out_gff.write('\n')
-        
+
     out_gff.close()
 
 
@@ -104,7 +104,7 @@ def write_genbank(self):
 
 def write_phage_and_bact(self):
     """
-    Separate out the phage and bacterial fractions into fasta files
+    Separate out the phage and bacterial fractions into fasta and GenBank files
     :param self: the data object
     :param dna: the DNA sequence object
     :return: None
@@ -116,7 +116,7 @@ def write_phage_and_bact(self):
     bacteria_genbank = open(os.path.join(self.output_dir, self.file_prefix + "bacteria.gbk"), "w")
 
     dna = {entry.id: str(entry.seq) for entry in self.record}
-    
+
     contig_to_phage = {}
     for i in self.pp:
         contig = self.pp[i]['contig']  # contig name
@@ -145,8 +145,10 @@ def write_phage_and_bact(self):
             pp_gbk.name += f"_PP{ppnum}"
             # set the Accession
             pp_gbk.id += f"_PP{ppnum}"
-            #set the definition line
+            # set the definition line
             pp_gbk.description += f" prophage PP{ppnum} on {contig} from {pphagestart} to {pphagestop}"
+            # set the molecule type; required for Biopython v1.78 and above - https://biopython.org/wiki/Alphabet
+            pp_gbk.annotations = {"molecule_type": "DNA"}
             SeqIO.write(pp_gbk, phage_genbank, "genbank")
 
             dnaseq += dna[contig][bactstart:pphagestart - 1]
@@ -156,6 +158,8 @@ def write_phage_and_bact(self):
             host_gbk.name += f"_region_{hostcounter}"
             host_gbk.id += f"_region_{hostcounter}"
             host_gbk.description += f" region {hostcounter} on {contig} from {bactstart} to {pphagestart - 1}"
+            # set the molecule type; required for Biopython v1.78 and above - https://biopython.org/wiki/Alphabet
+            host_gbk.annotations = {"molecule_type": "DNA"}
             SeqIO.write(host_gbk, bacteria_genbank, "genbank")
             bactstart = pphagestop + 1
 
@@ -165,6 +169,8 @@ def write_phage_and_bact(self):
         host_gbk.name += f"_region_{hostcounter}"
         host_gbk.id += f"_region_{hostcounter}"
         host_gbk.description += f" region {hostcounter} on {contig} from {bactstart} onwards"
+        # set the molecule type; required for Biopython v1.78 and above - https://biopython.org/wiki/Alphabet
+        host_gbk.annotations = {"molecule_type": "DNA"}
         bacteria_out.write(f">{contig} [phage regions replaced with N]\n{dnaseq}\n")
         SeqIO.write(host_gbk, bacteria_genbank, "genbank")
 
@@ -322,15 +328,15 @@ def write_all_outputs(**kwargs):
     It is based on this code:
         Code | File
         --- | ---
-        1 | prophage_coordinates.tsv 
-        2 | GenBank format output 
-        4 | prophage and bacterial sequences  
-        8 | prophage_information.tsv  
-        16 | prophage.tsv  
-        32 | GFF3 format  
+        1 | prophage_coordinates.tsv
+        2 | GenBank format output
+        4 | prophage and bacterial sequences
+        8 | prophage_information.tsv
+        16 | prophage.tsv
+        32 | GFF3 format
         64 | prophage.tbl
         128 | test data used in the random forest
-    As explained in the README. 
+    As explained in the README.
     """
 
     oc = self.output_choice
