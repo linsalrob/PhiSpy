@@ -94,7 +94,7 @@ def get_args():
                              ' to be called. [Default: %(default)d]')
     parser.add_argument('-u', '--min_contig_size', default=5000, type=int,
                         help='Minimum contig size (in bp) to be included in the analysis. Smaller contigs will ' +
-                             'be dropped. [Default: 30]')
+                             'be dropped. [Default: %(default)d]')
     parser.add_argument('-w', '--window_size', default=30, type=int,
                         help='Window size of consecutive genes to look through to find phages. [Default: %(default)d]')
     parser.add_argument('-g', '--nonprophage_genegaps', default=10, type=int,
@@ -109,7 +109,7 @@ def get_args():
     parser.add_argument('--expand_slope', action='store_true', default=False,
                         help='Use the product of the slope of the Shannon scores in making test sets')
     parser.add_argument('--kmers_type', default='all', choices=['all', 'codon', 'simple'], type=str,
-                        help='Type of kmers used for calculating Shannon scores. [Default: all]')
+                        help='Type of kmers used for calculating Shannon scores. [Default: %(default)s]')
     parser.add_argument('--phmms', type=str,
                         help='Phage HMM profile database (like pVOGs) will be mapped against the genome of ' +
                             'interest and used as additional feature to identify prophages.\nNote that this ' +
