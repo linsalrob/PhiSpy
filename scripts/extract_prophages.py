@@ -16,28 +16,52 @@ def is_valid_file(x):
 
 def main(args):
 	with open(args.infile) as fp:
+		locus = None
 		dna = ''
-		in_features = False
 		in_pp = False
+		in_features = False
 		for line in fp:
-			if line.startswith('FEATURES'):
+			if line.startswith('LOCUS'):
+				locus = line.split()[1]
+				dna = ''
+				in_pp = False
+				in_features = False
+			elif line.startswith('FEATURES'):
 				in_features = True
 				for pp in args.coords:
-					args.out[pp].write(line)
-					args.out[pp].write('     source          1..')
-					args.out[pp].write(str(args.coords[pp][1]-args.coords[pp][0]))
-					args.out[pp].write('\n')
-					
+					if args.coords[pp][0] == locus:
+						args.out[pp].write(line)
+						args.out[pp].write('     source          1..')
+						args.out[pp].write(str(1+args.coords[pp][2]-args.coords[pp][1]))
+						args.out[pp].write('\n')
 			elif line.startswith('ORIGIN'):
 				in_features = False
 				dna = '\n'
+			elif line.startswith('//'):
+				dna = dna.replace('\n', '')
+				for pp in args.coords:
+					if args.coords[pp][0] == locus:
+						args.out[pp].write('ORIGIN\n')
+						i = 0
+						for block in textwrap.wrap(dna[ args.coords[pp][1]-1 : args.coords[pp][2] ], 10):
+							if(i%60 == 0):
+								args.out[pp].write('\n')
+								args.out[pp].write(str(i+1).rjust(9))
+								args.out[pp].write(' ')
+								args.out[pp].write(block.lower())
+							else:
+								args.out[pp].write(' ')
+								args.out[pp].write(block.lower())
+							i += 10
+						args.out[pp].write('\n')
+						args.out[pp].write('//\n')
 			elif in_features:
 				if not line.startswith('      '):
 					in_pp = False
 					left = min(map(int, re.findall(r"\d+", line)))
 					for pp in args.coords:
-						if args.coords[pp][0] <= left and left <= args.coords[pp][1]:
-							offset = args.coords[pp][0]-1
+						if args.coords[pp][0] == locus and args.coords[pp][1] <= left and left <= args.coords[pp][2]:
+							offset = args.coords[pp][1]-1
 							for match in re.findall(r"\d+", line):
 								line = line.replace(match, str(int(match)-offset))
 							args.out[pp].write(line)
@@ -49,31 +73,15 @@ def main(args):
 				dna += line.upper()
 			if not in_features and not dna:
 				for pp in args.out:
-					if line.startswith('LOCUS'):
+					if args.coords[pp][0] != locus:
+						pass
+					elif line.startswith('LOCUS'):
 						match = re.findall(r"\d+ bp", line)[0]
-						# the bp length is probably off by 1
-						replacement = str(args.coords[pp][1]-args.coords[pp][0]) + " bp"
+						replacement = str(1+args.coords[pp][2]-args.coords[pp][1]) + " bp"
 						line = line.replace(match, replacement.rjust(len(match)))
 						args.out[pp].write(line)
 					else:
 						args.out[pp].write(line)
-	dna = dna.replace('\n', '')
-	for pp in args.coords:
-		args.out[pp].write('ORIGIN\n')
-		# the coordinates are probably off by 1
-		i = 0
-		for block in textwrap.wrap(dna[ args.coords[pp][0]-1 : args.coords[pp][1] ], 10):
-			if(i%60 == 0):
-				args.out[pp].write('\n')
-				args.out[pp].write(str(i+1).rjust(9))
-				args.out[pp].write(' ')
-				args.out[pp].write(block.lower())
-			else:
-				args.out[pp].write(' ')
-				args.out[pp].write(block.lower())
-			i += 10
-		args.out[pp].write('\n')
-		args.out[pp].write('//\n')
 
 
 
@@ -92,7 +100,7 @@ if __name__ == '__main__':
 	with open(args.coordinates) as fp:
 		for line in fp:
 			cols = line.split('\t')
-			args.coords[cols[0]] = tuple(map(int,cols[2:4]))
+			args.coords[cols[0]] = tuple([cols[1], int(cols[2]), int(cols[3])])
 			args.out[cols[0]] = open(os.path.splitext(args.infile)[0] + "_" + cols[0] + '.gb', 'w')
 	main(args)
 
