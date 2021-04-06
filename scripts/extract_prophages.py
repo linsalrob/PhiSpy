@@ -28,7 +28,7 @@ def main(args):
 				in_features = False
 			elif line.startswith('FEATURES'):
 				in_features = True
-				for pp in args.coords[locus]:
+				for pp in args.coords.get(locus, []):
 					args.coords[locus][pp].file.write(line)
 					args.coords[locus][pp].file.write('     source          1..')
 					args.coords[locus][pp].file.write(str(1+args.coords[locus][pp].right-args.coords[locus][pp].left))
@@ -38,7 +38,7 @@ def main(args):
 				dna = '\n'
 			elif line.startswith('//'):
 				dna = dna.replace('\n', '')
-				for pp in args.coords[locus]:
+				for pp in args.coords.get(locus, []):
 						args.coords[locus][pp].file.write('ORIGIN\n')
 						i = 0
 						for block in textwrap.wrap(dna[ args.coords[locus][pp].left-1 : args.coords[locus][pp].right ], 10):
@@ -57,8 +57,9 @@ def main(args):
 				if not line.startswith('      '):
 					in_pp = False
 					left = min(map(int, re.findall(r"\d+", line)))
-					for pp in args.coords[locus]:
-						if args.coords[locus][pp].left <= left and left <= args.coords[locus][pp].right:
+					right = max(map(int, re.findall(r"\d+", line)))
+					for pp in args.coords.get(locus, []):
+						if args.coords[locus][pp].left <= left and left <= args.coords[locus][pp].right and right <= args.coords[locus][pp].right:
 							offset = args.coords[locus][pp].left - 1
 							for match in re.findall(r"\d+", line):
 								line = line.replace(match, str(int(match)-offset))
@@ -70,7 +71,7 @@ def main(args):
 				line = line[10:].replace(' ','')
 				dna += line.upper()
 			if not in_features and not dna:
-				for pp in args.coords[locus]:
+				for pp in args.coords.get(locus, []):
 					if line.startswith('LOCUS'):
 						match = re.findall(r"\d+ bp", line)[0]
 						replacement = str( 1 + args.coords[locus][pp].right - args.coords[locus][pp].left ) + " bp"
