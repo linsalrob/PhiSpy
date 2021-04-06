@@ -39,7 +39,7 @@ def main(args):
 			elif line.startswith('//'):
 				dna = dna.replace('\n', '')
 				for pp in args.coords.get(locus, []):
-						args.coords[locus][pp].file.write('ORIGIN\n')
+						args.coords[locus][pp].file.write('ORIGIN')
 						i = 0
 						for block in textwrap.wrap(dna[ args.coords[locus][pp].left-1 : args.coords[locus][pp].right ], 10):
 							if(i%60 == 0):
