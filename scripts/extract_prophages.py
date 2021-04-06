@@ -28,61 +28,56 @@ def main(args):
 				in_features = False
 			elif line.startswith('FEATURES'):
 				in_features = True
-				for pp in args.coords:
-					if args.coords[pp][0] == locus:
-						args.out[pp].write(line)
-						args.out[pp].write('     source          1..')
-						args.out[pp].write(str(1+args.coords[pp][2]-args.coords[pp][1]))
-						args.out[pp].write('\n')
+				for pp in args.coords[locus]:
+					args.coords[locus][pp].file.write(line)
+					args.coords[locus][pp].file.write('     source          1..')
+					args.coords[locus][pp].file.write(str(1+args.coords[locus][pp].right-args.coords[locus][pp].left))
+					args.coords[locus][pp].file.write('\n')
 			elif line.startswith('ORIGIN'):
 				in_features = False
 				dna = '\n'
 			elif line.startswith('//'):
 				dna = dna.replace('\n', '')
-				for pp in args.coords:
-					if args.coords[pp][0] == locus:
-						args.out[pp].write('ORIGIN\n')
+				for pp in args.coords[locus]:
+						args.coords[locus][pp].file.write('ORIGIN\n')
 						i = 0
-						for block in textwrap.wrap(dna[ args.coords[pp][1]-1 : args.coords[pp][2] ], 10):
+						for block in textwrap.wrap(dna[ args.coords[locus][pp].left-1 : args.coords[locus][pp].right ], 10):
 							if(i%60 == 0):
-								args.out[pp].write('\n')
-								args.out[pp].write(str(i+1).rjust(9))
-								args.out[pp].write(' ')
-								args.out[pp].write(block.lower())
+								args.coords[locus][pp].file.write('\n')
+								args.coords[locus][pp].file.write(str(i+1).rjust(9))
+								args.coords[locus][pp].file.write(' ')
+								args.coords[locus][pp].file.write(block.lower())
 							else:
-								args.out[pp].write(' ')
-								args.out[pp].write(block.lower())
+								args.coords[locus][pp].file.write(' ')
+								args.coords[locus][pp].file.write(block.lower())
 							i += 10
-						args.out[pp].write('\n')
-						args.out[pp].write('//\n')
+						args.coords[locus][pp].file.write('\n')
+						args.coords[locus][pp].file.write('//\n')
 			elif in_features:
 				if not line.startswith('      '):
 					in_pp = False
 					left = min(map(int, re.findall(r"\d+", line)))
-					for pp in args.coords:
-						if args.coords[pp][0] == locus and args.coords[pp][1] <= left and left <= args.coords[pp][2]:
-							offset = args.coords[pp][1]-1
+					for pp in args.coords[locus]:
+						if args.coords[locus][pp].left <= left and left <= args.coords[locus][pp].right:
+							offset = args.coords[locus][pp].left - 1
 							for match in re.findall(r"\d+", line):
 								line = line.replace(match, str(int(match)-offset))
-							args.out[pp].write(line)
+							args.coords[locus][pp].file.write(line)
 							in_pp = pp
 				elif in_pp:
-					args.out[in_pp].write(line)
+					args.coords[locus][in_pp].file.write(line)
 			elif dna:
 				line = line[10:].replace(' ','')
 				dna += line.upper()
 			if not in_features and not dna:
-				for pp in args.out:
-					if args.coords[pp][0] != locus:
-						pass
-					elif line.startswith('LOCUS'):
+				for pp in args.coords[locus]:
+					if line.startswith('LOCUS'):
 						match = re.findall(r"\d+ bp", line)[0]
-						replacement = str(1+args.coords[pp][2]-args.coords[pp][1]) + " bp"
+						replacement = str( 1 + args.coords[locus][pp].right - args.coords[locus][pp].left ) + " bp"
 						line = line.replace(match, replacement.rjust(len(match)))
-						args.out[pp].write(line)
+						args.coords[locus][pp].file.write(line)
 					else:
-						args.out[pp].write(line)
-
+						args.coords[locus][pp].file.write(line)
 
 
 
@@ -96,12 +91,14 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 
 	args.coords = dict()
-	args.out = dict()
 	with open(args.coordinates) as fp:
 		for line in fp:
-			cols = line.split('\t')
-			args.coords[cols[0]] = tuple([cols[1], int(cols[2]), int(cols[3])])
-			args.out[cols[0]] = open(os.path.splitext(args.infile)[0] + "_" + cols[0] + '.gb', 'w')
+			pp, locus, left, right, *_ = line.split('\t')
+			obj = lambda: None
+			obj.left = int(left)
+			obj.right = int(right)
+			obj.file = open(os.path.splitext(args.infile)[0] + "_" + pp + '.gb', 'w')
+			args.coords.setdefault(locus,{})[pp] = obj
 	main(args)
 
 
