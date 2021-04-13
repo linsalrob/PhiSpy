@@ -109,8 +109,7 @@ def is_unknown_func(x):
             re.match('orf[^_]', x_lower) or
             re.match('predicted', x_lower) or
             re.match('bh\d+', x_lower) or
-            re.match('y[a-z]{2,4}\\b', x) or
-            re.match('[a-z]{2,3}\d+[^:\+\-0-9]', x_lower)
+            re.match('y[a-z]{2,4}\\b', x)
     ):
         return True
     return False
