@@ -123,7 +123,8 @@ def calc_pp(func):
         x = 1
     elif is_unknown_func(func):
         x = 0.5
-    elif is_not_phage_func(func):
+
+    if is_not_phage_func(func):
         x = 0
 
     # a few special cases
