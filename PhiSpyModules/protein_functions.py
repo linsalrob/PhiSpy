@@ -114,6 +114,15 @@ def is_unknown_func(x):
         return True
     return False
 
+def is_mobile_element(x):
+    x = x.lower()
+    if ('mobile element protein' in x or
+        'transposon' in x or
+        'transposase' in x or
+        'insertion sequence' in x or
+        'insertion element' in x):
+        return True
+    return False
 
 def downweighting_unknown_functions(self):
     for d in self.initial_tbl:

@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from argparse import Namespace
 
-from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func
+from .protein_functions import is_phage_func, is_unknown_func, is_not_phage_func, is_mobile_element
 from .genbank_accessory_functions import feature_id
 from .log_and_message import log_and_message
 
@@ -121,6 +121,8 @@ def calc_pp(func):
     x = 0
     if is_phage_func(func):
         x = 1
+    elif is_mobile_element(func):
+        x = 0.75
     elif is_unknown_func(func):
         x = 0.5
 
@@ -172,7 +174,7 @@ def make_initial_tbl(**kwargs):
             if self.color:
                 if pp_score > 1:
                     feature.qualifiers['colour'] = 2 # red
-                elif 'mobile element protein' in feature.function.lower():
+                elif pp_score == 0.75:
                     feature.qualifiers['colour'] = 6 # pink
                 elif pp_score == 1:
                     feature.qualifiers['colour'] = 4 # blue
