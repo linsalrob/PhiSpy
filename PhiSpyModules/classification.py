@@ -181,7 +181,7 @@ def make_initial_tbl(**kwargs):
                 elif is_unknown_func(feature.function):
                     feature.qualifiers['colour'] = 13  # light grey
                 elif pp_score == 0.5:
-                    feature.qualifiers['colour'] = 9 # light blue
+                    feature.qualifiers['colour'] = 13 # light grey
             fid = feature_id(entry, feature)
             ft = {
                 'fig': fid,
