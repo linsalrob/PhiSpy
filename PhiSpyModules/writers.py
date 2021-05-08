@@ -79,7 +79,7 @@ def write_genbank(self):
     outfile = os.path.join(self.output_dir, self.file_prefix + os.path.basename(self.infile))
     for i in self.pp:
         self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
-                    location=FeatureLocation(self.pp[i]['start'], self.pp[i]['stop']),
+                    location=FeatureLocation(self.pp[i]['start']-1, self.pp[i]['stop']-1),
                     type=prophage_feature_type,
                     strand=1,
                     qualifiers=OrderedDict(
