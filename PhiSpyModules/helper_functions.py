@@ -74,8 +74,7 @@ def create_logger(self):
 def get_args():
     parser = argparse.ArgumentParser(
         description="phiSpy is a program for identifying prophages from among microbial genome sequences",
-        epilog="(c) 2008-2018 Sajia Akhter, Katelyn McNair, Przemysław Decewicz, Rob Edwards, " +
-               "San Diego State University, San Diego, CA")
+        epilog="(c) 2008-2020 Sajia Akhter, Katelyn McNair, Przemysław Decewicz, Rob Edwards")
     parser.add_argument('infile', type=is_valid_file, help='Input file in genbank format', nargs='?')
     parser.add_argument('-o', '--output_dir', help='The output directory to write the results')
     parser.add_argument('-m', '--make_training_data', type=str,
