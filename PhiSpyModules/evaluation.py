@@ -361,12 +361,9 @@ def fixing_start_end(**kwargs):
                 for idx in repeat_list:
                     lengthrep = math.fabs(repeat_list[idx]['e1'] - repeat_list[idx]['s1'])
                     if lengthrep > longestrep and lengthrep < 150:
-                        # check the sequence to make sure it is not just N's
-                        attLseq = dna[pp[i]['contig']][int(repeat_list[idx]['s1']) - 1:int(repeat_list[idx]['e1']) - 1]
-                        if 1 in [base in attLseq.lower() for base in ['a', 't', 'g', 'c']]:
-                            longestrep = lengthrep
-                            bestrep = repeat_list[idx]
-                            samelenrep = 1
+                        longestrep = lengthrep
+                        bestrep = repeat_list[idx]
+                        samelenrep = 1
                     elif lengthrep == longestrep:
                         samelenrep += 1
                 if bestrep:
