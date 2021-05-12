@@ -62,7 +62,7 @@ def main(args):
 						if args.coords[locus][pp].left <= left and left <= args.coords[locus][pp].right and right <= args.coords[locus][pp].right:
 							offset = args.coords[locus][pp].left - 1
 							for match in re.findall(r"\d+", line):
-								line = line.replace(match, str(int(match)-offset))
+								line = line.replace(match, str(int(match)-offset), 1)
 							args.coords[locus][pp].file.write(line)
 							in_pp = pp
 				elif in_pp:
