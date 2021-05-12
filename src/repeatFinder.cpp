@@ -17,7 +17,7 @@ unsigned INIT_DNA_LEN = 120000000;
 
 char inputfile[256] = "test.fasta";
 char *dna;
-int converter[128], complement[128];
+int complement[128];
 int dna_len;
 int output_rep_len = REPEAT_LEN;
 int debug = 0;
@@ -35,6 +35,29 @@ struct repeat{
 vector<repeat> rep;
 int gap_len = 0; //allow gap < gap_len
 int ppno = 0; // which prophage are we working on
+
+
+int two_bit_encode(int x) {
+    // convert a base to a two bit encode
+    switch(x) {
+        case 65: // A
+        case 97: // a
+            return 0;
+        case 67: // C
+        case 99: // c
+            return 1;
+        case 71: // G
+        case 103: // g
+            return 2;
+        case 84: // T
+        case 116: //t
+            return 3;
+        default:
+            return rand() % 4;
+    }
+}
+
+
 
 void input()
 {
@@ -71,24 +94,24 @@ void find_repeats()
 
 	key = 0;
 	for(start = 0;start < REPEAT_LEN; start++)
-		key = (key<<2) + converter[(int) dna[start]];
+		key = (key<<2) + two_bit_encode((int) dna[start]);
 	allrepeats[key].push_back(0);
 
 	for(start = 1;start < dna_len-REPEAT_LEN+1; start++)
 	{
-		key = ((key&((1<<keylen)-1))<< 2) + converter[(int) dna[start+REPEAT_LEN-1]];
+		key = ((key&((1<<keylen)-1))<< 2) + two_bit_encode((int) dna[start+REPEAT_LEN-1]);
 		allrepeats[key].push_back(start);
 	}
 
 	//find reverse repeat
 	key = 0;
 	for(start = dna_len-1;start >dna_len-1-REPEAT_LEN; start--)
-		key = (key<<2) + converter[complement[(int) dna[start]]];
+		key = (key<<2) + two_bit_encode(complement[(int) dna[start]]);
 	allrepeats[key].push_back((dna_len-1)*(-1));
 	
 	for(start = dna_len-2;start >REPEAT_LEN-2; start--)
 	{
-		key= ((key&((1<<keylen)-1))<<2) + converter[complement[(int) dna[start-REPEAT_LEN+1]]];
+		key= ((key&((1<<keylen)-1))<<2) + two_bit_encode(complement[(int) dna[start-REPEAT_LEN+1]]);
 		allrepeats[key].push_back(start*(-1));
 	}
 }
@@ -161,7 +184,7 @@ void extend_repeats()
 
 	key = 0;
 	for(i = 0;i < REPEAT_LEN; i++)
-		key = (key<<2) + converter[(int) dna[i]];
+		key = (key<<2) + two_bit_encode((int) dna[i]);
 	for(j=0; j < (int) allrepeats[key].size(); j++)
 		if(allrepeats[key][j]<0)
 			find_maxlen_rev(0,allrepeats[key][j]);
@@ -169,7 +192,7 @@ void extend_repeats()
 			find_maxlen(0,allrepeats[key][j]);
 
 	for(i =1;i<dna_len-REPEAT_LEN+1;i++){
-		key = ((key&((1<<keylen)-1))<< 2) + converter[(int) dna[i+REPEAT_LEN-1]];
+		key = ((key&((1<<keylen)-1))<< 2) + two_bit_encode((int) dna[i+REPEAT_LEN-1]);
 		for(j=0; j < (int) allrepeats[key].size(); j++)
 			if(allrepeats[key][j]<0)
 				find_maxlen_rev(i,allrepeats[key][j]);
@@ -282,14 +305,6 @@ void print_output()
 void run() {
 
 	//initialize
-	converter[(int) 'A']=0;
-	converter[(int) 'a']=0;
-	converter[(int) 'C']=1;
-	converter[(int) 'c']=1;
-	converter[(int) 'G']=2;
-	converter[(int) 'g']=2;
-	converter[(int) 'T']=3;
-	converter[(int) 't']=3;
 	complement[(int) 'A']='T';
 	complement[(int) 'a']='t';
 	complement[(int) 'C']='G';
