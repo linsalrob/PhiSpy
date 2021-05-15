@@ -362,6 +362,7 @@ include that file add up the codes:
   32     GFF3 format
   64     prophage.tbl
   128    test data used in the random forest
+  256    Genomic DNA in GFF3 format including prophage regions
 
 So for example, if you want to get `GenBank format output` (2) and
 `prophage_information.tsv` (8), then enter an `--output_choice` of 10.

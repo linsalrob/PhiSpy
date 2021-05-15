@@ -1,4 +1,3 @@
-
 """
 A module to write the output in different formats
 """
@@ -10,14 +9,27 @@ from argparse import Namespace
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from collections import OrderedDict
+from BCBio import GFF  # bcbio-gff package
 
 import PhiSpyModules.version as version
 from .log_and_message import log_and_message
 from .helper_functions import is_gzip_file
 from .evaluation import check_pp
 
-
 __author__ = 'Rob Edwards'
+
+
+def genome_gff3(self):
+    """
+    Write GFF3 format output using BCBios format
+    :param self: the data object
+    :return: None
+    """
+    log_and_message("Writing Genomic GFF3 output file", c="GREEN", stderr=True, quiet=self.quiet)
+    # GFF output
+    out_gff = os.path.join(self.output_dir, self.file_prefix + "genome.gff3")
+    with open(out_gff, 'w') as outf:
+        GFF.write(self.records, outf, True)
 
 
 def write_gff3(self):
@@ -75,23 +87,7 @@ def write_genbank(self):
     """
 
     log_and_message("Writing GenBank output file", c="GREEN", stderr=True, quiet=self.quiet)
-    prophage_feature_type = 'misc_feature'  # / prophage_region
     outfile = os.path.join(self.output_dir, self.file_prefix + os.path.basename(self.infile))
-    for i in self.pp:
-        self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
-                    location=FeatureLocation(self.pp[i]['start']-1, self.pp[i]['stop']-1),
-                    type=prophage_feature_type,
-                    strand=1,
-                    qualifiers=OrderedDict(
-                        {'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'}
-                    )))
-        if 'atts' in self.pp[i]:
-            self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
-                        location=FeatureLocation(int(self.pp[i]['att'][0]), int(self.pp[i]['att'][1])) +
-                                 FeatureLocation(int(self.pp[i]['att'][2]), int(self.pp[i]['att'][3])),
-                        type='repeat_region',
-                        strand=1,
-                        qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
 
     # are we writing a gzip file
     if is_gzip_file(self.infile):
@@ -106,7 +102,6 @@ def write_phage_and_bact(self):
     """
     Separate out the phage and bacterial fractions into fasta and GenBank files
     :param self: the data object
-    :param dna: the DNA sequence object
     :return: None
     """
     log_and_message('Writing bacterial and phage DNA as fasta', c="GREEN", stderr=True, quiet=self.quiet)
@@ -220,6 +215,7 @@ def write_prophage_tbl(self):
             ]
             out.write(locs[0] + "\t" + "_".join(map(str, locs[1:])) + "\n")
 
+
 def write_prophage_information(self):
     """
     Write the full ORF table
@@ -242,6 +238,7 @@ def write_prophage_information(self):
                 written_atts.add(ppnum)
             else:
                 out.write("\n")
+
 
 def write_prophage_tsv(self):
     """
@@ -267,7 +264,6 @@ def write_test_data(self):
     """
     Write the testing measurements
     :param self: the data object
-    :param measurements: the measurements
     :return: None
     """
     log_and_message("Writing test_data output file", c="GREEN", stderr=True, quiet=self.quiet)
@@ -318,10 +314,28 @@ def prophage_measurements_to_tbl(inputf, outputf):
     f.close()
     fw.close()
 
+
 def write_all_outputs(**kwargs):
     self = Namespace(**kwargs)
     # make all predicted pp list
     log_and_message("Creating output files", c="GREEN", stderr=True, quiet=self.quiet)
+    prophage_feature_type = 'misc_feature'  # / prophage_region
+
+    for i in self.pp:
+        self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
+            location=FeatureLocation(self.pp[i]['start'] - 1, self.pp[i]['stop'] - 1),
+            type=prophage_feature_type,
+            strand=1,
+            qualifiers=OrderedDict(
+                {'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'}
+            )))
+        if 'atts' in self.pp[i]:
+            self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
+                location=FeatureLocation(int(self.pp[i]['att'][0]), int(self.pp[i]['att'][1])) +
+                         FeatureLocation(int(self.pp[i]['att'][2]), int(self.pp[i]['att'][3])),
+                type='repeat_region',
+                strand=1,
+                qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
 
     """
     now we need to decide which files to keep
@@ -333,14 +347,19 @@ def write_all_outputs(**kwargs):
         4 | prophage and bacterial sequences
         8 | prophage_information.tsv
         16 | prophage.tsv
-        32 | GFF3 format
+        32 | GFF3 format of the prophages
         64 | prophage.tbl
         128 | test data used in the random forest
+        256 | GFF3 format of the genomes
     As explained in the README.
     """
 
     oc = self.output_choice
 
+    if oc >= 256:
+        # write the genomic GFF3 format
+        genome_gff3(self)
+        oc -= 256
     if oc >= 128:
         # write the calculated data
         write_test_data(self)
