@@ -29,7 +29,7 @@ def genome_gff3(self):
     # GFF output
     out_gff = os.path.join(self.output_dir, self.file_prefix + "genome.gff3")
     with open(out_gff, 'w') as outf:
-        GFF.write(self.records, outf, True)
+        GFF.write(self.record, outf, True)
 
 
 def write_gff3(self):
