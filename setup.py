@@ -20,6 +20,13 @@ def get_version():
         v = f.readline().strip()
         return v
 
+def get_requirements():
+    reqs = []
+    with open('requirements.txt', 'r') as f:
+        for l in f:
+            reqs.append(l.strip())
+    return reqs
+
 def main():
     setuptools.setup(
         name="PhiSpy",
@@ -48,12 +55,7 @@ def main():
             'Programming Language :: Python :: 3.0',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
         ],
-        install_requires = [
-            'biopython>=1.74',
-            'numpy>=1.17.0',
-            'scikit-learn>=0.21.3',
-            'bcbio-gff>=0.6.6'
-        ]
+        install_requires = get_requirements()
         )
 
 if __name__ == "__main__":
