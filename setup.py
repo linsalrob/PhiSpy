@@ -55,7 +55,12 @@ def main():
             'Programming Language :: Python :: 3.0',
             'Topic :: Scientific/Engineering :: Bio-Informatics',
         ],
-        install_requires = get_requirements()
+        install_requires = [
+            'biopython >= 1.74',
+            'numpy >= 1.16.0',
+            'scikit - learn >= 0.21.3',
+            'bcbio - gff >= 0.6.6'
+        ]
         )
 
 if __name__ == "__main__":
