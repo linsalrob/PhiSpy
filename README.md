@@ -342,17 +342,21 @@ Code | File
 4 | prophage and bacterial sequences
 8 | prophage_information.tsv
 16 | prophage.tsv
-32 | GFF3 format
+32 | GFF3 format output of just the prophages
 64 | prophage.tbl
 128 | test data used in the random forest
-
+256 | GFF3 format output for the annotated genomic contigs
 
 So for example, if you want to get `GenBank format output` (2) and `prophage_information.tsv` (8), then
 enter an `--output_choice` of 10.
 
 The default is 3: you will get both the `prophage_coordinates.tsv` and `GenBank format output` files.
 
-If you want _all_ files output, use `--output_choice 255`.
+_Note:_ Choice `32` will only output the prophages themselves in GFF3 format. In contrast, choice `256` outputs
+annotated genomes. This is probably the best choice to bring the genome into Artemis as it will handle multiple
+contigs correctly.
+
+If you want _all_ files output, use `--output_choice 512`.
 
 # Example Data
 
