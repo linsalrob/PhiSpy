@@ -11,6 +11,7 @@ from .writers import write_gff3, write_genbank, write_phage_and_bact, write_prop
 from .writers import prophage_measurements_to_tbl, write_all_outputs, write_prophage_information
 from .search_phmms import search_phmms
 from .log_and_message import log_and_message, message
+from .main import run
 from .errors import ColorNotFoundError, NoBasesCounted
 from .version import __version__
 
@@ -24,7 +25,7 @@ __all__ = ['SeqioFilter',
            'write_gff3', 'write_genbank', 'write_phage_and_bact', 'write_prophage_tbl', 'write_prophage_tsv',
            'prophage_measurements_to_tbl', 'write_all_outputs', 'write_prophage_information', 'log_and_message',
            'search_phmms',
-           'message',
+           'message', 'run',
             'ColorNotFoundError', 'NoBasesCounted',
             '__version__'
            ]

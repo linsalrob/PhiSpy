@@ -60,8 +60,12 @@ def main():
             'numpy >= 1.16.0',
             'scikit-learn >= 0.21.3',
             'bcbio-gff >= 0.6.6'
-        ]
-        )
+        ],
+        entry_points={
+            "console_scripts": ["PhiSpy.py = PhiSpyModules.main:run", "phispy = PhiSpyModules.main:run"]
+        }
+
+    )
 
 if __name__ == "__main__":
     main()
