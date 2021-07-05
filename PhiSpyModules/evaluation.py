@@ -279,7 +279,6 @@ def fixing_start_end(**kwargs):
     #                                                                                     #
     #######################################################################################
     temppp = {}
-    self.droppedpp = {}
     j = 1
     dropped_j  = 1
     prophagesummary = []

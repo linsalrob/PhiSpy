@@ -105,6 +105,7 @@ def main(argv):  #organismPath, output_dir, trainingFlag, INSTALLATION_DIR, eval
     #         do evaluation              #
     ######################################
     PhiSpyModules.log_and_message('Evaluating...', c="GREEN", stderr=True, stdout=False, quiet=args_parser.quiet)
+    args_parser.droppedpp = {} # the dropped prophages. These are added in fixing_start_end
     args_parser.pp = PhiSpyModules.fixing_start_end(**vars(args_parser))
 
     ######################################
