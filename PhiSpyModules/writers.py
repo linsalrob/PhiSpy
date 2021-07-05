@@ -337,6 +337,18 @@ def write_all_outputs(**kwargs):
                 strand=1,
                 qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
 
+    if self.keep_dropped_predictions:
+        for i in self.droppedpp:
+            self.record.get_entry(self.droppedpp[i]['contig']).append_feature(SeqFeature(
+                location=FeatureLocation(self.droppedpp[i]['start'] - 1, self.droppedpp[i]['stop'] - 1),
+                type=prophage_feature_type,
+                strand=-1,
+                qualifiers=OrderedDict(
+                    {'note': f'Putative prophage region identified with PhiSpy v{version.__version__} but not' +
+                     f'kept because: {self.droppedpp[i]["dropped_reason"]}'}
+                )))
+
+
     """
     now we need to decide which files to keep
     It is based on this code:

@@ -1,6 +1,7 @@
 import os
 import re
 import math
+import copy
 import sys
 from argparse import Namespace
 
@@ -278,7 +279,9 @@ def fixing_start_end(**kwargs):
     #                                                                                     #
     #######################################################################################
     temppp = {}
+    self.droppedpp = {}
     j = 1
+    dropped_j  = 1
     prophagesummary = []
     for i in pp:
         if pp[i]['num genes'] >= self.number and pp[i]['phage_genes'] >= self.phage_genes:
@@ -288,12 +291,21 @@ def fixing_start_end(**kwargs):
         elif pp[i]['num genes'] >= self.number and pp[i]['phage_genes'] > 0:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
                                     f"Dropped. Only {pp[i]['phage_genes']} gene(s) were identified as phage genes"])
+            pp[i]['dropped_reason'] = f"Only {pp[i]['phage_genes']} gene(s) were identified as phage genes"
+            self.droppedpp[dropped_j] = copy.deepcopy(pp[i])
+            dropped_j += 1
         elif pp[i]['num genes'] >= self.number:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
                                     "Dropped. No genes were identified as phage genes"])
+            pp[i]['dropped_reason'] = f"No genes were identified as phage genes"
+            self.droppedpp[dropped_j] = copy.deepcopy(pp[i])
+            dropped_j += 1
         else:
             prophagesummary.append([pp[i]['contig'], pp[i]['start'], pp[i]['stop'], pp[i]['num genes'],
-                                    "Dropped. Not enough genes"])
+                                    "Dropped. Region too small (Not enough genes)"])
+            pp[i]['dropped_reason'] = f"Region too small (Not enough genes)"
+            self.droppedpp[dropped_j] = copy.deepcopy(pp[i])
+            dropped_j += 1
     # print a list of all prophages and the number of genes
     if prophagesummary:
         log_and_message('Potential prophages (sorted highest to lowest)', stderr=True, quiet=self.quiet)

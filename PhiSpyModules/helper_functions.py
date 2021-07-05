@@ -128,6 +128,8 @@ def get_args():
                             'https://github.com/linsalrob/PhiSpy#choosing-which-output-files-are-created. ' +
                             '[default: %(default)d]')
     parser.add_argument('--include_all_repeats', help='include all repeats in the genbank output', action='store_true')
+    parser.add_argument('--keep_dropped_predictions', help='Write regions that might be prophages to the output files',
+                        action='store_true')
     parser.add_argument('--extra_dna', type=int, default=2000,
                         help='additional DNA flanking the predicted prophage to test for repeats [Default %(default)d]')
     parser.add_argument('--min_repeat_len', type=int, default=10,
