@@ -77,7 +77,7 @@ def search_phmms(**kwargs):
                 all_features[hit.id].qualifiers['phmm'] = []
             all_features[hit.id].qualifiers['phmm'].append(f"{res.id}:{hit.evalue}")
             # color the gene, unless it is already colored. We overwrite a hypothetical colour
-            if self.color and 'colour' not in all_features[hit.id].qualifiers or all_features[hit.id].qualifiers['colour'] == 13:
+            if self.color and ('colour' not in all_features[hit.id].qualifiers or all_features[hit.id].qualifiers['colour'] == 13):
                 all_features[hit.id].qualifiers['colour'] = 9 # light blue
 
     # remove the amino acids
