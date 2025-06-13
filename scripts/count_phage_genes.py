@@ -58,6 +58,7 @@ def is_phage_func(func):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=' ')
     parser.add_argument('-f', help='genbank file with prophage sequences', required=True)
+    parser.add_argument('-d', help='include genbank definition line in outptu', action='store_true')
     parser.add_argument('-v', help='verbose output', action='store_true')
     args = parser.parse_args()
 
@@ -71,7 +72,7 @@ if __name__ == "__main__":
         count = 0
         phage_count = 0
         if args.v:
-            print(f"Processing record: {record.id}")
+            print(f"Processing record: {record.id}", file=sys.stderr)
         for feature in record.features:
             if feature.type == 'CDS':
                 count += 1
@@ -80,12 +81,16 @@ if __name__ == "__main__":
                     if is_phage_func(func):
                         phage_count += 1
                     if args.v:
-                        print(f"function: |{func}| phage: {is_phage_func(func)}")
+                        print(f"function: |{func}| phage: {is_phage_func(func)}", file=sys.stderr)
                 elif 'function' in feature.qualifiers:
                     func = feature.qualifiers['function'][0]
                     if is_phage_func(func):
                         phage_count += 1
                         if args.v:
                             print(f"Phage function found: {func}")
-        print(f"{args.f}\t{record.id}\t{phage_count}\t{count}")
+        if args.d:
+            print(f"{bcolors.OKBLUE}{record.description}{bcolors.ENDC}", file=sys.stderr)
+            print(f"{args.f}\t{record.description}\t{record.id}\t{phage_count}\t{count}")
+        else:
+            print(f"{args.f}\t{record.id}\t{phage_count}\t{count}")
     handle.close()
