@@ -71,7 +71,7 @@ class SeqioFilter( list ):
                             c="RED", stderr=True, loglevel="WARNING")
             return
 
-        if not feature.strand:
+        if not feature.location.strand:
             # per the biopython docs, a compound feature with some parts on one strand
             # and some parts on the other are given a strand designation of None
             # https://biopython.org/DIST/docs/api/Bio.SeqFeature.CompoundLocation-class.html#__init__
@@ -203,11 +203,11 @@ class SeqioFilter( list ):
                 feature.start    = int(feature.location.start) + 1
                 feature.stop     = int(feature.location.end)
                 feature.phmm     = [1.0] if 'phmm' not in feature.qualifiers else [float(x.split(':')[1]) for x in feature.qualifiers.get('phmm')]
-                if not feature.strand:
+                if not feature.location.strand:
                     # silently ignore compound features on two strands. Hopefully the error is recorded
                     # in split and merge!
                     continue
-                if feature.strand < 0:
+                if feature.location.strand < 0:
                     feature.start, feature.stop = feature.stop, feature.start
                 # if a feature type was provided, only return those features
                 if not feature_type or feature.type == feature_type:
