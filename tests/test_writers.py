@@ -72,7 +72,8 @@ class WritersTest(unittest.TestCase):
         input_file = os.path.join(self.temp_dir, 'input.txt')
         output_file = os.path.join(self.temp_dir, 'output.tbl')
         
-        # Create mock input file with complete columns (10 columns required)
+        # Create mock input file with required columns
+        # The function accesses columns at indices: 2 (contig), 3 (start), 4 (stop), and 9 (num_genes)
         with open(input_file, 'w') as f:
             f.write("PP\tcontig\tstart\tstop\tatt_l_start\tatt_l_stop\tatt_r_start\tatt_r_stop\tlen\tnum_genes\n")
             f.write("1\tcontig1\t100\t500\t90\t110\t490\t510\t400\t5\n")

@@ -73,16 +73,8 @@ class EvaluationTest(unittest.TestCase):
     
     def test_check_pp_valid_prophage(self):
         """Test checking if prophage region is valid"""
-        # Create mock contig with genes
-        class MockContig:
-            def __init__(self):
-                self.genes = {
-                    'gene1': {'start': 100, 'stop': 200},
-                    'gene2': {'start': 300, 'stop': 400},
-                    'gene3': {'start': 500, 'stop': 600}
-                }
-        
-        contig = MockContig()
+        # check_pp expects contig to be a string (contig name)
+        contig = 'test_contig'
         
         # Test with valid start and stop positions
         result = check_pp(contig, 100, 600, {})

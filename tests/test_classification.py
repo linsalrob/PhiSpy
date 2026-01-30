@@ -61,11 +61,16 @@ class ClassificationTest(unittest.TestCase):
     def test_calc_pp_phage_functions(self):
         """Test calculating prophage probability for phage functions"""
         # Test various phage-related functions
-        phage_funcs = ['integrase', 'phage tail', 'capsid', 'terminase']
+        # Note: 'integrase' returns 1.5, others return 1
+        phage_funcs = ['phage tail', 'capsid', 'terminase']
         for func in phage_funcs:
             with self.subTest(function=func):
                 pp = calc_pp(func)
-                self.assertGreater(pp, 0)
+                self.assertEqual(pp, 1)
+        
+        # Test integrase specifically as it has special handling
+        pp = calc_pp('integrase')
+        self.assertEqual(pp, 1.5)
     
     def test_calc_pp_unknown_functions(self):
         """Test calculating prophage probability for unknown functions"""
@@ -82,8 +87,8 @@ class ClassificationTest(unittest.TestCase):
         for func in not_phage_funcs:
             with self.subTest(function=func):
                 pp = calc_pp(func)
-                # Should be 0 or very low for non-phage functions
-                self.assertLessEqual(pp, 0)
+                # These functions are identified by is_not_phage_func and return exactly 0
+                self.assertEqual(pp, 0)
 
 
 if __name__ == '__main__':

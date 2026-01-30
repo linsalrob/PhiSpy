@@ -126,9 +126,10 @@ class MakeTestTest(unittest.TestCase):
     
     def test_find_atgc_skew_empty(self):
         """Test AT/GC skew calculation with empty sequence raises error"""
+        from PhiSpyModules.errors import NoBasesCounted
         seq = ''
         # Empty sequence raises NoBasesCounted
-        with self.assertRaises(Exception):
+        with self.assertRaises(NoBasesCounted):
             skew = find_atgc_skew(seq)
 
 

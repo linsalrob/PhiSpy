@@ -106,10 +106,10 @@ def is_unknown_func(x):
             re.search(r'^U\d', x) or
             re.search(r'[a-zA-Z]{2,3}\|', x) or
             re.search(r'orf\d+', x_lower) or
-            re.match('orf[^_]', x_lower) or
-            re.match('predicted', x_lower) or
+            re.match(r'orf[^_]', x_lower) or
+            re.match(r'predicted', x_lower) or
             re.match(r'bh\d+', x_lower) or
-            re.match('y[a-z]{2,4}\\b', x)
+            re.match(r'y[a-z]{2,4}\b', x)
     ):
         return True
     return False
