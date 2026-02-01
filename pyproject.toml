@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PhiSpy"
+version = "4.2.21"
+description = "Prophage finder using multiple metrics"
+readme = "README.md"
+authors = [
+    {name = "Rob Edwards", email = "raedwards@gmail.com"}
+]
+license = {text = "MIT"}
+keywords = ["phage", "prophage", "bioinformatics", "microbiology", "bacteria", "genome", "genomics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "biopython>=1.74",
+    "numpy>=1.16.0",
+    "scikit-learn>=0.21.3",
+    "bcbio-gff>=0.6.6",
+    "importlib-resources>=5.0; python_version<'3.9'",
+]
+
+[project.urls]
+Homepage = "https://github.com/linsalrob/PhiSpy"
+Repository = "https://github.com/linsalrob/PhiSpy"
+
+[project.scripts]
+"PhiSpy.py" = "PhiSpyModules.main:run"
+phispy = "PhiSpyModules.main:run"
+
+[tool.setuptools]
+packages = ["PhiSpyModules"]
+include-package-data = true
+script-files = [
+    "PhiSpy.py",
+    "scripts/make_training_sets.py",
+    "scripts/plot_stats.py",
+    "scripts/compare_predictions_to_phages.py",
+    "scripts/mark_prophage_features.py"
+]
+
+[tool.setuptools.package-data]
+PhiSpyModules = ["data/*.txt", "data/testSets/*"]
+

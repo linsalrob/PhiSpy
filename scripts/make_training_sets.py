@@ -3,7 +3,11 @@ __author__ = 'Przemek Decewicz'
 
 import gzip
 import sys
-import pkg_resources
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    # Python < 3.9
+    from importlib_resources import files, as_file
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
 from compare_predictions_to_phages import genbank_seqio
@@ -14,8 +18,21 @@ from re import sub
 from numpy import arange
 from subprocess import call
 
-DATA_DIR = pkg_resources.resource_filename('PhiSpyModules', 'data')
-TEST_DIR = pkg_resources.resource_filename('PhiSpyModules', 'data/testSets')
+# Get data directories using importlib.resources
+try:
+    data_dir_ref = files('PhiSpyModules').joinpath('data')
+    with as_file(data_dir_ref) as data_path:
+        DATA_DIR = str(data_path)
+    test_dir_ref = files('PhiSpyModules').joinpath('data/testSets')
+    with as_file(test_dir_ref) as test_path:
+        TEST_DIR = str(test_path)
+except:
+    # Fallback for development
+    import os
+    module_dir = path.dirname(path.dirname(path.abspath(__file__)))
+    DATA_DIR = path.join(module_dir, 'PhiSpyModules', 'data')
+    TEST_DIR = path.join(DATA_DIR, 'testSets')
+
 if not path.isdir(TEST_DIR): makedirs(TEST_DIR)
 
 def read_genbank(gbkfile, full_analysis=False):
@@ -427,7 +444,7 @@ def main():
     if args.absolute_retrain:
         log_and_message(f"Ignoring PhiSpy's trainingGenome_list.txt file and default test GenBank files.Files provided with --indir and/or --groups will overwrite current reference sets.", stderr=True)
         args.retrain = True
-    elif pkg_resources.resource_exists('PhiSpyModules', 'data/trainingGenome_list.txt'):
+    elif path.exists(path.join(DATA_DIR, 'trainingGenome_list.txt')):
         training_data = read_training_genomes_list(training_data)
     else:
         log_and_message(f"trainingGenome_list.txt is missing.", c="RED", stderr=True)
@@ -469,9 +486,9 @@ def main():
         elif args.retrain:
             log_and_message(f"Retraining file upon user's request.", c="PINK", stderr=True)
             full_analysis = True
-        elif not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.kmers_phage.gz") or \
-             not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.kmers_host.gz") or \
-             not pkg_resources.resource_exists('PhiSpyModules', f"data/testSets/{file_name}.testSet"):
+        elif not path.exists(path.join(TEST_DIR, f"{file_name}.kmers_phage.gz")) or \
+             not path.exists(path.join(TEST_DIR, f"{file_name}.kmers_host.gz")) or \
+             not path.exists(path.join(TEST_DIR, f"{file_name}.testSet")):
             log_and_message(f"Training files missing for: {file_name}", c="RED", stderr=True)
             full_analysis = True
         # full_analysis = file_name in not_trained or args.retrain

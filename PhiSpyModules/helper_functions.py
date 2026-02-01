@@ -3,7 +3,11 @@ import os
 import sys
 import argparse
 import re
-import pkg_resources
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    # Python < 3.9
+    from importlib_resources import files, as_file
 import binascii
 import logging
 
@@ -13,8 +17,10 @@ from .version import __version__
 def print_list(list_type):
     f = None
     try:
-        # with pip we use resource streams that may be files or from archives
-        f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
+        # Use importlib.resources to access package data
+        data_file = files('PhiSpyModules').joinpath('data/trainingGenome_list.txt')
+        with as_file(data_file) as path:
+            f = open(path, 'rb')
     except:
         message('Cannot find the list of training sets. It should be in data/trainingGenome_list.txt', "RED", 'stderr')
         sys.exit(10)

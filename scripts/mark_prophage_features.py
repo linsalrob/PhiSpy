@@ -3,7 +3,6 @@ __author__ = 'Przemek Decewicz'
 
 import gzip
 import sys
-import pkg_resources
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from Bio import SeqIO
 from compare_predictions_to_phages import genbank_seqio
