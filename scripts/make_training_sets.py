@@ -3,6 +3,7 @@ __author__ = 'Przemek Decewicz'
 
 import gzip
 import sys
+import os
 try:
     from importlib.resources import files, as_file
 except ImportError:
@@ -26,9 +27,8 @@ try:
     test_dir_ref = files('PhiSpyModules').joinpath('data/testSets')
     with as_file(test_dir_ref) as test_path:
         TEST_DIR = str(test_path)
-except:
+except Exception:
     # Fallback for development
-    import os
     module_dir = path.dirname(path.dirname(path.abspath(__file__)))
     DATA_DIR = path.join(module_dir, 'PhiSpyModules', 'data')
     TEST_DIR = path.join(DATA_DIR, 'testSets')

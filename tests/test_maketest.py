@@ -130,7 +130,7 @@ class MakeTestTest(unittest.TestCase):
         seq = ''
         # Empty sequence raises NoBasesCounted
         with self.assertRaises(NoBasesCounted):
-            skew = find_atgc_skew(seq)
+            find_atgc_skew(seq)
 
 
 if __name__ == '__main__':

@@ -4,7 +4,6 @@ Test suite for formatting.py
 
 import unittest
 from PhiSpyModules.formatting import Colors
-from PhiSpyModules.errors import ColorNotFoundError
 
 
 __license__ = 'MIT'

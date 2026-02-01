@@ -17,7 +17,7 @@ class ClassificationTest(unittest.TestCase):
         """Test finding a valid training genome"""
         # Test with training flag 0 (generic all training set)
         result = find_training_genome(0)
-        self.assertTrue(len(result) > 0)
+        self.assertGreater(len(result), 0)
         self.assertIn('Set', result)  # Both trainSet and testSet are valid
     
     def test_find_training_genome_invalid(self):
@@ -56,7 +56,7 @@ class ClassificationTest(unittest.TestCase):
         values = []
         # The function raises ZeroDivisionError for empty list
         with self.assertRaises(ZeroDivisionError):
-            mean = find_mean(values)
+            find_mean(values)
     
     def test_calc_pp_phage_functions(self):
         """Test calculating prophage probability for phage functions"""

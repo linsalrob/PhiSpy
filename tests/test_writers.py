@@ -7,7 +7,6 @@ import tempfile
 import os
 import shutil
 from argparse import Namespace
-from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
@@ -88,7 +87,7 @@ class WritersTest(unittest.TestCase):
         # Verify output file is not empty
         with open(output_file, 'r') as f:
             content = f.read()
-            self.assertTrue(len(content) > 0)
+            self.assertGreater(len(content), 0)
 
 
 if __name__ == '__main__':
