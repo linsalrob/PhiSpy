@@ -323,26 +323,23 @@ def write_all_outputs(**kwargs):
 
     for i in self.pp:
         self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
-            location=FeatureLocation(self.pp[i]['start'] - 1, self.pp[i]['stop'] - 1),
+            location=FeatureLocation(self.pp[i]['start'] - 1, self.pp[i]['stop'] - 1, strand=1),
             type=prophage_feature_type,
-            strand=1,
             qualifiers=OrderedDict(
                 {'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'}
             )))
         if 'atts' in self.pp[i]:
             self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
-                location=FeatureLocation(int(self.pp[i]['att'][0]), int(self.pp[i]['att'][1])) +
-                         FeatureLocation(int(self.pp[i]['att'][2]), int(self.pp[i]['att'][3])),
+                location=FeatureLocation(int(self.pp[i]['att'][0]), int(self.pp[i]['att'][1]), strand=1) +
+                         FeatureLocation(int(self.pp[i]['att'][2]), int(self.pp[i]['att'][3]), strand=1),
                 type='repeat_region',
-                strand=1,
                 qualifiers=OrderedDict({'note': f'prophage region pp{i} potential attachment sites'})))
 
     if self.keep_dropped_predictions:
         for i in self.droppedpp:
             self.record.get_entry(self.droppedpp[i]['contig']).append_feature(SeqFeature(
-                location=FeatureLocation(self.droppedpp[i]['start'] - 1, self.droppedpp[i]['stop'] - 1),
+                location=FeatureLocation(self.droppedpp[i]['start'] - 1, self.droppedpp[i]['stop'] - 1, strand=-1),
                 type=prophage_feature_type,
-                strand=-1,
                 qualifiers=OrderedDict(
                     {'note': f'Putative prophage region identified with PhiSpy v{version.__version__} but not' +
                      f'kept because: {self.droppedpp[i]["dropped_reason"]}'}
