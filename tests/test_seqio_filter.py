@@ -6,6 +6,7 @@ This is (currently) not complete, and is a work in progres.
 
 import unittest
 import gzip
+import os
 
 from Bio import SeqIO, SeqFeature
 from Bio.SeqFeature import FeatureLocation
@@ -51,7 +52,11 @@ class SeqIO_FilterTest(unittest.TestCase):
             'PYTT13_16505': (3331106, 3332194)
         }
 
-        testgbk = "test_genbank_files/Paracoccus_yeei_TT13.gb.gz"
+        # Get path relative to this test file
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        repo_root = os.path.dirname(test_dir)
+        testgbk = os.path.join(repo_root, "test_genbank_files/Paracoccus_yeei_TT13.gb.gz")
+        
         handle = gzip.open(testgbk, 'rt')
         record = SeqioFilter(SeqIO.parse(handle, "genbank"))
         handle.close()
