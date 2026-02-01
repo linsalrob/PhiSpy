@@ -42,7 +42,7 @@ def call_randomforest(**kwargs):
                 log_and_message(f"FATAL: Can not find data file {training_file}\n", c="RED", stderr=True, loglevel="CRITICAL")
                 sys.exit(11)
             log_and_message(f"Using training set in {training_file}")
-            with open(path, 'r') as f:
+            with open(path, 'rb') as f:
                 train_data = np.genfromtxt(TextIOWrapper(f) if hasattr(f, 'buffer') else f, delimiter="\t", skip_header=1, filling_values=1)
     except Exception as e:
         log_and_message(f"FATAL: Error loading training file {training_file}: {e}\n", c="RED", stderr=True, loglevel="CRITICAL")
