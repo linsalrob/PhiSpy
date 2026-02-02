@@ -94,6 +94,30 @@ PhiSpy requires following programs to be installed in the system. Most of these 
 6. `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
 7. The `Python.h` header file. This is included in `python3-dev` that is available on most systems.
 
+## Using PhiSpy in Pyodide / JupyterLite
+
+PhiSpy can be used in Pyodide environments such as JupyterLite notebooks running in the browser. When running under Pyodide, PhiSpy will automatically install the `bcbio-gff` package via `micropip` when needed for GFF output functionality.
+
+### In Async Contexts (Recommended for Jupyter Notebooks)
+
+For the best experience in Jupyter notebooks or other async contexts, explicitly ensure dependencies are installed before use:
+
+```python
+import micropip
+await micropip.install("phispy")
+
+import phispy
+await phispy.ensure_pyodide_deps()
+
+# Now you can use PhiSpy normally
+```
+
+### In Sync Contexts
+
+If you're using PhiSpy in a synchronous context (e.g., importing and calling functions directly), dependencies will be installed automatically when first needed. However, this may not work if there's already an active event loop. In such cases, you'll receive a clear error message directing you to use the async approach above.
+
+**Note:** The automatic dependency installation only occurs when running under Pyodide (detected via `sys.platform == "emscripten"`). On standard CPython, all dependencies should be installed through pip or conda as described in the Installation sections above.
+
 # Testing PhiSpy.py
 
 Download the [Streptococcus pyogenes M1 genome](https://raw.githubusercontent.com/linsalrob/PhiSpy/master/tests/Streptococcus_pyogenes_M1_GAS.gb)
