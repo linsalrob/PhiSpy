@@ -19,6 +19,15 @@ PhiSpy identifies prophages in Bacterial (and probably Archaeal)
 genomes. Given an annotated genome it will use several approaches to
 identify the most likely prophage regions.
 
+Documentation
+-------------
+
+📖 Read the full documentation on Read the Docs: https://phispy.readthedocs.io/
+
+This README provides a quick overview. For comprehensive documentation 
+including detailed parameter descriptions, usage examples, and troubleshooting 
+guides, please visit our documentation site.
+
 Initial versions of PhiSpy were written by
 
 Sajia Akhter (sajia\@stanford.edu) [Edwards Bioinformatics
@@ -94,13 +103,15 @@ Software Requirements
 ---------------------
 
 PhiSpy requires following programs to be installed in the system. Most
-of these are likely already on your system or will be installed using
-the mechanisms above.
+of these are automatically installed when using conda or pip:
 
-1.  `Python` - version 3.4 or later
-2.  `Biopython` - version 1.58 or later
-3.  `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
-4.  The `Python.h` header file. This is included in `python3-dev` that
+1.  `Python` - version 3.8 or later
+2.  `Biopython` - version 1.74 or later
+3.  `numpy` - version 1.16.0 or later
+4.  `scikit-learn` - version 0.21.3 or later
+5.  `bcbio-gff` - version 0.6.6 or later
+6.  `gcc` - GNU project C and C++ compiler - version 4.4.1 or later
+7.  The `Python.h` header file. This is included in `python3-dev` that
     is available on most systems.
 
 Testing PhiSpy.py
@@ -285,13 +296,91 @@ You can also add a few other options
 -   `nonprophage_genegaps` : The maximum number of non-phage genes
     between two phage-like regions that will enable them to be merged
 
+Command-Line Parameters
+=======================
+
+PhiSpy has many parameters to control prophage prediction. For a complete
+reference, see https://phispy.readthedocs.io/en/latest/parameters.html
+
+Essential Parameters
+--------------------
+
+- infile: Input GenBank file (required)
+- -o, --output_dir: Output directory for results (required)
+- -t, --training_set: Training set to use (default: generic)
+- --phage_genes: Minimum phage genes required (default: 1)
+
+Algorithm Parameters
+--------------------
+
+- -n, --number: Consecutive genes that must be prophage genes (default: 5)
+- -w, --window_size: Window size for scanning (default: 30)
+- -g, --nonprophage_genegaps: Non-phage genes between prophages (default: 10)
+- -u, --min_contig_size: Minimum contig size in bp (default: 5000)
+
+Metrics and Features
+--------------------
+
+- --metrics: Which metrics to use (orf_length_med, shannon_slope, at_skew, 
+  gc_skew, max_direction)
+- --expand_slope: Use Shannon score slope product
+- --kmers_type: Type of k-mers (all, codon, simple)
+
+HMM Search
+----------
+
+- --phmms: HMM profile database (e.g., pVOGs or VOGdb)
+- --threads: Number of threads (default: 2)
+- --skip_search: Skip HMM search if already done
+
+Output Control
+--------------
+
+- -p, --file_prefix: Prefix for output files
+- --output_choice: Sum of codes for files to generate (default: 3)
+  
+  - 1 = prophage_coordinates.tsv
+  - 2 = GenBank format output
+  - 4 = prophage and bacterial sequences
+  - 8 = prophage_information.tsv
+  - 16 = prophage.tsv
+  - 32 = GFF3 format (prophages only)
+  - 64 = prophage.tbl
+  - 128 = test data
+  - 256 = GFF3 format (full genome)
+  - 512 = all files
+
+Other Options
+-------------
+
+- --color: Color CDSs for Artemis
+- --include_annotations / --ignore_annotations: Use or ignore annotations
+- -l, --list: List available training sets
+- -v, --version: Show version
+- -h, --help: Show help message
+
+Examples
+--------
+
+Basic usage::
+
+    PhiSpy.py genome.gb -o results
+
+With HMM database::
+
+    PhiSpy.py genome.gb -o results --phmms pVOGs.hmm --threads 8 --color
+
+Get all output files::
+
+    PhiSpy.py genome.gb -o results --output_choice 512
+
 Help
 ====
 
-For the help menu use the `-h` option:
+For the help menu use the -h option:
 
 ``` {.bash}
-python PhiSpy.py -h
+PhiSpy.py -h
 ```
 
 Output Files
