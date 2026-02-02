@@ -161,19 +161,19 @@ Output Control
    
    Output codes:
    
-   ===  ================================================
-   Code File
-   ===  ================================================
-   1    prophage_coordinates.tsv
-   2    GenBank format output
-   4    prophage and bacterial sequences
-   8    prophage_information.tsv
-   16   prophage.tsv
-   32   GFF3 format output of just the prophages
-   64   prophage.tbl
-   128  test data used in the random forest
-   256  GFF3 format output for annotated genomic contigs
-   ===  ================================================
+   ====  ==================================================
+   Code  File
+   ====  ==================================================
+   1     prophage_coordinates.tsv
+   2     GenBank format output
+   4     prophage and bacterial sequences
+   8     prophage_information.tsv
+   16    prophage.tsv
+   32    GFF3 format output of just the prophages
+   64    prophage.tbl
+   128   test data used in the random forest
+   256   GFF3 format output for annotated genomic contigs
+   ====  ==================================================
    
    Add the codes together to get multiple outputs. For example:
    
