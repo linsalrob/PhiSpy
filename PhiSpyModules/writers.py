@@ -9,12 +9,12 @@ from argparse import Namespace
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from collections import OrderedDict
+from BCBio import GFF  # bcbio-gff package
 
 import PhiSpyModules.version as version
 from .log_and_message import log_and_message
 from .helper_functions import is_gzip_file
 from .evaluation import check_pp
-from .pyodide_deps import ensure_bcbio_gff_sync, _import_bcbio_gff
 
 __author__ = 'Rob Edwards'
 
@@ -26,11 +26,6 @@ def genome_gff3(self):
     :return: None
     """
     log_and_message("Writing Genomic GFF3 output file", c="GREEN", stderr=True, quiet=self.quiet)
-    
-    # Ensure bcbio-gff is available (handles Pyodide lazy installation)
-    ensure_bcbio_gff_sync()
-    GFF = _import_bcbio_gff()
-    
     # GFF output
     out_gff = os.path.join(self.output_dir, self.file_prefix + "genome.gff3")
     with open(out_gff, 'w') as outf:

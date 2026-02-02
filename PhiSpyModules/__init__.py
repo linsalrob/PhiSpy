@@ -14,7 +14,6 @@ from .log_and_message import log_and_message, message
 from .main import run
 from .errors import ColorNotFoundError, NoBasesCounted
 from .version import __version__
-from .pyodide_deps import is_pyodide, ensure_pyodide_deps
 
 __all__ = ['SeqioFilter',
            'make_set_train', 'measure_features',
@@ -28,6 +27,5 @@ __all__ = ['SeqioFilter',
            'search_phmms',
            'message', 'run',
             'ColorNotFoundError', 'NoBasesCounted',
-            '__version__',
-            'is_pyodide', 'ensure_pyodide_deps'
+            '__version__'
            ]
