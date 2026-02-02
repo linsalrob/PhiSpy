@@ -12,12 +12,11 @@ PhiSpy is a prophage finder that uses multiple metrics to identify prophages in 
 
 ## Dependencies
 
-PhiSpy requires the following packages, all of which are available in Pyodide:
-- **biopython** - For biological sequence handling
-- **numpy** - For numerical computations
-- **scikit-learn** - For machine learning functionality
-
-Note: PhiSpy also depends on `bcbio-gff`, which is a pure Python package and can be installed via micropip if needed.
+PhiSpy requires the following packages:
+- **biopython** - For biological sequence handling (available in Pyodide)
+- **numpy** - For numerical computations (available in Pyodide)
+- **scikit-learn** - For machine learning functionality (available in Pyodide)
+- **bcbio-gff** - For GFF file handling (pure Python, included in recipe)
 
 ## C++ Extension
 
@@ -51,8 +50,6 @@ Once built and published, PhiSpy can be used in Pyodide:
 ```python
 import micropip
 await micropip.install('phispy')
-# If bcbio-gff is needed and not pre-installed:
-await micropip.install('bcbio-gff')
 
 # Use PhiSpy
 from PhiSpyModules import main

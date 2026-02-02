@@ -10,10 +10,8 @@ source:
   sha256: df40ba1f028c277b545608ed3fc7d03048364794c89a05731cf8140777186cda
 
 build:
-  cxxflags: |
-    -fwasm-exceptions
-  ldflags: |
-    -fwasm-exceptions
+  cxxflags: -fwasm-exceptions
+  ldflags: -fwasm-exceptions
 
 requirements:
   host:
@@ -22,6 +20,7 @@ requirements:
     - biopython
     - numpy
     - scikit-learn
+    - bcbio-gff
 
 test:
   imports:

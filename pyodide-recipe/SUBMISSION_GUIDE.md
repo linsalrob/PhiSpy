@@ -130,7 +130,7 @@ and protein function predictions.
 - biopython (available in Pyodide)
 - numpy (available in Pyodide)
 - scikit-learn (available in Pyodide)
-- bcbio-gff (pure Python, can be installed via micropip)
+- bcbio-gff (pure Python, included in recipe)
 
 ### Build Notes
 - Includes C++ extension module (PhiSpyRepeatFinder)

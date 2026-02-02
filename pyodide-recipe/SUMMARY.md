@@ -52,7 +52,6 @@ See **SUBMISSION_GUIDE.md** for complete details.
 ```python
 import micropip
 await micropip.install('phispy')
-await micropip.install('bcbio-gff')
 
 from PhiSpyModules import main
 # ... use PhiSpy
@@ -74,7 +73,7 @@ See **USAGE.md** for complete examples.
 | biopython | ✅ Built-in | C extension |
 | numpy | ✅ Built-in | C extension |
 | scikit-learn | ✅ Built-in | C extension |
-| bcbio-gff | 📦 Via micropip | Pure Python |
+| bcbio-gff | ✅ Included in recipe | Pure Python |
 
 ### C++ Extension
 

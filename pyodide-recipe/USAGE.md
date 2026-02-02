@@ -9,9 +9,6 @@ Once PhiSpy is available in the Pyodide distribution or via the pyodide-recipes 
 ```python
 import micropip
 await micropip.install('phispy')
-
-# Install the additional dependency if needed
-await micropip.install('bcbio-gff')
 ```
 
 ## Important Notes
@@ -25,8 +22,8 @@ PhiSpy has the following dependencies:
    - `numpy` - Built into Pyodide
    - `scikit-learn` - Built into Pyodide
 
-2. **Installable via micropip:**
-   - `bcbio-gff` - Pure Python package, can be installed with micropip
+2. **Pure Python packages (included in recipe):**
+   - `bcbio-gff` - Automatically installed with PhiSpy
 
 3. **Conditional dependency:**
    - `importlib-resources` - Only needed for Python < 3.9 (Pyodide uses Python 3.11+, so not needed)
@@ -41,7 +38,6 @@ PhiSpy includes a compiled C++ extension (`PhiSpyRepeatFinder`) for efficient re
 # In a Jupyter notebook or Python REPL in the browser
 import micropip
 await micropip.install('phispy')
-await micropip.install('bcbio-gff')
 
 # Import PhiSpy modules
 from PhiSpyModules import main
@@ -150,7 +146,6 @@ When using PhiSpy in a browser via Pyodide, be aware of:
             await pyodide.runPythonAsync(`
                 import micropip
                 await micropip.install('phispy')
-                await micropip.install('bcbio-gff')
                 print('PhiSpy loaded successfully!')
             `);
             
@@ -184,13 +179,6 @@ When using PhiSpy in a browser via Pyodide, be aware of:
 4. **Cache results** - Store intermediate results in browser storage if needed
 
 ## Troubleshooting
-
-### Import Error: bcbio-gff not found
-
-```python
-# Make sure to install it
-await micropip.install('bcbio-gff')
-```
 
 ### Memory Issues with Large Genomes
 
