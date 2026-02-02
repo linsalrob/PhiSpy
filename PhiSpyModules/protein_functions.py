@@ -100,16 +100,16 @@ def is_unknown_func(x):
             ('AGR_' in x) or
             ('EG:' in x) or
             ('RIKEN' in x) or
-            re.search('lmo\d+ protein', x_lower) or
-            re.search('lmo\d+protein', x_lower) or
-            re.search('B[sl][lr]\d', x_lower) or
-            re.search('^U\d', x) or
-            re.search('[a-zA-Z]{2,3}\|', x) or
-            re.search('orf\d+', x_lower) or
-            re.match('orf[^_]', x_lower) or
-            re.match('predicted', x_lower) or
-            re.match('bh\d+', x_lower) or
-            re.match('y[a-z]{2,4}\\b', x)
+            re.search(r'lmo\d+ protein', x_lower) or
+            re.search(r'lmo\d+protein', x_lower) or
+            re.search(r'B[sl][lr]\d', x_lower) or
+            re.search(r'^U\d', x) or
+            re.search(r'[a-zA-Z]{2,3}\|', x) or
+            re.search(r'orf\d+', x_lower) or
+            re.match(r'orf[^_]', x_lower) or
+            re.match(r'predicted', x_lower) or
+            re.match(r'bh\d+', x_lower) or
+            re.match(r'y[a-z]{2,4}\b', x)
     ):
         return True
     return False

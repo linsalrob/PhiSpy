@@ -1,7 +1,11 @@
 import re
 import sys
 import os
-import pkg_resources
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    # Python < 3.9
+    from importlib_resources import files, as_file
 from io import TextIOWrapper
 from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
@@ -14,17 +18,16 @@ from .log_and_message import log_and_message
 
 def find_training_genome(training_flag):
     try:
-        f = pkg_resources.resource_stream('PhiSpyModules', 'data/trainingGenome_list.txt')
+        data_file = files('PhiSpyModules').joinpath('data/trainingGenome_list.txt')
+        with as_file(data_file) as path:
+            with open(path, 'rb') as f:
+                for line in f:
+                    temp = re.split('\t', line.decode().strip())
+                    if int(temp[0]) == training_flag:
+                        return temp[1].strip()
     except IOError as e:
         log_and_message(f"There was an error opening data/trainingGenome_list.txt: {e}\n", c="RED", stderr=True,
                         loglevel="CRITICAL")
-        return ''
-
-    for line in f:
-        temp = re.split('\t', line.decode().strip())
-        if int(temp[0]) == training_flag:
-            f.close()
-            return temp[1].strip()
     return ''
 
 
@@ -32,12 +35,18 @@ def call_randomforest(**kwargs):
     training_file = kwargs['training_set']
     test_data = kwargs['test_data']
 
-    if not pkg_resources.resource_exists('PhiSpyModules', training_file):
-        log_and_message(f"FATAL: Can not find data file {training_file}\n", c="RED", stderr=True, loglevel="CRITICAL")
+    try:
+        data_file = files('PhiSpyModules').joinpath(training_file)
+        with as_file(data_file) as path:
+            if not path.exists():
+                log_and_message(f"FATAL: Can not find data file {training_file}\n", c="RED", stderr=True, loglevel="CRITICAL")
+                sys.exit(11)
+            log_and_message(f"Using training set in {training_file}")
+            with open(path, 'r') as f:
+                train_data = np.genfromtxt(f, delimiter="\t", skip_header=1, filling_values=1)
+    except Exception as e:
+        log_and_message(f"FATAL: Error loading training file {training_file}: {e}\n", c="RED", stderr=True, loglevel="CRITICAL")
         sys.exit(11)
-    strm = pkg_resources.resource_stream('PhiSpyModules', training_file)
-    log_and_message(f"Using training set in {training_file}")
-    train_data = np.genfromtxt(TextIOWrapper(strm), delimiter="\t", skip_header=1, filling_values=1)
 
     all_metrics = ['orf_length_med', 'shannon_slope', 'at_skew', 'gc_skew', 'max_direction', 'phmms']
     if kwargs['phmms']:

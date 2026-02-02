@@ -1,7 +1,6 @@
 import os
 import sys
 import gzip
-import pkg_resources
 from functools import reduce
 
 from Bio import SeqIO

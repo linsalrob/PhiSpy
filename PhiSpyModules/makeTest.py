@@ -2,7 +2,11 @@ import os
 import sys
 import math
 import sys
-import pkg_resources
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    # Python < 3.9
+    from importlib_resources import files, as_file
 from argparse import Namespace
 
 from .log_and_message import log_and_message
@@ -16,13 +20,19 @@ class ShannonScore:
         self._kmers_all = []
         self._kmers_type = kmers_type
         kmers_file = 'data/phage_kmers_' + self._kmers_type + '_wohost.txt'
-        if not pkg_resources.resource_exists:
-            log_and_message(f"ERROR: Kmers file {kmers_file} not found", "RED", stderr=True, quiet=self.quiet)
+        try:
+            data_file = files('PhiSpyModules').joinpath(kmers_file)
+            with as_file(data_file) as path:
+                if not path.exists():
+                    log_and_message(f"ERROR: Kmers file {kmers_file} not found", "RED", stderr=True)
+                    sys.exit(13)
+                with open(path, 'rb') as f:
+                    for line in f:
+                        line = line.decode().strip()
+                        self._kmers[line] = ''
+        except Exception as e:
+            log_and_message(f"ERROR: Could not load kmers file {kmers_file}: {e}", "RED", stderr=True)
             sys.exit(13)
-
-        for line in pkg_resources.resource_stream('PhiSpyModules', kmers_file):
-            line = line.decode().strip()
-            self._kmers[line] = ''
 
     def reset(self):
         self._kmers_phage = []

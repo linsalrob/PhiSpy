@@ -89,7 +89,6 @@ if __name__ == "__main__":
                         if args.v:
                             print(f"Phage function found: {func}")
         if args.d:
-            print(f"{bcolors.OKBLUE}{record.description}{bcolors.ENDC}", file=sys.stderr)
             print(f"{args.f}\t{record.description}\t{record.id}\t{phage_count}\t{count}")
         else:
             print(f"{args.f}\t{record.id}\t{phage_count}\t{count}")
