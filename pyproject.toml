@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -49,7 +49,6 @@ phispy = "PhiSpyModules.main:run"
 packages = ["PhiSpyModules"]
 include-package-data = true
 script-files = [
-    "PhiSpy.py",
     "scripts/make_training_sets.py",
     "scripts/plot_stats.py",
     "scripts/compare_predictions_to_phages.py",
