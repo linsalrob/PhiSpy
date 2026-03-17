@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,12 +10,11 @@ readme = "README.md"
 authors = [
     {name = "Rob Edwards", email = "raedwards@gmail.com"}
 ]
-license = {text = "MIT"}
+license = "MIT"
 keywords = ["phage", "prophage", "bioinformatics", "microbiology", "bacteria", "genome", "genomics"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
