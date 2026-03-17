@@ -46,7 +46,7 @@ Repository = "https://github.com/linsalrob/PhiSpy"
 phispy = "PhiSpyModules.main:run"
 
 [tool.setuptools]
-packages = ["PhiSpyModules"]
+packages = ["PhiSpyModules", "PhiSpyModules.data"]
 include-package-data = true
 script-files = [
     "scripts/make_training_sets.py",
