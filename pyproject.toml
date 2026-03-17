@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,31 +10,29 @@ readme = "README.md"
 authors = [
     {name = "Rob Edwards", email = "raedwards@gmail.com"}
 ]
-license = {text = "MIT"}
+license = "MIT"
 keywords = ["phage", "prophage", "bioinformatics", "microbiology", "bacteria", "genome", "genomics"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Unix",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "biopython>=1.74",
     "numpy>=1.16.0",
     "scikit-learn>=0.21.3",
-    "bcbio-gff>=0.6.6",
-    "importlib-resources>=5.0; python_version<'3.9'",
+    "bcbio-gff>=0.6.6"
 ]
 
 [project.urls]
