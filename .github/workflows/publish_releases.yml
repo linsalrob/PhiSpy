@@ -1,0 +1,137 @@
+name: Upload Python Package
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build native wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.4.1
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  build_pyodide_wheels:
+    name: Build Pyodide/Emscripten wheels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Build Pyodide wheels
+        uses: pypa/cibuildwheel@v3.4.1
+        with:
+          platform: pyodide
+
+      - name: Upload Pyodide wheel artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheels-pyodide
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish_pypi:
+    name: Publish PyPI-compatible distributions
+    runs-on: ubuntu-latest
+    needs:
+      - build_wheels
+      - build_sdist
+    environment:
+      name: pypi
+      url: https://pypi.org/p/phispy
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download native wheels
+        uses: actions/download-artifact@v7
+        with:
+          pattern: wheels-*
+          path: dist/
+          merge-multiple: true
+
+      - name: Download sdist
+        uses: actions/download-artifact@v7
+        with:
+          name: sdist
+          path: dist/
+
+      - name: Remove Pyodide wheels if accidentally included
+        run: |
+          find dist -type f -name '*pyodide*' -print -delete || true
+          find dist -type f -name '*emscripten*' -print -delete || true
+          find dist -type f -name '*wasm32*' -print -delete || true
+
+      - name: Show distributions to publish
+        run: |
+          ls -lh dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  attach_pyodide_wheels_to_release:
+    name: Attach Pyodide wheels to GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - build_pyodide_wheels
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Pyodide wheels
+        uses: actions/download-artifact@v7
+        with:
+          name: wheels-pyodide
+          path: pyodide-wheelhouse/
+
+      - name: Show Pyodide wheels
+        run: |
+          ls -lh pyodide-wheelhouse/
+
+      - name: Upload Pyodide wheels to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" pyodide-wheelhouse/*.whl --clobber
