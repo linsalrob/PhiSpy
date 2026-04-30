@@ -333,7 +333,7 @@ def write_all_outputs(**kwargs):
             qualifiers=OrderedDict(
                 {'note': f'prophage region pp{i} identified with PhiSpy v{version.__version__}'}
             )))
-        if 'atts' in self.pp[i]:
+        if 'att' in self.pp[i]:
             self.record.get_entry(self.pp[i]['contig']).append_feature(SeqFeature(
                 location=FeatureLocation(int(self.pp[i]['att'][0]), int(self.pp[i]['att'][1]), strand=1) +
                          FeatureLocation(int(self.pp[i]['att'][2]), int(self.pp[i]['att'][3]), strand=1),
