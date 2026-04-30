@@ -134,4 +134,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" pyodide-wheelhouse/*.whl --clobber
+          gh release upload "${{ github.event.release.tag_name }}" pyodide-wheelhouse/*.whl \
+          --repo "${{ github.repository }}" \
+          --clobber
