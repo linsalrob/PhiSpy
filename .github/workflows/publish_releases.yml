@@ -4,6 +4,14 @@ on:
   release:
     types: [created]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing release tag to upload assets to, e.g. v5.0.9"
+        required: true
+        type: string
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
 
 jobs:
   build_wheels:
@@ -143,6 +151,10 @@ jobs:
       contents: write
 
     steps:
+      - name: Show target release tag
+        run: |
+          echo "Target release tag: $RELEASE_TAG"
+
       - name: Download Pyodide wheels
         uses: actions/download-artifact@v7
         with:
@@ -174,6 +186,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" pyodide-wheelhouse/*.whl \
+          gh release upload "$RELEASE_TAG" pyodide-wheelhouse/*.whl \
           --repo "${{ github.repository }}" \
           --clobber
