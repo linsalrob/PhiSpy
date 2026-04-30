@@ -61,17 +61,19 @@ jobs:
           echo "Built wheels:"
           ls -lh wheelhouse/
 
-          if ls wheelhouse/*manylinux*.whl wheelhouse/*linux_x86_64*.whl wheelhouse/*macosx*.whl wheelhouse/*win_amd64*.whl 2>/dev/null; then
+          if find wheelhouse -maxdepth 1 \( -name '*manylinux*.whl' -o -name '*linux_x86_64*.whl' -o -name '*macosx*.whl' -o -name '*win_amd64*.whl' \) | grep -q .; then
             echo "ERROR: Pyodide job produced native platform wheels, not Pyodide/Emscripten wheels"
             exit 1
           fi
 
-          if ! ls wheelhouse/*.whl >/dev/null 2>&1; then
+          if ! find wheelhouse -maxdepth 1 -name '*.whl' | grep -q .; then
             echo "ERROR: No wheels were produced"
             exit 1
           fi
 
-          if ! ls wheelhouse/*emscripten*.whl wheelhouse/*pyodide*.whl wheelhouse/*wasm32*.whl wheelhouse/*py3-none-any*.whl >/dev/null 2>&1; then
+          if ! find wheelhouse -maxdepth 1 \
+              \( -name '*emscripten*.whl' -o -name '*pyodide*.whl' -o -name '*wasm32*.whl' -o -name '*py3-none-any*.whl' \) \
+              | grep -q .; then
             echo "ERROR: No Pyodide/Emscripten-compatible wheel name found"
             echo "Expected a wheel filename containing one of: emscripten, pyodide, wasm32, py3-none-any"
             exit 1
@@ -168,12 +170,14 @@ jobs:
           echo "Downloaded Pyodide wheel files:"
           ls -lh pyodide-wheelhouse/
 
-          if ls pyodide-wheelhouse/*manylinux*.whl pyodide-wheelhouse/*linux_x86_64*.whl pyodide-wheelhouse/*macosx*.whl pyodide-wheelhouse/*win_amd64*.whl 2>/dev/null; then
+          if find pyodide-wheelhouse -maxdepth 1 \( -name '*manylinux*.whl' -o -name '*linux_x86_64*.whl' -o -name '*macosx*.whl' -o -name '*win_amd64*.whl' \) | grep -q .; then
             echo "ERROR: downloaded Pyodide artifact contains native platform wheels"
             exit 1
           fi
 
-          if ! ls pyodide-wheelhouse/*emscripten*.whl pyodide-wheelhouse/*pyodide*.whl pyodide-wheelhouse/*wasm32*.whl pyodide-wheelhouse/*py3-none-any*.whl >/dev/null 2>&1; then
+          if ! find pyodide-wheelhouse -maxdepth 1 \
+              \( -name '*emscripten*.whl' -o -name '*pyodide*.whl' -o -name '*wasm32*.whl' -o -name '*py3-none-any*.whl' \) \
+              | grep -q .; then
             echo "ERROR: downloaded artifact does not contain a Pyodide/Emscripten-compatible wheel"
             exit 1
           fi
