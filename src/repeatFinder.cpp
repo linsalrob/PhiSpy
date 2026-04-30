@@ -326,6 +326,7 @@ void run() {
 }
 
 
+#ifndef PHISPY_PYTHON_MODULE
 int main(int argc, char **argv)
 {
 	int i;
@@ -368,6 +369,7 @@ int main(int argc, char **argv)
     write_dna();
 	return 0;
 }
+#endif /* PHISPY_PYTHON_MODULE */
 
 PyObject *
 python_input(PyObject *self, PyObject *args) {

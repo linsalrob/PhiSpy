@@ -5,7 +5,8 @@ ext_modules = [
     Extension(
         "PhiSpyRepeatFinder",
         sources=["src/repeatFinder.cpp"],
-        language='c++'
+        language='c++',
+        define_macros=[("PHISPY_PYTHON_MODULE", "1")]
     )
 ]
 
