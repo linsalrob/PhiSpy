@@ -43,8 +43,31 @@ jobs:
 
       - name: Build Pyodide wheels
         uses: pypa/cibuildwheel@v3.4.1
-        with:
-          platform: pyodide
+        env:
+          CIBW_PLATFORM: pyodide
+
+      - name: Verify Pyodide wheel names
+        run: |
+          set -euo pipefail
+
+          echo "Built wheels:"
+          ls -lh wheelhouse/
+
+          if ls wheelhouse/*manylinux*.whl wheelhouse/*linux_x86_64*.whl wheelhouse/*macosx*.whl wheelhouse/*win_amd64*.whl 2>/dev/null; then
+            echo "ERROR: Pyodide job produced native platform wheels, not Pyodide/Emscripten wheels"
+            exit 1
+          fi
+
+          if ! ls wheelhouse/*.whl >/dev/null 2>&1; then
+            echo "ERROR: No wheels were produced"
+            exit 1
+          fi
+
+          if ! ls wheelhouse/*emscripten*.whl wheelhouse/*pyodide*.whl wheelhouse/*wasm32*.whl wheelhouse/*py3-none-any*.whl >/dev/null 2>&1; then
+            echo "ERROR: No Pyodide/Emscripten-compatible wheel name found"
+            echo "Expected a wheel filename containing one of: emscripten, pyodide, wasm32, py3-none-any"
+            exit 1
+          fi
 
       - name: Upload Pyodide wheel artifacts
         uses: actions/upload-artifact@v7
@@ -125,6 +148,23 @@ jobs:
         with:
           name: wheels-pyodide
           path: pyodide-wheelhouse/
+
+      - name: Verify downloaded Pyodide wheels
+        run: |
+          set -euo pipefail
+
+          echo "Downloaded Pyodide wheel files:"
+          ls -lh pyodide-wheelhouse/
+
+          if ls pyodide-wheelhouse/*manylinux*.whl pyodide-wheelhouse/*linux_x86_64*.whl pyodide-wheelhouse/*macosx*.whl pyodide-wheelhouse/*win_amd64*.whl 2>/dev/null; then
+            echo "ERROR: downloaded Pyodide artifact contains native platform wheels"
+            exit 1
+          fi
+
+          if ! ls pyodide-wheelhouse/*emscripten*.whl pyodide-wheelhouse/*pyodide*.whl pyodide-wheelhouse/*wasm32*.whl pyodide-wheelhouse/*py3-none-any*.whl >/dev/null 2>&1; then
+            echo "ERROR: downloaded artifact does not contain a Pyodide/Emscripten-compatible wheel"
+            exit 1
+          fi
 
       - name: Show Pyodide wheels
         run: |
