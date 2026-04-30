@@ -1,0 +1,79 @@
+# Build binary wheels (Linux, macOS, Windows) and Pyodide/Emscripten wheels
+# using cibuildwheel, then upload all artifacts for each run.
+# See: https://cibuildwheel.pypa.io/en/stable/options/#platform
+#      https://pyodide-build.readthedocs.io/en/latest/
+
+name: Build Wheels
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22.0
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  build_pyodide_wheels:
+    name: Build Pyodide/Emscripten wheels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Build Pyodide wheels
+        uses: pypa/cibuildwheel@v2.22.0
+        with:
+          platform: pyodide
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-pyodide
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz

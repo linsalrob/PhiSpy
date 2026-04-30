@@ -56,3 +56,10 @@ script-files = [
 [tool.setuptools.package-data]
 PhiSpyModules = ["data/*.txt", "data/testSets/*"]
 
+[tool.cibuildwheel]
+build = ["cp39-*", "cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+skip = ["*-musllinux*", "*-win32", "*-manylinux_i686"]
+
+[tool.cibuildwheel.pyodide]
+environment = {CXXFLAGS = "-fwasm-exceptions", LDFLAGS = "-fwasm-exceptions"}
+
