@@ -193,3 +193,65 @@ jobs:
           gh release upload "$RELEASE_TAG" pyodide-wheelhouse/*.whl \
           --repo "${{ github.repository }}" \
           --clobber
+
+  attach_training_sets_json_to_release:
+    name: Attach training-sets.json to GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PhiSpy
+        run: pip install .
+
+      - name: Generate training-set metadata
+        run: |
+          python scripts/generate_training_sets_json.py --output release-assets/training-sets.json
+
+      - name: Validate training-sets.json
+        run: |
+          set -euo pipefail
+
+          if [ ! -f release-assets/training-sets.json ]; then
+            echo "ERROR: release-assets/training-sets.json was not created"
+            exit 1
+          fi
+
+          python - <<'EOF'
+          import json, sys
+          with open("release-assets/training-sets.json") as fh:
+              data = json.load(fh)
+          required_top = {"phispyVersion", "schemaVersion", "trainingSets"}
+          missing_top = required_top - data.keys()
+          if missing_top:
+              print(f"ERROR: missing top-level keys: {missing_top}", file=sys.stderr)
+              sys.exit(1)
+          required_entry = {"value", "count", "genomeFile", "label"}
+          for ts in data["trainingSets"]:
+              missing = required_entry - ts.keys()
+              if missing:
+                  print(f"ERROR: entry {ts} missing keys: {missing}", file=sys.stderr)
+                  sys.exit(1)
+          print(f"OK: {len(data['trainingSets'])} training sets, version {data['phispyVersion']}")
+          EOF
+
+      - name: Show target release tag
+        run: |
+          echo "Target release tag: $RELEASE_TAG"
+
+      - name: Upload training-set metadata to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$RELEASE_TAG" release-assets/training-sets.json \
+            --repo "${{ github.repository }}" \
+            --clobber
